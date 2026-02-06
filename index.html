@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChronoFlow - Ton Assistant Planning IA</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <div class="logo-icon">⚡</div>
+                <h1>ChronoFlow</h1>
+            </div>
+            <div class="header-stats">
+                <div class="stat-badge">
+                    <span class="stat-icon">🔥</span>
+                    <span class="stat-value" id="streak">0</span>
+                    <span class="stat-label">jours</span>
+                </div>
+                <div class="user-profile">
+                    <div class="profile-icon">👤</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <nav class="nav-menu">
+                    <button class="nav-item active" data-view="calendar">
+                        <span class="nav-icon">📅</span>
+                        <span>Calendrier</span>
+                    </button>
+                    <button class="nav-item" data-view="insights">
+                        <span class="nav-icon">📊</span>
+                        <span>Insights</span>
+                    </button>
+                    <button class="nav-item" data-view="templates">
+                        <span class="nav-icon">⚙️</span>
+                        <span>Templates</span>
+                    </button>
+                    <button class="nav-item" data-view="badges">
+                        <span class="nav-icon">🏆</span>
+                        <span>Badges</span>
+                    </button>
+                </nav>
+
+                <div class="sync-section">
+                    <h3>Synchronisation</h3>
+                    <button class="sync-btn google">
+                        <span class="sync-icon">📗</span>
+                        Google Calendar
+                    </button>
+                    <button class="sync-btn apple">
+                        <span class="sync-icon">🍎</span>
+                        Apple Calendar
+                    </button>
+                    <button class="sync-btn notion">
+                        <span class="sync-icon">📝</span>
+                        Notion Calendar
+                    </button>
+                </div>
+
+                <div class="template-quick">
+                    <h3>Template actif</h3>
+                    <select id="templateSelect" class="template-selector">
+                        <option value="none">Aucun</option>
+                        <option value="student">🎓 Étudiant en examen</option>
+                        <option value="freelance">💼 Freelance équilibré</option>
+                        <option value="parent">👨‍👩‍👧 Parent actif</option>
+                    </select>
+                </div>
+            </aside>
+
+            <!-- Content Area -->
+            <div class="content-area">
+                <!-- AI Input Section -->
+                <div class="ai-input-section">
+                    <div class="input-wrapper">
+                        <textarea 
+                            id="aiInput" 
+                            placeholder="Dis-moi ce que tu veux planifier... 
+Ex: 'J'ai un examen le 15 mars, réviser 2h par jour' ou 'Voir mes amis ce weekend'"
+                            rows="2"
+                        ></textarea>
+                        <button class="send-btn" id="sendBtn">
+                            <span>Planifier</span>
+                            <span class="send-icon">→</span>
+                        </button>
+                    </div>
+                    <div class="quick-actions">
+                        <button class="quick-btn" data-text="Je veux voir mes amis cette semaine">👥 Voir amis</button>
+                        <button class="quick-btn" data-text="Réviser 2h par jour">📚 Révisions</button>
+                        <button class="quick-btn" data-text="Sport 3 fois cette semaine">🏃 Sport</button>
+                        <button class="quick-btn" data-text="Temps libre vendredi soir">🎉 Temps libre</button>
+                    </div>
+                </div>
+
+                <!-- View Container -->
+                <div id="viewContainer">
+                    <!-- Calendar View (Default) -->
+                    <div id="calendarView" class="view active">
+                        <div class="view-header">
+                            <h2>Mon Planning</h2>
+                            <div class="calendar-controls">
+                                <button class="control-btn" id="prevWeek">←</button>
+                                <span class="current-week" id="currentWeek">Cette semaine</span>
+                                <button class="control-btn" id="nextWeek">→</button>
+                            </div>
+                        </div>
+                        
+                        <div class="calendar-grid" id="calendarGrid">
+                            <!-- Generated dynamically -->
+                        </div>
+
+                        <div class="events-list">
+                            <h3>Événements planifiés</h3>
+                            <div id="eventsList" class="events-container">
+                                <!-- Generated dynamically -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Insights View -->
+                    <div id="insightsView" class="view">
+                        <div class="view-header">
+                            <h2>Tes Insights IA</h2>
+                        </div>
+                        
+                        <div class="insights-grid">
+                            <div class="insight-card productivity">
+                                <div class="insight-icon">☀️</div>
+                                <h3>Productivité optimale</h3>
+                                <p class="insight-main" id="bestTime">Tu es plus productif le matin</p>
+                                <p class="insight-detail">Basé sur tes 15 derniers jours d'activité</p>
+                            </div>
+
+                            <div class="insight-card balance">
+                                <div class="insight-icon">⚖️</div>
+                                <h3>Équilibre vie/travail</h3>
+                                <div class="balance-score">
+                                    <div class="score-circle">
+                                        <span class="score-value" id="balanceScore">78</span>
+                                        <span class="score-percent">%</span>
+                                    </div>
+                                </div>
+                                <p class="insight-detail">Bon équilibre cette semaine !</p>
+                            </div>
+
+                            <div class="insight-card warning">
+                                <div class="insight-icon">⚠️</div>
+                                <h3>Prédiction semaine prochaine</h3>
+                                <p class="insight-main" id="prediction">Ta semaine prochaine risque d'être chargée</p>
+                                <p class="insight-detail">3 examens + 2 projets détectés</p>
+                            </div>
+
+                            <div class="insight-card social">
+                                <div class="insight-icon">🤝</div>
+                                <h3>Vie sociale</h3>
+                                <p class="insight-main" id="socialInsight">Tu n'as pas vu tes amis depuis 8 jours</p>
+                                <button class="insight-action">Planifier une sortie</button>
+                            </div>
+                        </div>
+
+                        <div class="stats-chart">
+                            <h3>Répartition du temps (7 derniers jours)</h3>
+                            <div class="chart-bars" id="timeChart">
+                                <!-- Generated dynamically -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Templates View -->
+                    <div id="templatesView" class="view">
+                        <div class="view-header">
+                            <h2>Templates de Vie</h2>
+                        </div>
+
+                        <div class="templates-grid">
+                            <div class="template-card" data-template="student">
+                                <div class="template-header">
+                                    <span class="template-emoji">🎓</span>
+                                    <h3>Étudiant en examen</h3>
+                                </div>
+                                <p class="template-desc">Optimise ton temps de révision avec des sessions espacées et des pauses régulières</p>
+                                <ul class="template-features">
+                                    <li>✓ Blocs de révision 2-3h</li>
+                                    <li>✓ Pauses de 15min toutes les heures</li>
+                                    <li>✓ Sommeil minimum 7h</li>
+                                    <li>✓ Rappels avant examens</li>
+                                </ul>
+                                <button class="template-activate">Activer</button>
+                            </div>
+
+                            <div class="template-card" data-template="freelance">
+                                <div class="template-header">
+                                    <span class="template-emoji">💼</span>
+                                    <h3>Freelance équilibré</h3>
+                                </div>
+                                <p class="template-desc">Balance projets clients, développement perso et vie privée</p>
+                                <ul class="template-features">
+                                    <li>✓ Deep work sessions 4h/jour</li>
+                                    <li>✓ Time blocking automatique</li>
+                                    <li>✓ Frontières travail/perso</li>
+                                    <li>✓ Journées sans réunions</li>
+                                </ul>
+                                <button class="template-activate">Activer</button>
+                            </div>
+
+                            <div class="template-card" data-template="parent">
+                                <div class="template-header">
+                                    <span class="template-emoji">👨‍👩‍👧</span>
+                                    <h3>Parent actif</h3>
+                                </div>
+                                <p class="template-desc">Jongle entre famille, travail et temps personnel</p>
+                                <ul class="template-features">
+                                    <li>✓ Créneaux famille protégés</li>
+                                    <li>✓ Tâches ménagères réparties</li>
+                                    <li>✓ Time for yourself</li>
+                                    <li>✓ Synchronisation multi-calendriers</li>
+                                </ul>
+                                <button class="template-activate">Activer</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Badges View -->
+                    <div id="badgesView" class="view">
+                        <div class="view-header">
+                            <h2>Tes Accomplissements</h2>
+                        </div>
+
+                        <div class="streak-display">
+                            <div class="streak-flame">🔥</div>
+                            <div class="streak-info">
+                                <h3><span id="streakDays">0</span> jours de suite</h3>
+                                <p>Continue comme ça pour débloquer le badge "Semaine Parfaite" !</p>
+                            </div>
+                        </div>
+
+                        <div class="badges-grid" id="badgesGrid">
+                            <!-- Generated dynamically -->
+                        </div>
+
+                        <div class="calendar-heatmap">
+                            <h3>Ton activité des 30 derniers jours</h3>
+                            <div class="heatmap-grid" id="heatmapGrid">
+                                <!-- Generated dynamically -->
+                            </div>
+                            <div class="heatmap-legend">
+                                <span>Moins</span>
+                                <div class="legend-boxes">
+                                    <div class="legend-box level-0"></div>
+                                    <div class="legend-box level-1"></div>
+                                    <div class="legend-box level-2"></div>
+                                    <div class="legend-box level-3"></div>
+                                    <div class="legend-box level-4"></div>
+                                </div>
+                                <span>Plus</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Response Toast -->
+        <div class="toast" id="toast">
+            <div class="toast-icon">✨</div>
+            <div class="toast-content">
+                <p class="toast-message" id="toastMessage"></p>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
