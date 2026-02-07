@@ -3,430 +3,350 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChronoFlow - Ton Assistant Planning IA</title>
+    <title>ChronoFlow - Assistant Planning IA</title>
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Crimson+Pro:wght@600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="app-container">
-        <!-- Header -->
-        <header class="header">
-            <div class="logo">
-                <div class="logo-icon">⚡</div>
-                <h1>ChronoFlow</h1>
+    <!-- Onboarding Modal (First time) -->
+    <div class="modal onboarding-modal" id="onboardingModal">
+        <div class="modal-content onboarding-content">
+            <div class="onboarding-header">
+                <h1>⚡ Bienvenue sur ChronoFlow</h1>
+                <p>Ton assistant planning intelligent</p>
             </div>
-            <div class="header-stats">
-                <button class="theme-toggle" id="themeToggle" title="Changer le thème">
+            <div class="onboarding-body">
+                <div class="onboarding-step active" data-step="1">
+                    <h2>Créons ton profil</h2>
+                    <div class="profile-setup">
+                        <div class="avatar-upload">
+                            <div class="avatar-preview" id="avatarPreview">📸</div>
+                            <input type="file" id="avatarInput" accept="image/*" style="display: none;">
+                            <button class="avatar-btn" onclick="document.getElementById('avatarInput').click()">
+                                Choisir une photo
+                            </button>
+                        </div>
+                        <div class="form-group">
+                            <label>Ton prénom</label>
+                            <input type="text" id="onboardingName" placeholder="Ex: Marie" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Email (optionnel)</label>
+                            <input type="email" id="onboardingEmail" placeholder="marie@exemple.com">
+                        </div>
+                    </div>
+                    <button class="btn-primary" onclick="completeOnboarding()">C'est parti ! 🚀</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="app-container">
+        <!-- Compact Header -->
+        <header class="header-compact">
+            <div class="header-left">
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <span class="toggle-icon">☰</span>
+                </button>
+                <div class="logo-compact">
+                    <span class="logo-icon">⚡</span>
+                    <h1>ChronoFlow</h1>
+                </div>
+            </div>
+            <div class="header-right">
+                <button class="theme-toggle" id="themeToggle" title="Mode sombre">
                     <span class="theme-icon">🌙</span>
                 </button>
-                <div class="stat-badge">
-                    <span class="stat-icon">🔥</span>
-                    <span class="stat-value" id="streak">0</span>
-                    <span class="stat-label">jours</span>
+                <div class="streak-compact">
+                    <span class="streak-icon">🔥</span>
+                    <span class="streak-value" id="headerStreak">0</span>
                 </div>
-                <button class="user-profile" id="profileBtn">
-                    <div class="profile-icon">👤</div>
+                <button class="profile-btn" id="profileBtn" title="Mon profil">
+                    <img src="" alt="" id="headerAvatar" style="display: none;">
+                    <span id="headerAvatarFallback">👤</span>
                 </button>
             </div>
         </header>
 
-        <!-- Main Content -->
-        <div class="main-content">
-            <!-- Sidebar -->
-            <aside class="sidebar">
+        <div class="main-layout">
+            <!-- Collapsible Sidebar -->
+            <aside class="sidebar" id="sidebar">
                 <nav class="nav-menu">
                     <button class="nav-item active" data-view="planning">
                         <span class="nav-icon">📋</span>
-                        <span>Planning</span>
+                        <span class="nav-label">Planning</span>
                     </button>
                     <button class="nav-item" data-view="calendar">
                         <span class="nav-icon">📅</span>
-                        <span>Calendrier</span>
+                        <span class="nav-label">Calendrier</span>
                     </button>
                     <button class="nav-item" data-view="insights">
                         <span class="nav-icon">📊</span>
-                        <span>Insights IA</span>
+                        <span class="nav-label">Insights</span>
                     </button>
                     <button class="nav-item" data-view="templates">
                         <span class="nav-icon">⚙️</span>
-                        <span>Templates</span>
+                        <span class="nav-label">Templates</span>
                     </button>
                     <button class="nav-item" data-view="badges">
                         <span class="nav-icon">🏆</span>
-                        <span>Badges</span>
+                        <span class="nav-label">Badges</span>
                     </button>
                 </nav>
 
-                <div class="sync-section">
+                <div class="sidebar-section">
                     <h3>Synchronisation</h3>
-                    <button class="sync-btn google" id="syncGoogle">
+                    <button class="sync-btn" id="syncGoogle" data-platform="google">
                         <span class="sync-icon">📗</span>
                         <span>Google Calendar</span>
-                        <span class="sync-status" id="googleStatus"></span>
+                        <span class="sync-status"></span>
                     </button>
-                    <button class="sync-btn apple" id="syncApple">
+                    <button class="sync-btn" id="syncApple" data-platform="apple">
                         <span class="sync-icon">🍎</span>
                         <span>Apple Calendar</span>
-                        <span class="sync-status" id="appleStatus"></span>
+                        <span class="sync-status"></span>
                     </button>
-                    <button class="sync-btn notion" id="syncNotion">
+                    <button class="sync-btn" id="syncNotion" data-platform="notion">
                         <span class="sync-icon">📝</span>
-                        <span>Notion Calendar</span>
-                        <span class="sync-status" id="notionStatus"></span>
+                        <span>Notion</span>
+                        <span class="sync-status"></span>
                     </button>
                 </div>
 
-                <div class="template-quick">
-                    <h3>Template actif</h3>
-                    <select id="templateSelect" class="template-selector">
-                        <option value="none">Aucun</option>
-                        <option value="student">🎓 Étudiant en examen</option>
-                        <option value="freelance">💼 Freelance équilibré</option>
-                        <option value="parent">👨‍👩‍👧 Parent actif</option>
-                    </select>
-                </div>
-
-                <div class="ai-status">
+                <div class="sidebar-section">
                     <h3>IA Status</h3>
-                    <div class="status-indicator">
-                        <span class="status-dot" id="aiStatusDot"></span>
-                        <span id="aiStatusText">Simulée (gratuite)</span>
+                    <div class="ai-status-compact">
+                        <span class="status-dot"></span>
+                        <span class="status-text">Simulée</span>
                     </div>
-                    <button class="config-btn" id="configAI">⚙️ Configuration</button>
                 </div>
             </aside>
 
-            <!-- Content Area -->
-            <div class="content-area">
-                <!-- AI Input Section -->
-                <div class="ai-input-section">
-                    <div class="input-wrapper">
+            <!-- Main Content -->
+            <main class="content-main">
+                <!-- AI Input (only on planning view) -->
+                <div class="ai-input-container" id="aiInputContainer">
+                    <div class="input-box">
                         <textarea 
                             id="aiInput" 
-                            placeholder="Parle-moi naturellement... 
-Ex: 'J'ai un examen important le 15 mars, je dois réviser 2h par jour'
-'Je suis fatigué cette semaine, mets du temps libre'
-'Voir mes amis samedi soir'"
+                            placeholder="Dis-moi ce que tu veux planifier...
+Ex: 'Réviser maths 2h par jour cette semaine', 'Voir mes amis samedi soir', 'Sport 3 fois cette semaine'"
                             rows="3"
                         ></textarea>
-                        <button class="send-btn" id="sendBtn">
-                            <span id="sendBtnText">Générer mon planning</span>
-                            <span class="send-icon">✨</span>
-                        </button>
-                    </div>
-                    <div class="quick-actions">
-                        <button class="quick-btn" data-text="Je suis fatigué cette semaine, plus de temps libre">😴 Fatigué</button>
-                        <button class="quick-btn" data-text="J'ai un examen important dans 2 semaines">📚 Examen</button>
-                        <button class="quick-btn" data-text="Je veux voir mes amis ce weekend">👥 Voir amis</button>
-                        <button class="quick-btn" data-text="Sport 3 fois cette semaine">🏃 Sport</button>
-                        <button class="quick-btn" data-text="Je travaille trop, besoin d'équilibre">⚖️ Équilibre</button>
-                    </div>
-                    <div class="ai-suggestions" id="aiSuggestions">
-                        <!-- AI suggestions will appear here -->
+                        <div class="input-actions">
+                            <div class="quick-tags" id="quickTags">
+                                <button class="tag-btn" data-tag="😴 Fatigué">😴</button>
+                                <button class="tag-btn" data-tag="📚 Examen">📚</button>
+                                <button class="tag-btn" data-tag="👥 Amis">👥</button>
+                                <button class="tag-btn" data-tag="🏃 Sport">🏃</button>
+                                <button class="tag-btn" data-tag="⚖️ Équilibre">⚖️</button>
+                            </div>
+                            <button class="btn-generate" id="generateBtn">
+                                <span id="generateText">Générer mon planning</span>
+                                <span class="btn-icon">✨</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
-                <!-- View Container -->
-                <div id="viewContainer">
-                    <!-- Planning View (New - Default) -->
-                    <div id="planningView" class="view active">
+                <!-- Views Container -->
+                <div class="views-container">
+                    <!-- Planning View -->
+                    <div class="view active" id="planningView">
                         <div class="view-header">
-                            <h2>Mon Planning Intelligent</h2>
-                            <div class="planning-controls">
-                                <button class="control-btn" id="prevWeekPlanning">←</button>
-                                <span class="current-period" id="currentPeriod">Cette semaine</span>
-                                <button class="control-btn" id="nextWeekPlanning">→</button>
-                                <select id="viewMode" class="view-mode-select">
-                                    <option value="week">Semaine</option>
-                                    <option value="day">Jour</option>
-                                </select>
+                            <h2>Mon Planning</h2>
+                            <div class="view-controls">
+                                <button class="control-btn" id="prevWeek">←</button>
+                                <span class="period-label" id="periodLabel">Cette semaine</span>
+                                <button class="control-btn" id="nextWeek">→</button>
                             </div>
                         </div>
 
                         <div class="priority-legend">
-                            <span class="legend-title">Priorités :</span>
-                            <span class="priority-badge critical">🔴 Critique</span>
-                            <span class="priority-badge high">🟠 Haute</span>
-                            <span class="priority-badge medium">🟡 Moyenne</span>
-                            <span class="priority-badge low">🟢 Basse</span>
-                        </div>
-                        
-                        <div class="planning-container" id="planningContainer">
-                            <!-- Generated dynamically -->
+                            <span class="legend-label">Priorités :</span>
+                            <span class="priority-tag critical">🔴 Critique</span>
+                            <span class="priority-tag high">🟠 Haute</span>
+                            <span class="priority-tag medium">🟡 Moyenne</span>
+                            <span class="priority-tag low">🟢 Basse</span>
                         </div>
 
-                        <div class="events-list">
-                            <h3>Tous mes événements</h3>
-                            <div class="events-filters">
-                                <button class="filter-btn active" data-filter="all">Tous</button>
-                                <button class="filter-btn" data-filter="study">Études</button>
-                                <button class="filter-btn" data-filter="work">Travail</button>
-                                <button class="filter-btn" data-filter="social">Social</button>
-                                <button class="filter-btn" data-filter="personal">Personnel</button>
+                        <div class="planning-grid" id="planningGrid">
+                            <div class="empty-state">
+                                <div class="empty-icon">📅</div>
+                                <h3>Ton planning est vide</h3>
+                                <p>Utilise l'assistant IA ci-dessus pour commencer à planifier tes journées</p>
                             </div>
-                            <div id="eventsList" class="events-container">
-                                <!-- Generated dynamically -->
+                        </div>
+
+                        <div class="events-sections">
+                            <div class="events-section">
+                                <h3>📍 Aujourd'hui</h3>
+                                <div class="events-list" id="todayEvents">
+                                    <p class="empty-text">Aucun événement aujourd'hui</p>
+                                </div>
+                            </div>
+
+                            <div class="events-section">
+                                <h3>📅 À venir</h3>
+                                <div class="events-list" id="upcomingEvents">
+                                    <p class="empty-text">Aucun événement à venir</p>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Calendar View -->
-                    <div id="calendarView" class="view">
+                    <div class="view" id="calendarView">
                         <div class="view-header">
                             <h2>Calendrier</h2>
-                            <div class="calendar-controls">
-                                <button class="control-btn" id="prevWeek">←</button>
-                                <span class="current-week" id="currentWeek">Cette semaine</span>
-                                <button class="control-btn" id="nextWeek">→</button>
+                            <div class="view-controls">
+                                <button class="control-btn" id="calPrevWeek">←</button>
+                                <span class="period-label" id="calPeriodLabel">Cette semaine</span>
+                                <button class="control-btn" id="calNextWeek">→</button>
                             </div>
                         </div>
-                        
-                        <div class="calendar-grid" id="calendarGrid">
-                            <!-- Generated dynamically -->
-                        </div>
+                        <div class="calendar-grid" id="calendarGrid"></div>
                     </div>
 
                     <!-- Insights View -->
-                    <div id="insightsView" class="view">
+                    <div class="view" id="insightsView">
                         <div class="view-header">
-                            <h2>Tes Insights IA 🤖</h2>
+                            <h2>Insights IA 🤖</h2>
                         </div>
-                        
-                        <div class="insights-grid">
-                            <div class="insight-card productivity">
-                                <div class="insight-icon">☀️</div>
-                                <h3>Productivité optimale</h3>
-                                <p class="insight-main" id="bestTime">Analyse en cours...</p>
-                                <p class="insight-detail" id="productivityDetail">Basé sur tes activités</p>
-                            </div>
-
-                            <div class="insight-card balance">
-                                <div class="insight-icon">⚖️</div>
-                                <h3>Équilibre vie/travail</h3>
-                                <div class="balance-score">
-                                    <div class="score-circle" id="scoreCircle">
-                                        <span class="score-value" id="balanceScore">--</span>
-                                        <span class="score-percent">%</span>
-                                    </div>
-                                </div>
-                                <p class="insight-detail" id="balanceDetail">Calculé sur 7 jours</p>
-                            </div>
-
-                            <div class="insight-card warning">
-                                <div class="insight-icon">⚠️</div>
-                                <h3>Alertes & Prédictions</h3>
-                                <p class="insight-main" id="prediction">Analyse en cours...</p>
-                                <p class="insight-detail" id="predictionDetail">Basé sur ton agenda</p>
-                            </div>
-
-                            <div class="insight-card social">
-                                <div class="insight-icon">🤝</div>
-                                <h3>Vie sociale</h3>
-                                <p class="insight-main" id="socialInsight">Analyse en cours...</p>
-                                <button class="insight-action" id="planSocial">Planifier une sortie</button>
-                            </div>
-
-                            <div class="insight-card energy">
-                                <div class="insight-icon">⚡</div>
-                                <h3>Niveau d'énergie</h3>
-                                <p class="insight-main" id="energyInsight">Optimal</p>
-                                <p class="insight-detail" id="energyDetail">Tu gères bien ta charge</p>
-                            </div>
-
-                            <div class="insight-card recommendations">
-                                <div class="insight-icon">💡</div>
-                                <h3>Recommandations IA</h3>
-                                <div id="aiRecommendations" class="recommendations-list">
-                                    <!-- Generated dynamically -->
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="stats-chart">
-                            <h3>Répartition du temps (7 derniers jours)</h3>
-                            <div class="chart-bars" id="timeChart">
-                                <!-- Generated dynamically -->
-                            </div>
-                        </div>
+                        <div class="insights-grid" id="insightsGrid"></div>
                     </div>
 
                     <!-- Templates View -->
-                    <div id="templatesView" class="view">
+                    <div class="view" id="templatesView">
                         <div class="view-header">
-                            <h2>Templates de Vie</h2>
+                            <h2>Templates</h2>
                         </div>
-
-                        <div class="templates-grid" id="templatesGrid">
-                            <!-- Generated dynamically -->
-                        </div>
+                        <div class="templates-grid" id="templatesGrid"></div>
                     </div>
 
                     <!-- Badges View -->
-                    <div id="badgesView" class="view">
+                    <div class="view" id="badgesView">
                         <div class="view-header">
-                            <h2>Tes Accomplissements 🏆</h2>
+                            <h2>Tes Badges 🏆</h2>
                         </div>
-
                         <div class="streak-display">
                             <div class="streak-flame">🔥</div>
                             <div class="streak-info">
                                 <h3><span id="streakDays">0</span> jours de suite</h3>
-                                <p id="streakMessage">Continue comme ça !</p>
-                                <div class="streak-progress">
-                                    <div class="progress-bar">
-                                        <div class="progress-fill" id="streakProgress"></div>
-                                    </div>
-                                    <span class="progress-text" id="streakGoal">Prochain: Semaine Parfaite (7 jours)</span>
-                                </div>
+                                <p id="streakMessage">Utilise l'app chaque jour pour augmenter ton streak !</p>
                             </div>
                         </div>
-
-                        <div class="badges-grid" id="badgesGrid">
-                            <!-- Generated dynamically -->
-                        </div>
-
-                        <div class="calendar-heatmap">
-                            <h3>Ton activité des 60 derniers jours</h3>
-                            <div class="heatmap-grid" id="heatmapGrid">
-                                <!-- Generated dynamically -->
-                            </div>
-                            <div class="heatmap-legend">
-                                <span>Moins actif</span>
-                                <div class="legend-boxes">
-                                    <div class="legend-box level-0"></div>
-                                    <div class="legend-box level-1"></div>
-                                    <div class="legend-box level-2"></div>
-                                    <div class="legend-box level-3"></div>
-                                    <div class="legend-box level-4"></div>
-                                </div>
-                                <span>Très actif</span>
-                            </div>
-                        </div>
+                        <div class="badges-grid" id="badgesGrid"></div>
                     </div>
 
-                    <!-- Profile View -->
-                    <div id="profileView" class="view">
+                    <!-- Profile View (NO AI INPUT) -->
+                    <div class="view" id="profileView">
                         <div class="view-header">
                             <h2>Mon Profil</h2>
                         </div>
-
-                        <div class="profile-container">
+                        <div class="profile-content">
                             <div class="profile-card">
-                                <div class="profile-avatar">
-                                    <div class="avatar-icon">👤</div>
+                                <div class="profile-avatar-large">
+                                    <img src="" alt="" id="profileAvatar" style="display: none;">
+                                    <span id="profileAvatarFallback">👤</span>
                                 </div>
-                                <div class="profile-info">
-                                    <h3 id="userName">Utilisateur</h3>
-                                    <p class="profile-email" id="userEmail">Nouvel utilisateur</p>
-                                    <span class="profile-badge">Membre depuis <span id="memberSince">aujourd'hui</span></span>
-                                </div>
+                                <h3 id="profileName">Utilisateur</h3>
+                                <p id="profileEmail"></p>
                             </div>
 
-                            <div class="profile-stats-grid">
-                                <div class="stat-card">
-                                    <div class="stat-icon">📅</div>
-                                    <div class="stat-data">
-                                        <span class="stat-number" id="totalEvents">0</span>
-                                        <span class="stat-label">Événements créés</span>
-                                    </div>
+                            <div class="profile-stats">
+                                <div class="stat-box">
+                                    <span class="stat-value" id="totalEvents">0</span>
+                                    <span class="stat-label">Événements</span>
                                 </div>
-                                <div class="stat-card">
-                                    <div class="stat-icon">🔥</div>
-                                    <div class="stat-data">
-                                        <span class="stat-number" id="bestStreak">0</span>
-                                        <span class="stat-label">Meilleur streak</span>
-                                    </div>
+                                <div class="stat-box">
+                                    <span class="stat-value" id="profileStreak">0</span>
+                                    <span class="stat-label">Jours de suite</span>
                                 </div>
-                                <div class="stat-card">
-                                    <div class="stat-icon">⏱️</div>
-                                    <div class="stat-data">
-                                        <span class="stat-number" id="totalHours">0</span>
-                                        <span class="stat-label">Heures planifiées</span>
-                                    </div>
-                                </div>
-                                <div class="stat-card">
-                                    <div class="stat-icon">🏆</div>
-                                    <div class="stat-data">
-                                        <span class="stat-number" id="badgesEarned">0</span>
-                                        <span class="stat-label">Badges débloqués</span>
-                                    </div>
+                                <div class="stat-box">
+                                    <span class="stat-value" id="totalHours">0</span>
+                                    <span class="stat-label">Heures planifiées</span>
                                 </div>
                             </div>
 
                             <div class="profile-settings">
                                 <h3>Paramètres</h3>
-                                <div class="settings-group">
-                                    <label>Nom d'utilisateur</label>
-                                    <input type="text" id="userNameInput" placeholder="Ton nom">
+                                <div class="form-group">
+                                    <label>Nom</label>
+                                    <input type="text" id="profileNameInput">
                                 </div>
-                                <div class="settings-group">
-                                    <label>Heures de travail préférées</label>
-                                    <select id="preferredWorkTime">
-                                        <option value="morning">Matin (6h-12h)</option>
-                                        <option value="afternoon">Après-midi (12h-18h)</option>
-                                        <option value="evening">Soir (18h-22h)</option>
-                                    </select>
+                                <div class="form-group">
+                                    <label>Email</label>
+                                    <input type="email" id="profileEmailInput">
                                 </div>
-                                <div class="settings-group">
-                                    <label>Clé API Claude (optionnel)</label>
-                                    <input type="password" id="apiKeyInput" placeholder="sk-ant-...">
-                                    <small>Pour activer l'IA Claude réelle. <a href="https://console.anthropic.com" target="_blank">Obtenir une clé</a></small>
+                                <div class="form-group">
+                                    <label>Photo de profil</label>
+                                    <input type="file" id="profileAvatarInput" accept="image/*">
                                 </div>
-                                <button class="save-settings-btn" id="saveSettings">💾 Sauvegarder</button>
+                                <button class="btn-primary" id="saveProfile">Sauvegarder</button>
                             </div>
                         </div>
                     </div>
                 </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Template Configuration Modal -->
+    <div class="modal" id="templateModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Configuration du template</h2>
+                <button class="modal-close" id="closeTemplateModal">✕</button>
+            </div>
+            <div class="modal-body" id="templateModalBody">
+                <!-- Dynamic content -->
             </div>
         </div>
+    </div>
 
-        <!-- AI Config Modal -->
-        <div class="modal" id="aiConfigModal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2>Configuration IA</h2>
-                    <button class="modal-close" id="closeAIConfig">✕</button>
-                </div>
-                <div class="modal-body">
-                    <p>ChronoFlow peut fonctionner avec :</p>
-                    <div class="ai-options">
-                        <div class="ai-option">
-                            <input type="radio" name="aiMode" value="simulated" id="aiSimulated" checked>
-                            <label for="aiSimulated">
-                                <strong>IA Simulée (Gratuit)</strong>
-                                <span>Analyse intelligente basée sur des règles</span>
-                            </label>
-                        </div>
-                        <div class="ai-option">
-                            <input type="radio" name="aiMode" value="claude" id="aiClaude">
-                            <label for="aiClaude">
-                                <strong>Claude IA Réelle (Payant)</strong>
-                                <span>Compréhension naturelle avancée - Nécessite clé API</span>
-                            </label>
-                        </div>
-                    </div>
-                    <div class="api-key-section" id="apiKeySection" style="display: none;">
-                        <label>Clé API Claude:</label>
-                        <input type="password" id="apiKeyConfig" placeholder="sk-ant-api03-...">
-                        <small>Obtiens ta clé sur <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a></small>
-                    </div>
-                    <button class="modal-save-btn" id="saveAIConfig">Sauvegarder</button>
+    <!-- Workload Alert Modal -->
+    <div class="modal alert-modal" id="workloadModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="workloadTitle">⚠️ Attention</h2>
+            </div>
+            <div class="modal-body">
+                <p id="workloadMessage"></p>
+                <div class="modal-actions">
+                    <button class="btn-secondary" id="workloadKeep">Garder ce planning</button>
+                    <button class="btn-primary" id="workloadAdjust">Ajuster automatiquement</button>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Toast Notification -->
-        <div class="toast" id="toast">
-            <div class="toast-icon">✨</div>
-            <div class="toast-content">
-                <p class="toast-message" id="toastMessage"></p>
+    <!-- Sync Progress Modal -->
+    <div class="modal" id="syncModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Synchronisation</h2>
+            </div>
+            <div class="modal-body">
+                <div class="sync-progress">
+                    <div class="sync-spinner"></div>
+                    <p id="syncMessage">Synchronisation en cours...</p>
+                </div>
             </div>
         </div>
+    </div>
 
-        <!-- Loading Overlay -->
-        <div class="loading-overlay" id="loadingOverlay">
+    <!-- Toast -->
+    <div class="toast" id="toast">
+        <span class="toast-icon">✨</span>
+        <span class="toast-message" id="toastMessage"></span>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
             <div class="loading-spinner"></div>
             <p>L'IA analyse ta demande...</p>
         </div>
