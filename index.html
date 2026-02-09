@@ -10,16 +10,16 @@
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Crimson+Pro:wght@600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- Onboarding Modal (First time) -->
-    <div class="modal onboarding-modal" id="onboardingModal">
+    <!-- Multi-step Onboarding Modal -->
+    <div class="modal onboarding-modal show" id="onboardingModal">
         <div class="modal-content onboarding-content">
-            <div class="onboarding-header">
-                <h1>⚡ Bienvenue sur ChronoFlow</h1>
-                <p>Ton assistant planning intelligent</p>
-            </div>
-            <div class="onboarding-body">
-                <div class="onboarding-step active" data-step="1">
-                    <h2>Créons ton profil</h2>
+            <!-- Step 1: Profile -->
+            <div class="onboarding-step active" data-step="1">
+                <div class="onboarding-header">
+                    <h1>⚡ Bienvenue sur ChronoFlow</h1>
+                    <p>Créons ton profil intelligent</p>
+                </div>
+                <div class="onboarding-body">
                     <div class="profile-setup">
                         <div class="avatar-upload">
                             <div class="avatar-preview" id="avatarPreview">📸</div>
@@ -29,7 +29,7 @@
                             </button>
                         </div>
                         <div class="form-group">
-                            <label>Ton prénom</label>
+                            <label>Ton prénom *</label>
                             <input type="text" id="onboardingName" placeholder="Ex: Marie" required>
                         </div>
                         <div class="form-group">
@@ -37,33 +37,160 @@
                             <input type="email" id="onboardingEmail" placeholder="marie@exemple.com">
                         </div>
                     </div>
-                    <button class="btn-primary" onclick="completeOnboarding()">C'est parti ! 🚀</button>
+                    <button class="btn-primary" onclick="nextOnboardingStep(2)">Suivant →</button>
+                </div>
+            </div>
+
+            <!-- Step 2: Template Choice -->
+            <div class="onboarding-step" data-step="2">
+                <div class="onboarding-header">
+                    <h1>🎯 Quel est ton profil ?</h1>
+                    <p>Choisis un template pour démarrer plus vite</p>
+                </div>
+                <div class="onboarding-body">
+                    <div class="template-choice">
+                        <div class="template-option" data-template="student">
+                            <div class="template-icon">🎓</div>
+                            <h3>Étudiant</h3>
+                            <p>Cours, révisions, examens</p>
+                            <button class="btn-secondary" onclick="selectTemplate('student')">Choisir</button>
+                        </div>
+                        <div class="template-option" data-template="worker">
+                            <div class="template-icon">💼</div>
+                            <h3>Travailleur</h3>
+                            <p>Travail, projets, réunions</p>
+                            <button class="btn-secondary" onclick="selectTemplate('worker')">Choisir</button>
+                        </div>
+                        <div class="template-option" data-template="none">
+                            <div class="template-icon">✨</div>
+                            <h3>Personnalisé</h3>
+                            <p>Je configure moi-même</p>
+                            <button class="btn-secondary" onclick="selectTemplate('none')">Choisir</button>
+                        </div>
+                    </div>
+                    <button class="btn-text" onclick="prevOnboardingStep(1)">← Retour</button>
+                </div>
+            </div>
+
+            <!-- Step 3: Student Template Config -->
+            <div class="onboarding-step" data-step="3-student">
+                <div class="onboarding-header">
+                    <h1>🎓 Configuration Étudiant</h1>
+                    <p>Renseigne ton emploi du temps</p>
+                </div>
+                <div class="onboarding-body">
+                    <div class="schedule-config">
+                        <h3>Tes cours</h3>
+                        <p class="help-text">Exemple: Lundi 8h-10h Maths, 10h-12h Physique</p>
+                        <div id="coursesContainer">
+                            <div class="course-row">
+                                <select class="day-select">
+                                    <option value="1">Lundi</option>
+                                    <option value="2">Mardi</option>
+                                    <option value="3">Mercredi</option>
+                                    <option value="4">Jeudi</option>
+                                    <option value="5">Vendredi</option>
+                                    <option value="6">Samedi</option>
+                                </select>
+                                <input type="time" class="time-input" placeholder="Début">
+                                <input type="time" class="time-input" placeholder="Fin">
+                                <input type="text" class="subject-input" placeholder="Matière">
+                                <button class="btn-icon" onclick="removeCourseRow(this)">🗑️</button>
+                            </div>
+                        </div>
+                        <button class="btn-secondary" onclick="addCourseRow()">+ Ajouter un cours</button>
+                        
+                        <h3 style="margin-top: 2rem;">Préférences de révision</h3>
+                        <div class="form-group">
+                            <label>Durée idéale d'une session</label>
+                            <select id="sessionDuration">
+                                <option value="60">1 heure</option>
+                                <option value="90" selected>1h30</option>
+                                <option value="120">2 heures</option>
+                                <option value="180">3 heures</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Moment préféré pour réviser</label>
+                            <select id="preferredTime">
+                                <option value="morning">Matin (8h-12h)</option>
+                                <option value="afternoon" selected>Après-midi (14h-18h)</option>
+                                <option value="evening">Soir (18h-21h)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                        <button class="btn-text" onclick="prevOnboardingStep(2)">← Retour</button>
+                        <button class="btn-primary" onclick="completeOnboarding()">Terminer 🚀</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Worker Template Config -->
+            <div class="onboarding-step" data-step="3-worker">
+                <div class="onboarding-header">
+                    <h1>💼 Configuration Travailleur</h1>
+                    <p>Définis ton emploi du temps de travail</p>
+                </div>
+                <div class="onboarding-body">
+                    <div class="form-group">
+                        <label>Horaires de travail</label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div>
+                                <label style="font-size: 0.85rem;">Début</label>
+                                <input type="time" id="workStart" value="09:00">
+                            </div>
+                            <div>
+                                <label style="font-size: 0.85rem;">Fin</label>
+                                <input type="time" id="workEnd" value="18:00">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Jours travaillés</label>
+                        <div class="days-checkboxes">
+                            <label><input type="checkbox" checked> Lun</label>
+                            <label><input type="checkbox" checked> Mar</label>
+                            <label><input type="checkbox" checked> Mer</label>
+                            <label><input type="checkbox" checked> Jeu</label>
+                            <label><input type="checkbox" checked> Ven</label>
+                            <label><input type="checkbox"> Sam</label>
+                            <label><input type="checkbox"> Dim</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Pause déjeuner</label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <input type="time" id="lunchStart" value="12:00">
+                            <input type="time" id="lunchEnd" value="13:00">
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                        <button class="btn-text" onclick="prevOnboardingStep(2)">← Retour</button>
+                        <button class="btn-primary" onclick="completeOnboarding()">Terminer 🚀</button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="app-container">
+    <div class="app-container" style="display: none;" id="appContainer">
         <!-- Compact Header -->
         <header class="header-compact">
             <div class="header-left">
-                <button class="sidebar-toggle" id="sidebarToggle">
-                    <span class="toggle-icon">☰</span>
-                </button>
+                <button class="sidebar-toggle" id="sidebarToggle">☰</button>
                 <div class="logo-compact">
                     <span class="logo-icon">⚡</span>
                     <h1>ChronoFlow</h1>
                 </div>
             </div>
             <div class="header-right">
-                <button class="theme-toggle" id="themeToggle" title="Mode sombre">
-                    <span class="theme-icon">🌙</span>
-                </button>
+                <button class="theme-toggle" id="themeToggle">🌙</button>
                 <div class="streak-compact">
                     <span class="streak-icon">🔥</span>
                     <span class="streak-value" id="headerStreak">0</span>
                 </div>
-                <button class="profile-btn" id="profileBtn" title="Mon profil">
+                <button class="profile-btn" id="profileBtn">
                     <img src="" alt="" id="headerAvatar" style="display: none;">
                     <span id="headerAvatarFallback">👤</span>
                 </button>
@@ -71,7 +198,7 @@
         </header>
 
         <div class="main-layout">
-            <!-- Collapsible Sidebar -->
+            <!-- Sidebar -->
             <aside class="sidebar" id="sidebar">
                 <nav class="nav-menu">
                     <button class="nav-item active" data-view="planning">
@@ -114,31 +241,24 @@
                         <span class="sync-status"></span>
                     </button>
                 </div>
-
-                <div class="sidebar-section">
-                    <h3>IA Status</h3>
-                    <div class="ai-status-compact">
-                        <span class="status-dot"></span>
-                        <span class="status-text">Simulée</span>
-                    </div>
-                </div>
             </aside>
 
             <!-- Main Content -->
             <main class="content-main">
-                <!-- AI Input (only on planning view) -->
+                <!-- AI Input -->
                 <div class="ai-input-container" id="aiInputContainer">
                     <div class="input-box">
                         <textarea 
                             id="aiInput" 
-                            placeholder="Dis-moi ce que tu veux planifier...
-Ex: 'Réviser maths 2h par jour cette semaine', 'Voir mes amis samedi soir', 'Sport 3 fois cette semaine'"
+                            placeholder="Exemple: 'J'ai une éval de maths dans 3 jours et j'ai rien révisé'
+'Voir mes amis samedi soir'
+'Sport 3 fois cette semaine'"
                             rows="3"
                         ></textarea>
                         <div class="input-actions">
                             <div class="quick-tags" id="quickTags">
                                 <button class="tag-btn" data-tag="😴 Fatigué">😴</button>
-                                <button class="tag-btn" data-tag="📚 Examen">📚</button>
+                                <button class="tag-btn" data-tag="📚 Examen urgent">📚</button>
                                 <button class="tag-btn" data-tag="👥 Amis">👥</button>
                                 <button class="tag-btn" data-tag="🏃 Sport">🏃</button>
                                 <button class="tag-btn" data-tag="⚖️ Équilibre">⚖️</button>
@@ -176,7 +296,7 @@ Ex: 'Réviser maths 2h par jour cette semaine', 'Voir mes amis samedi soir', 'Sp
                             <div class="empty-state">
                                 <div class="empty-icon">📅</div>
                                 <h3>Ton planning est vide</h3>
-                                <p>Utilise l'assistant IA ci-dessus pour commencer à planifier tes journées</p>
+                                <p>Utilise l'assistant IA pour planifier tes journées</p>
                             </div>
                         </div>
 
@@ -187,7 +307,6 @@ Ex: 'Réviser maths 2h par jour cette semaine', 'Voir mes amis samedi soir', 'Sp
                                     <p class="empty-text">Aucun événement aujourd'hui</p>
                                 </div>
                             </div>
-
                             <div class="events-section">
                                 <h3>📅 À venir</h3>
                                 <div class="events-list" id="upcomingEvents">
@@ -197,51 +316,57 @@ Ex: 'Réviser maths 2h par jour cette semaine', 'Voir mes amis samedi soir', 'Sp
                         </div>
                     </div>
 
-                    <!-- Calendar View -->
+                    <!-- Calendar View - Monthly -->
                     <div class="view" id="calendarView">
                         <div class="view-header">
                             <h2>Calendrier</h2>
                             <div class="view-controls">
-                                <button class="control-btn" id="calPrevWeek">←</button>
-                                <span class="period-label" id="calPeriodLabel">Cette semaine</span>
-                                <button class="control-btn" id="calNextWeek">→</button>
+                                <button class="control-btn" id="calPrevMonth">←</button>
+                                <span class="period-label" id="calMonthLabel">Février 2026</span>
+                                <button class="control-btn" id="calNextMonth">→</button>
                             </div>
                         </div>
-                        <div class="calendar-grid" id="calendarGrid"></div>
+                        <div class="monthly-calendar" id="monthlyCalendar">
+                            <!-- Generated dynamically -->
+                        </div>
                     </div>
 
                     <!-- Insights View -->
                     <div class="view" id="insightsView">
                         <div class="view-header">
-                            <h2>Insights IA 🤖</h2>
+                            <h2>Insights IA 📊</h2>
                         </div>
-                        <div class="insights-grid" id="insightsGrid"></div>
+                        <div class="insights-content" id="insightsContent">
+                            <!-- Generated dynamically -->
+                        </div>
                     </div>
 
                     <!-- Templates View -->
                     <div class="view" id="templatesView">
                         <div class="view-header">
-                            <h2>Templates</h2>
+                            <h2>Mes Templates</h2>
                         </div>
-                        <div class="templates-grid" id="templatesGrid"></div>
+                        <div class="templates-content" id="templatesContent">
+                            <!-- Generated dynamically -->
+                        </div>
                     </div>
 
                     <!-- Badges View -->
                     <div class="view" id="badgesView">
                         <div class="view-header">
-                            <h2>Tes Badges 🏆</h2>
+                            <h2>Badges 🏆</h2>
                         </div>
                         <div class="streak-display">
                             <div class="streak-flame">🔥</div>
                             <div class="streak-info">
                                 <h3><span id="streakDays">0</span> jours de suite</h3>
-                                <p id="streakMessage">Utilise l'app chaque jour pour augmenter ton streak !</p>
+                                <p id="streakMessage">Utilise l'app chaque jour !</p>
                             </div>
                         </div>
                         <div class="badges-grid" id="badgesGrid"></div>
                     </div>
 
-                    <!-- Profile View (NO AI INPUT) -->
+                    <!-- Profile View -->
                     <div class="view" id="profileView">
                         <div class="view-header">
                             <h2>Mon Profil</h2>
@@ -255,7 +380,6 @@ Ex: 'Réviser maths 2h par jour cette semaine', 'Voir mes amis samedi soir', 'Sp
                                 <h3 id="profileName">Utilisateur</h3>
                                 <p id="profileEmail"></p>
                             </div>
-
                             <div class="profile-stats">
                                 <div class="stat-box">
                                     <span class="stat-value" id="totalEvents">0</span>
@@ -267,10 +391,9 @@ Ex: 'Réviser maths 2h par jour cette semaine', 'Voir mes amis samedi soir', 'Sp
                                 </div>
                                 <div class="stat-box">
                                     <span class="stat-value" id="totalHours">0</span>
-                                    <span class="stat-label">Heures planifiées</span>
+                                    <span class="stat-label">Heures</span>
                                 </div>
                             </div>
-
                             <div class="profile-settings">
                                 <h3>Paramètres</h3>
                                 <div class="form-group">
@@ -294,21 +417,8 @@ Ex: 'Réviser maths 2h par jour cette semaine', 'Voir mes amis samedi soir', 'Sp
         </div>
     </div>
 
-    <!-- Template Configuration Modal -->
-    <div class="modal" id="templateModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Configuration du template</h2>
-                <button class="modal-close" id="closeTemplateModal">✕</button>
-            </div>
-            <div class="modal-body" id="templateModalBody">
-                <!-- Dynamic content -->
-            </div>
-        </div>
-    </div>
-
-    <!-- Workload Alert Modal -->
-    <div class="modal alert-modal" id="workloadModal">
+    <!-- Modals -->
+    <div class="modal" id="workloadModal">
         <div class="modal-content">
             <div class="modal-header">
                 <h2 id="workloadTitle">⚠️ Attention</h2>
@@ -316,14 +426,13 @@ Ex: 'Réviser maths 2h par jour cette semaine', 'Voir mes amis samedi soir', 'Sp
             <div class="modal-body">
                 <p id="workloadMessage"></p>
                 <div class="modal-actions">
-                    <button class="btn-secondary" id="workloadKeep">Garder ce planning</button>
-                    <button class="btn-primary" id="workloadAdjust">Ajuster automatiquement</button>
+                    <button class="btn-secondary" id="workloadKeep">Garder</button>
+                    <button class="btn-primary" id="workloadAdjust">Ajuster</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Sync Progress Modal -->
     <div class="modal" id="syncModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -332,7 +441,7 @@ Ex: 'Réviser maths 2h par jour cette semaine', 'Voir mes amis samedi soir', 'Sp
             <div class="modal-body">
                 <div class="sync-progress">
                     <div class="sync-spinner"></div>
-                    <p id="syncMessage">Synchronisation en cours...</p>
+                    <p id="syncMessage">En cours...</p>
                 </div>
             </div>
         </div>
@@ -344,7 +453,7 @@ Ex: 'Réviser maths 2h par jour cette semaine', 'Voir mes amis samedi soir', 'Sp
         <span class="toast-message" id="toastMessage"></span>
     </div>
 
-    <!-- Loading Overlay -->
+    <!-- Loading -->
     <div class="loading-overlay" id="loadingOverlay">
         <div class="loading-content">
             <div class="loading-spinner"></div>

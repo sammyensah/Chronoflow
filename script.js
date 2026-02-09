@@ -1,7 +1,6 @@
-// ChronoFlow V3 - Complete Rewrite
-// All new features implemented
+// ChronoFlow V4 - Complete AI Planning Assistant
+// With urgency detection, monthly calendar, insights, and complete template system
 
-// ===== STATE =====
 const state = {
     user: {
         name: '',
@@ -10,195 +9,194 @@ const state = {
         totalEvents: 0,
         totalHours: 0,
         lastUsedDate: null,
-        firstUseDate: null
+        templateType: 'none',
+        schedule: [] // User's schedule (courses, work hours, etc.)
     },
-    
     events: [],
     currentWeekOffset: 0,
+    currentMonthOffset: 0,
     activeView: 'planning',
     theme: 'light',
-    sidebarCollapsed: false,
     streak: 0,
-    bestStreak: 0,
-    
-    // Quick tags selection (don't generate immediately)
-    selectedTags: [],
-    
-    // Sync status
-    syncedCalendars: {
-        google: false,
-        apple: false,
-        notion: false
-    }
+    syncedCalendars: {google: false, apple: false, notion: false}
 };
 
-// ===== INITIALIZATION =====
+// === INIT ===
 document.addEventListener('DOMContentLoaded', () => {
     loadState();
-    
-    // Check if first time user
     if (!state.user.name) {
         showOnboarding();
     } else {
-        initializeApp();
+        initApp();
     }
-    
-    setupEventListeners();
+    setupListeners();
 });
 
-function initializeApp() {
-    // Update streak based on daily usage
+function initApp() {
+    document.getElementById('appContainer').style.display = 'block';
+    document.getElementById('onboardingModal').classList.remove('show');
     updateStreakBasedOnUsage();
-    
-    // Apply theme
     setTheme(state.theme);
-    
-    // Update UI
     updateHeaderUI();
     updateAllViews();
-    
-    // Hide onboarding
-    document.getElementById('onboardingModal').classList.remove('show');
 }
 
-// ===== ONBOARDING =====
+// === ONBOARDING ===
 function showOnboarding() {
     document.getElementById('onboardingModal').classList.add('show');
 }
 
-function completeOnboarding() {
-    const name = document.getElementById('onboardingName').value.trim();
-    const email = document.getElementById('onboardingEmail').value.trim();
-    
-    if (!name) {
-        showToast('⚠️ Entre ton prénom !');
-        return;
+function nextOnboardingStep(step) {
+    if (step === 2) {
+        const name = document.getElementById('onboardingName').value.trim();
+        if (!name) {
+            showToast('⚠️ Entre ton prénom !');
+            return;
+        }
+        state.user.name = name;
+        state.user.email = document.getElementById('onboardingEmail').value.trim();
     }
     
-    state.user.name = name;
-    state.user.email = email;
-    state.user.firstUseDate = new Date().toISOString();
-    state.user.lastUsedDate = new Date().toISOString();
-    
-    saveState();
-    initializeApp();
-    showToast(`🎉 Bienvenue ${name} !`);
+    document.querySelectorAll('.onboarding-step').forEach(s => s.classList.remove('active'));
+    document.querySelector(`[data-step="${step}"]`).classList.add('active');
 }
 
-// Handle avatar upload in onboarding
+function prevOnboardingStep(step) {
+    document.querySelectorAll('.onboarding-step').forEach(s => s.classList.remove('active'));
+    document.querySelector(`[data-step="${step}"]`).classList.add('active');
+}
+
+function selectTemplate(template) {
+    state.user.templateType = template;
+    
+    if (template === 'student') {
+        nextOnboardingStep('3-student');
+    } else if (template === 'worker') {
+        nextOnboardingStep('3-worker');
+    } else {
+        completeOnboarding();
+    }
+}
+
+function addCourseRow() {
+    const container = document.getElementById('coursesContainer');
+    const row = document.createElement('div');
+    row.className = 'course-row';
+    row.innerHTML = `
+        <select class="day-select">
+            <option value="1">Lundi</option>
+            <option value="2">Mardi</option>
+            <option value="3">Mercredi</option>
+            <option value="4">Jeudi</option>
+            <option value="5">Vendredi</option>
+            <option value="6">Samedi</option>
+        </select>
+        <input type="time" class="time-input" placeholder="Début">
+        <input type="time" class="time-input" placeholder="Fin">
+        <input type="text" class="subject-input" placeholder="Matière">
+        <button class="btn-icon" onclick="removeCourseRow(this)">🗑️</button>
+    `;
+    container.appendChild(row);
+}
+
+function removeCourseRow(btn) {
+    btn.parentElement.remove();
+}
+
+function completeOnboarding() {
+    // Save schedule if student template
+    if (state.user.templateType === 'student') {
+        const rows = document.querySelectorAll('.course-row');
+        state.user.schedule = Array.from(rows).map(row => ({
+            day: parseInt(row.querySelector('.day-select').value),
+            startTime: row.querySelectorAll('.time-input')[0].value,
+            endTime: row.querySelectorAll('.time-input')[1].value,
+            subject: row.querySelector('.subject-input').value
+        })).filter(s => s.startTime && s.endTime && s.subject);
+        
+        // Add courses to calendar as recurring events
+        state.user.schedule.forEach(course => {
+            for (let week = 0; week < 4; week++) { // 4 weeks
+                const today = new Date();
+                const dayDiff = course.day - today.getDay();
+                const date = new Date(today);
+                date.setDate(today.getDate() + dayDiff + (week * 7));
+                
+                state.events.push({
+                    id: Date.now() + Math.random(),
+                    title: `Cours ${course.subject}`,
+                    type: 'study',
+                    date: date,
+                    startTime: course.startTime,
+                    endTime: course.endTime,
+                    duration: calculateDuration(course.startTime, course.endTime),
+                    priority: 'high',
+                    isRecurring: true
+                });
+            }
+        });
+    }
+    
+    state.user.firstUseDate = new Date().toISOString();
+    state.user.lastUsedDate = new Date().toISOString();
+    saveState();
+    initApp();
+    showToast(`🎉 Bienvenue ${state.user.name} !`);
+}
+
+function calculateDuration(start, end) {
+    const [sh, sm] = start.split(':').map(Number);
+    const [eh, em] = end.split(':').map(Number);
+    return ((eh * 60 + em) - (sh * 60 + sm));
+}
+
+// Handle avatar upload
 document.getElementById('avatarInput')?.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (file) {
         const reader = new FileReader();
         reader.onload = (e) => {
             state.user.avatar = e.target.result;
-            document.getElementById('avatarPreview').innerHTML = `<img src="${e.target.result}" alt="Avatar">`;
+            document.getElementById('avatarPreview').innerHTML = `<img src="${e.target.result}">`;
         };
         reader.readAsDataURL(file);
     }
 });
 
-// ===== STREAK MANAGEMENT (Daily Usage) =====
-function updateStreakBasedOnUsage() {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+// === LISTENERS ===
+function setupListeners() {
+    document.getElementById('sidebarToggle')?.addEventListener('click', toggleSidebar);
+    document.getElementById('themeToggle')?.addEventListener('click', toggleTheme);
+    document.getElementById('profileBtn')?.addEventListener('click', () => switchView('profile'));
     
-    if (!state.user.lastUsedDate) {
-        // First time
-        state.streak = 0;
-        state.user.lastUsedDate = new Date().toISOString();
-        saveState();
-        return;
-    }
-    
-    const lastUsed = new Date(state.user.lastUsedDate);
-    lastUsed.setHours(0, 0, 0, 0);
-    
-    const daysDiff = Math.floor((today - lastUsed) / (1000 * 60 * 60 * 24));
-    
-    if (daysDiff === 0) {
-        // Same day - don't change streak
-        return;
-    } else if (daysDiff === 1) {
-        // Consecutive day - increase streak
-        state.streak++;
-        if (state.streak > state.bestStreak) {
-            state.bestStreak = state.streak;
-        }
-    } else {
-        // Missed days - reset streak
-        state.streak = 0;
-    }
-    
-    state.user.lastUsedDate = new Date().toISOString();
-    saveState();
-    updateHeaderUI();
-}
-
-// ===== EVENT LISTENERS =====
-function setupEventListeners() {
-    // Sidebar toggle
-    document.getElementById('sidebarToggle').addEventListener('click', toggleSidebar);
-    
-    // Theme toggle
-    document.getElementById('themeToggle').addEventListener('click', toggleTheme);
-    
-    // Profile button
-    document.getElementById('profileBtn').addEventListener('click', () => switchView('profile'));
-    
-    // Navigation
     document.querySelectorAll('.nav-item').forEach(item => {
-        item.addEventListener('click', (e) => {
-            const view = e.currentTarget.dataset.view;
-            switchView(view);
-        });
+        item.addEventListener('click', (e) => switchView(e.currentTarget.dataset.view));
     });
     
-    // Quick tags (DON'T generate, just add to input)
     document.querySelectorAll('.tag-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const tag = e.currentTarget.dataset.tag;
-            toggleQuickTag(e.currentTarget, tag);
-        });
+        btn.addEventListener('click', (e) => toggleQuickTag(e.currentTarget, e.currentTarget.dataset.tag));
     });
     
-    // Generate button
-    document.getElementById('generateBtn').addEventListener('click', handleGenerate);
+    document.getElementById('generateBtn')?.addEventListener('click', handleGenerate);
     
-    // Week navigation
     document.getElementById('prevWeek')?.addEventListener('click', () => changeWeek(-1));
     document.getElementById('nextWeek')?.addEventListener('click', () => changeWeek(1));
-    document.getElementById('calPrevWeek')?.addEventListener('click', () => changeWeek(-1));
-    document.getElementById('calNextWeek')?.addEventListener('click', () => changeWeek(1));
     
-    // Calendar sync
+    document.getElementById('calPrevMonth')?.addEventListener('click', () => changeMonth(-1));
+    document.getElementById('calNextMonth')?.addEventListener('click', () => changeMonth(1));
+    
     document.querySelectorAll('.sync-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const platform = e.currentTarget.dataset.platform;
-            syncCalendar(platform);
-        });
+        btn.addEventListener('click', (e) => syncCalendar(e.currentTarget.dataset.platform));
     });
     
-    // Profile save
     document.getElementById('saveProfile')?.addEventListener('click', saveProfile);
-    
-    // Profile avatar upload
-    document.getElementById('profileAvatarInput')?.addEventListener('change', handleProfileAvatarUpload);
+    document.getElementById('profileAvatarInput')?.addEventListener('change', handleProfileAvatar);
 }
 
 function toggleSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    state.sidebarCollapsed = !state.sidebarCollapsed;
-    
-    if (state.sidebarCollapsed) {
-        sidebar.classList.add('collapsed');
-    } else {
-        sidebar.classList.remove('collapsed');
-    }
-    
-    // On mobile, toggle show class
+    document.getElementById('sidebar').classList.toggle('collapsed');
     if (window.innerWidth <= 768) {
-        sidebar.classList.toggle('show');
+        document.getElementById('sidebar').classList.toggle('show');
     }
 }
 
@@ -210,79 +208,73 @@ function toggleTheme() {
 
 function setTheme(theme) {
     document.documentElement.setAttribute('data-theme', theme);
-    const icon = document.querySelector('.theme-icon');
-    icon.textContent = theme === 'light' ? '🌙' : '☀️';
+    document.querySelector('.theme-icon').textContent = theme === 'light' ? '🌙' : '☀️';
 }
 
-// ===== QUICK TAGS (Don't auto-generate) =====
-function toggleQuickTag(btnElement, tag) {
+function toggleQuickTag(btn, tag) {
     const textarea = document.getElementById('aiInput');
-    const currentText = textarea.value.trim();
-    
-    // Toggle active state
-    btnElement.classList.toggle('active');
-    
-    // Add/remove tag text from input
-    const tagText = getTagText(tag);
-    
-    if (btnElement.classList.contains('active')) {
-        // Add tag text to input
-        if (currentText) {
-            textarea.value = currentText + '\n' + tagText;
-        } else {
-            textarea.value = tagText;
-        }
-    } else {
-        // Remove tag text from input
-        textarea.value = currentText.replace(tagText, '').trim();
-    }
-}
-
-function getTagText(tag) {
-    const tagMap = {
-        '😴 Fatigué': 'Je suis fatigué cette semaine, plus de temps libre',
-        '📚 Examen': 'J\'ai un examen important dans 2 semaines',
-        '👥 Amis': 'Je veux voir mes amis ce weekend',
+    const tagText = {
+        '😴 Fatigué': 'Je suis fatigué, plus de temps libre',
+        '📚 Examen urgent': 'J\'ai un examen important et j\'ai rien révisé',
+        '👥 Amis': 'Voir mes amis ce weekend',
         '🏃 Sport': 'Sport 3 fois cette semaine',
-        '⚖️ Équilibre': 'Je travaille trop, besoin d\'équilibre'
-    };
-    return tagMap[tag] || '';
+        '⚖️ Équilibre': 'Besoin d\'équilibre vie/travail'
+    }[tag] || '';
+    
+    btn.classList.toggle('active');
+    
+    if (btn.classList.contains('active')) {
+        textarea.value = (textarea.value.trim() + '\n' + tagText).trim();
+    } else {
+        textarea.value = textarea.value.replace(tagText, '').trim();
+    }
 }
 
-// ===== VIEW MANAGEMENT =====
-function switchView(viewName) {
-    state.activeView = viewName;
+// === STREAK ===
+function updateStreakBasedOnUsage() {
+    const today = new Date();
+    today.setHours(0,0,0,0);
     
-    // Update nav
-    document.querySelectorAll('.nav-item').forEach(item => {
-        item.classList.toggle('active', item.dataset.view === viewName);
-    });
-    
-    // Update views
-    document.querySelectorAll('.view').forEach(view => {
-        view.classList.remove('active');
-    });
-    
-    const targetView = document.getElementById(`${viewName}View`);
-    if (targetView) {
-        targetView.classList.add('active');
+    if (!state.user.lastUsedDate) {
+        state.streak = 0;
+        state.user.lastUsedDate = new Date().toISOString();
+        saveState();
+        return;
     }
     
-    // Show/hide AI input based on view
-    const aiInputContainer = document.getElementById('aiInputContainer');
-    if (viewName === 'planning') {
-        aiInputContainer.style.display = 'block';
-    } else {
-        aiInputContainer.style.display = 'none';
-    }
+    const lastUsed = new Date(state.user.lastUsedDate);
+    lastUsed.setHours(0,0,0,0);
     
-    // Update view content
+    const daysDiff = Math.floor((today - lastUsed) / (1000 * 60 * 60 * 24));
+    
+    if (daysDiff === 0) return;
+    else if (daysDiff === 1) state.streak++;
+    else state.streak = 0;
+    
+    state.user.lastUsedDate = new Date().toISOString();
+    saveState();
+}
+
+// === VIEWS ===
+function switchView(view) {
+    state.activeView = view;
+    
+    document.querySelectorAll('.nav-item').forEach(i => {
+        i.classList.toggle('active', i.dataset.view === view);
+    });
+    
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.getElementById(`${view}View`).classList.add('active');
+    
+    const aiInput = document.getElementById('aiInputContainer');
+    aiInput.style.display = view === 'planning' ? 'block' : 'none';
+    
     updateCurrentView();
 }
 
 function updateCurrentView() {
     if (state.activeView === 'planning') updatePlanningView();
-    if (state.activeView === 'calendar') updateCalendarView();
+    if (state.activeView === 'calendar') updateMonthlyCalendar();
     if (state.activeView === 'insights') updateInsightsView();
     if (state.activeView === 'templates') updateTemplatesView();
     if (state.activeView === 'badges') updateBadgesView();
@@ -291,54 +283,44 @@ function updateCurrentView() {
 
 function updateAllViews() {
     updatePlanningView();
-    updateCalendarView();
-    updateBadgesView();
+    updateMonthlyCalendar();
 }
 
-// ===== AI GENERATION =====
+// === AI GENERATION (WITH URGENCY DETECTION) ===
 async function handleGenerate() {
     const input = document.getElementById('aiInput').value.trim();
     
     if (!input) {
-        showToast('⚠️ Écris quelque chose d\'abord !');
+        showToast('⚠️ Écris quelque chose !');
         return;
     }
     
     const btn = document.getElementById('generateBtn');
     btn.disabled = true;
     document.getElementById('generateText').textContent = 'Génération...';
-    
-    // Show loading
     document.getElementById('loadingOverlay').classList.add('show');
     
-    // Simulate AI processing
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise(r => setTimeout(r, 2000));
     
-    // Parse and generate events
-    const newEvents = await parseInputAndGenerate(input);
+    const newEvents = await parseInputWithUrgency(input);
     
     if (newEvents.length > 0) {
-        // Add events to state
-        newEvents.forEach(event => {
-            state.events.push(event);
+        newEvents.forEach(e => {
+            state.events.push(e);
             state.user.totalEvents++;
-            state.user.totalHours += event.duration / 60;
+            state.user.totalHours += e.duration / 60;
         });
         
-        // Check workload
         checkWorkloadAndAlert(newEvents);
-        
-        // Update views
         updateAllViews();
         saveState();
         
-        // Clear input and tags
         document.getElementById('aiInput').value = '';
-        document.querySelectorAll('.tag-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active'));
         
-        showToast(`✨ ${newEvents.length} événement${newEvents.length > 1 ? 's' : ''} ajouté${newEvents.length > 1 ? 's' : ''} !`);
+        showToast(`✨ ${newEvents.length} événement(s) ajouté(s) !`);
     } else {
-        showToast('⚠️ Impossible de générer des événements. Reformule ta demande.');
+        showToast('⚠️ Impossible de générer. Reformule !');
     }
     
     btn.disabled = false;
@@ -346,87 +328,140 @@ async function handleGenerate() {
     document.getElementById('loadingOverlay').classList.remove('show');
 }
 
-async function parseInputAndGenerate(input) {
-    const lowercaseText = input.toLowerCase();
+async function parseInputWithUrgency(text) {
+    const lower = text.toLowerCase();
     const events = [];
     const today = new Date();
     
-    // Detect context
-    const isTired = lowercaseText.includes('fatigué') || lowercaseText.includes('fatigue') || lowercaseText.includes('repos');
-    const needsBalance = lowercaseText.includes('équilibre') || lowercaseText.includes('trop');
-    const hasExam = lowercaseText.includes('examen');
+    // URGENCY DETECTION
+    const isUrgent = lower.includes('rien révisé') || lower.includes('pas révisé') || 
+                     lower.includes('urgent') || lower.includes('dernière minute');
+    const hasExam = lower.includes('examen') || lower.includes('éval') || lower.includes('contrôle');
+    const isTired = lower.includes('fatigué') || lower.includes('épuisé');
     
-    // Determine event type and details
-    let eventType = detectEventType(lowercaseText);
-    let duration = extractDuration(lowercaseText, eventType);
-    let frequency = extractFrequency(lowercaseText);
-    let dates = extractDates(lowercaseText, today);
-    let priority = determinePriority(lowercaseText, hasExam, isTired);
+    // Extract subject/topic
+    let subject = 'Révision';
+    const subjects = ['maths', 'français', 'anglais', 'physique', 'chimie', 'histoire', 'géo', 'svt', 'philo'];
+    for (const s of subjects) {
+        if (lower.includes(s)) {
+            subject = s.charAt(0).toUpperCase() + s.slice(1);
+            break;
+        }
+    }
     
-    // Generate events based on context
-    if (isTired) {
-        // More break time
-        for (let i = 0; i < 5; i++) {
-            const date = new Date(today);
+    // Extract dates
+    const dates = extractDates(lower, today);
+    const examDate = dates[0] || new Date(today.setDate(today.getDate() + 7));
+    
+    // URGENCY-BASED PLANNING
+    if (hasExam && isUrgent) {
+        // Intensive study sessions
+        const daysUntilExam = Math.floor((examDate - new Date()) / (1000 * 60 * 60 * 24));
+        const sessionsPerDay = daysUntilExam < 3 ? 3 : 2; // More sessions if very urgent
+        const sessionDuration = daysUntilExam < 3 ? 180 : 120; // Longer if urgent
+        
+        for (let i = 0; i < daysUntilExam; i++) {
+            const date = new Date();
             date.setDate(date.getDate() + i + 1);
+            
+            for (let j = 0; j < sessionsPerDay; j++) {
+                const startTimes = ['9:00', '14:00', '17:00'];
+                events.push(createEvent({
+                    title: `Révision ${subject} (SESSION ${j+1})`,
+                    type: 'study',
+                    date: date,
+                    startTime: startTimes[j],
+                    duration: sessionDuration,
+                    priority: 'critical'
+                }));
+            }
+        }
+        
+        // Add exam itself
+        events.push(createEvent({
+            title: `📝 EXAMEN ${subject}`,
+            type: 'study',
+            date: examDate,
+            startTime: '8:00',
+            duration: 180,
+            priority: 'critical'
+        }));
+    } else if (hasExam) {
+        // Regular exam preparation
+        const daysUntilExam = Math.floor((examDate - new Date()) / (1000 * 60 * 60 * 24));
+        
+        for (let i = 0; i < daysUntilExam; i++) {
+            const date = new Date();
+            date.setDate(date.getDate() + i + 1);
+            
+            events.push(createEvent({
+                title: `Révision ${subject}`,
+                type: 'study',
+                date: date,
+                startTime: i % 2 === 0 ? '14:00' : '9:00',
+                duration: 120,
+                priority: 'high'
+            }));
+        }
+        
+        events.push(createEvent({
+            title: `📝 Examen ${subject}`,
+            type: 'study',
+            date: examDate,
+            startTime: '8:00',
+            duration: 180,
+            priority: 'critical'
+        }));
+    } else if (isTired) {
+        // Rest focus
+        for (let i = 1; i <= 5; i++) {
+            const date = new Date();
+            date.setDate(date.getDate() + i);
             
             events.push(createEvent({
                 title: 'Temps de repos',
                 type: 'personal',
                 date: date,
-                startTime: '14:00',
-                duration: 120,
+                startTime: '15:00',
+                duration: 90,
                 priority: 'high'
             }));
         }
-    } else if (needsBalance) {
-        // Balanced week
-        const activities = [
-            { title: 'Travail concentré', type: 'work', startTime: '9:00', duration: 180, priority: 'high' },
-            { title: 'Sport', type: 'personal', startTime: '17:00', duration: 60, priority: 'medium' },
-            { title: 'Temps social', type: 'social', startTime: '19:00', duration: 120, priority: 'medium' },
-        ];
+    } else {
+        // Regular event
+        const eventType = detectEventType(lower);
+        const duration = extractDuration(lower, eventType);
+        const frequency = extractFrequency(lower);
+        const priority = lower.includes('important') ? 'high' : 'medium';
         
-        for (let i = 0; i < 7; i++) {
-            const date = new Date(today);
-            date.setDate(date.getDate() + i + 1);
-            
-            activities.forEach(activity => {
+        const targetDates = dates.length > 0 ? dates : [new Date(new Date().setDate(new Date().getDate() + 1))];
+        
+        if (frequency > 1) {
+            for (let i = 0; i < frequency; i++) {
+                const date = new Date();
+                date.setDate(date.getDate() + i + 1);
+                
                 events.push(createEvent({
-                    ...activity,
-                    date: date
+                    title: eventType.title,
+                    type: eventType.type,
+                    date: date,
+                    startTime: generateTimeSlot(eventType.type, i),
+                    duration: duration,
+                    priority: priority
+                }));
+            }
+        } else {
+            targetDates.forEach(date => {
+                events.push(createEvent({
+                    title: eventType.title,
+                    type: eventType.type,
+                    date: date,
+                    startTime: generateTimeSlot(eventType.type),
+                    duration: duration,
+                    priority: priority
                 }));
             });
         }
-    } else if (frequency > 1) {
-        // Recurring events
-        for (let i = 0; i < frequency; i++) {
-            const date = dates[0] || new Date(today);
-            date.setDate(date.getDate() + i);
-            
-            events.push(createEvent({
-                title: eventType.title,
-                type: eventType.type,
-                date: date,
-                startTime: generateTimeSlot(eventType.type, i),
-                duration: duration,
-                priority: priority
-            }));
-        }
-    } else {
-        // Single or specific dates
-        const targetDates = dates.length > 0 ? dates : [new Date(today.setDate(today.getDate() + 1))];
-        
-        targetDates.forEach(date => {
-            events.push(createEvent({
-                title: eventType.title,
-                type: eventType.type,
-                date: date,
-                startTime: generateTimeSlot(eventType.type),
-                duration: duration,
-                priority: priority
-            }));
-        });
     }
     
     return events;
@@ -434,7 +469,6 @@ async function parseInputAndGenerate(input) {
 
 function createEvent(data) {
     const endTime = calculateEndTime(data.startTime, data.duration);
-    
     return {
         id: Date.now() + Math.random(),
         title: data.title,
@@ -447,32 +481,25 @@ function createEvent(data) {
     };
 }
 
-function calculateEndTime(startTime, durationMinutes) {
-    const [hours, minutes] = startTime.split(':').map(Number);
-    const totalMinutes = hours * 60 + minutes + durationMinutes;
-    const endHours = Math.floor(totalMinutes / 60);
-    const endMinutes = totalMinutes % 60;
-    return `${endHours.toString().padStart(2, '0')}:${endMinutes.toString().padStart(2, '0')}`;
+function calculateEndTime(start, durationMin) {
+    const [h, m] = start.split(':').map(Number);
+    const totalMin = h * 60 + m + durationMin;
+    return `${Math.floor(totalMin / 60).toString().padStart(2, '0')}:${(totalMin % 60).toString().padStart(2, '0')}`;
 }
 
-// ===== PARSING HELPERS =====
+// PARSING HELPERS
 function detectEventType(text) {
     const types = [
-        { keywords: ['examen', 'test'], type: 'study', title: 'Examen' },
-        { keywords: ['réviser', 'révision', 'étudier'], type: 'study', title: 'Révision' },
-        { keywords: ['ami', 'amis', 'sortie'], type: 'social', title: 'Voir amis' },
-        { keywords: ['sport', 'gym', 'fitness'], type: 'personal', title: 'Sport' },
-        { keywords: ['travail', 'projet', 'job'], type: 'work', title: 'Travail' },
-        { keywords: ['repos', 'détente', 'pause'], type: 'personal', title: 'Temps libre' },
+        {keywords: ['ami', 'amis', 'sortie'], type: 'social', title: 'Voir amis'},
+        {keywords: ['sport', 'gym'], type: 'personal', title: 'Sport'},
+        {keywords: ['travail', 'projet'], type: 'work', title: 'Travail'},
+        {keywords: ['repos', 'détente'], type: 'personal', title: 'Temps libre'}
     ];
     
-    for (const type of types) {
-        if (type.keywords.some(kw => text.includes(kw))) {
-            return type;
-        }
+    for (const t of types) {
+        if (t.keywords.some(k => text.includes(k))) return t;
     }
-    
-    return { type: 'personal', title: 'Activité' };
+    return {type: 'personal', title: 'Activité'};
 }
 
 function extractDuration(text, eventType) {
@@ -482,218 +509,132 @@ function extractDuration(text, eventType) {
     const minMatch = text.match(/(\d+)\s*min(ute)?s?/i);
     if (minMatch) return parseInt(minMatch[1]);
     
-    const defaults = { study: 120, work: 180, social: 150, personal: 60 };
+    const defaults = {study: 120, work: 180, social: 150, personal: 60};
     return defaults[eventType.type] || 60;
 }
 
 function extractFrequency(text) {
-    const frequencyMatch = text.match(/(\d+)\s*(fois|x)/i);
-    if (frequencyMatch) return parseInt(frequencyMatch[1]);
-    
-    if (text.includes('tous les jours') || text.includes('chaque jour')) return 7;
-    if (text.includes('par jour')) return 7;
-    
+    const match = text.match(/(\d+)\s*(fois|x)/i);
+    if (match) return parseInt(match[1]);
+    if (text.includes('tous les jours')) return 7;
     return 1;
 }
 
 function extractDates(text, baseDate) {
     const dates = [];
     
-    // Specific dates
-    const dateMatch = text.match(/(\d{1,2})\s*(janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre)/i);
-    if (dateMatch) {
-        const day = parseInt(dateMatch[1]);
-        const months = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
-        const month = months.findIndex(m => m === dateMatch[2].toLowerCase());
-        const date = new Date(baseDate.getFullYear(), month, day);
-        if (date < baseDate) date.setFullYear(date.getFullYear() + 1);
-        dates.push(date);
-        return dates;
+    if (text.includes('dans') && text.includes('jour')) {
+        const match = text.match(/dans\s*(\d+)\s*jours?/i);
+        if (match) {
+            const date = new Date(baseDate);
+            date.setDate(baseDate.getDate() + parseInt(match[1]));
+            dates.push(date);
+        }
     }
     
-    // Relative dates
-    if (text.includes('aujourd\'hui')) {
-        dates.push(new Date(baseDate));
-    } else if (text.includes('demain')) {
-        const tomorrow = new Date(baseDate);
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        dates.push(tomorrow);
-    } else if (text.includes('weekend') || text.includes('samedi')) {
+    if (text.includes('weekend') || text.includes('samedi')) {
         const saturday = new Date(baseDate);
-        const daysToSaturday = (6 - baseDate.getDay() + 7) % 7 || 7;
-        saturday.setDate(baseDate.getDate() + daysToSaturday);
+        const daysToSat = (6 - baseDate.getDay() + 7) % 7 || 7;
+        saturday.setDate(baseDate.getDate() + daysToSat);
         dates.push(saturday);
     }
     
     return dates;
 }
 
-function determinePriority(text, hasExam, isTired) {
-    if (text.includes('urgent') || text.includes('critique') || (hasExam && text.includes('très'))) {
-        return 'critical';
-    }
-    if (text.includes('important') || hasExam) {
-        return 'high';
-    }
-    if (isTired) {
-        return 'low';
-    }
-    return 'medium';
-}
-
 function generateTimeSlot(type, index = 0) {
     const slots = {
-        study: ['9:00', '10:00', '14:00', '15:00'],
-        work: ['9:00', '10:00', '13:00', '14:00'],
+        study: ['9:00', '14:00', '16:00'],
+        work: ['9:00', '13:00', '15:00'],
         social: ['18:00', '19:00', '20:00'],
-        personal: ['8:00', '12:00', '17:00', '19:00']
+        personal: ['10:00', '15:00', '17:00']
     };
-    
-    const typeSlots = slots[type] || slots.personal;
-    return typeSlots[index % typeSlots.length];
+    return (slots[type] || slots.personal)[index % 3];
 }
 
-// ===== WORKLOAD ALERT =====
+// WORKLOAD CHECK
 function checkWorkloadAndAlert(newEvents) {
-    // Calculate total hours this week including new events
-    const allEvents = [...state.events];
-    const today = new Date();
-    const weekStart = new Date(today);
-    weekStart.setDate(today.getDate() - today.getDay() + 1);
-    const weekEnd = new Date(weekStart);
-    weekEnd.setDate(weekStart.getDate() + 7);
-    
-    const thisWeekEvents = allEvents.filter(e => {
-        const eventDate = new Date(e.date);
-        return eventDate >= weekStart && eventDate < weekEnd;
+    const thisWeek = state.events.filter(e => {
+        const d = new Date(e.date);
+        const now = new Date();
+        const weekStart = new Date(now.setDate(now.getDate() - now.getDay() + 1));
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekStart.getDate() + 7);
+        return d >= weekStart && d < weekEnd;
     });
     
-    const totalHours = thisWeekEvents.reduce((sum, e) => sum + e.duration / 60, 0);
+    const totalH = thisWeek.reduce((s, e) => s + e.duration / 60, 0);
     
-    if (totalHours > 60) {
-        showWorkloadAlert('overloaded', totalHours);
-    } else if (totalHours < 10) {
-        showWorkloadAlert('underloaded', totalHours);
-    }
+    if (totalH > 60) showWorkloadAlert('overloaded', totalH);
+    else if (totalH < 10) showWorkloadAlert('underloaded', totalH);
 }
 
 function showWorkloadAlert(type, hours) {
     const modal = document.getElementById('workloadModal');
-    const title = document.getElementById('workloadTitle');
-    const message = document.getElementById('workloadMessage');
-    
-    if (type === 'overloaded') {
-        title.textContent = '⚠️ Planning surchargé';
-        message.textContent = `Tu as ${Math.round(hours)}h planifiées cette semaine. C'est beaucoup ! Veux-tu que je réduise automatiquement la charge ?`;
-    } else {
-        title.textContent = '💤 Planning léger';
-        message.textContent = `Tu as seulement ${Math.round(hours)}h planifiées cette semaine. Veux-tu ajouter plus d'activités ?`;
-    }
+    document.getElementById('workloadTitle').textContent = type === 'overloaded' ? '⚠️ Planning surchargé' : '💤 Planning léger';
+    document.getElementById('workloadMessage').textContent = type === 'overloaded' ? 
+        `${Math.round(hours)}h cette semaine. C'est beaucoup ! Ajuster ?` :
+        `${Math.round(hours)}h cette semaine. Ajouter plus d'activités ?`;
     
     modal.classList.add('show');
     
-    document.getElementById('workloadKeep').onclick = () => {
-        modal.classList.remove('show');
-    };
-    
+    document.getElementById('workloadKeep').onclick = () => modal.classList.remove('show');
     document.getElementById('workloadAdjust').onclick = () => {
-        adjustWorkload(type);
+        if (type === 'overloaded') {
+            state.events = state.events.filter(e => e.priority !== 'low');
+        } else {
+            for (let i = 1; i <= 3; i++) {
+                const date = new Date();
+                date.setDate(date.getDate() + i);
+                state.events.push(createEvent({
+                    title: 'Temps libre',
+                    type: 'personal',
+                    date: date,
+                    startTime: '17:00',
+                    duration: 60,
+                    priority: 'low'
+                }));
+            }
+        }
+        updateAllViews();
+        saveState();
         modal.classList.remove('show');
+        showToast('✅ Planning ajusté !');
     };
 }
 
-function adjustWorkload(type) {
-    if (type === 'overloaded') {
-        // Remove low priority events
-        state.events = state.events.filter(e => e.priority !== 'low');
-        showToast('✅ Événements à faible priorité supprimés');
-    } else {
-        // Add some activities
-        const today = new Date();
-        for (let i = 1; i <= 3; i++) {
-            const date = new Date(today);
-            date.setDate(date.getDate() + i);
-            
-            state.events.push(createEvent({
-                title: 'Temps libre',
-                type: 'personal',
-                date: date,
-                startTime: '17:00',
-                duration: 60,
-                priority: 'low'
-            }));
-        }
-        showToast('✅ Activités ajoutées pour remplir ta semaine');
-    }
-    
-    updateAllViews();
-    saveState();
-}
-
-// ===== CALENDAR SYNC (FIXED) =====
+// === CALENDAR SYNC ===
 async function syncCalendar(platform) {
     const modal = document.getElementById('syncModal');
-    const message = document.getElementById('syncMessage');
-    const btn = document.querySelector(`[data-platform="${platform}"]`);
-    const statusEl = btn.querySelector('.sync-status');
-    
-    // Show modal
     modal.classList.add('show');
-    message.textContent = `Connexion à ${platform}...`;
     
-    // Simulate OAuth flow
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    await new Promise(r => setTimeout(r, 2000));
     
-    message.textContent = `Importation des événements depuis ${platform}...`;
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    message.textContent = 'Synchronisation en cours...';
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Mark as synced
     state.syncedCalendars[platform] = true;
-    statusEl.textContent = '✓';
-    statusEl.classList.add('synced');
+    
+    const btn = document.querySelector(`[data-platform="${platform}"]`);
+    const status = btn.querySelector('.sync-status');
+    status.textContent = '✓';
+    status.classList.add('synced');
     
     saveState();
-    
-    // Close modal
     modal.classList.remove('show');
-    
-    const platformNames = {
-        google: 'Google Calendar',
-        apple: 'Apple Calendar',
-        notion: 'Notion'
-    };
-    
-    showToast(`✅ Synchronisé avec ${platformNames[platform]} !`);
+    showToast('✅ Synchronisé !');
 }
 
-// ===== VIEW UPDATES =====
+// === PLANNING VIEW ===
 function updatePlanningView() {
     const grid = document.getElementById('planningGrid');
     
     if (state.events.length === 0) {
-        grid.innerHTML = `
-            <div class="empty-state">
-                <div class="empty-icon">📅</div>
-                <h3>Ton planning est vide</h3>
-                <p>Utilise l'assistant IA ci-dessus pour commencer à planifier tes journées</p>
-            </div>
-        `;
-        
-        document.getElementById('todayEvents').innerHTML = '<p class="empty-text">Aucun événement aujourd\'hui</p>';
-        document.getElementById('upcomingEvents').innerHTML = '<p class="empty-text">Aucun événement à venir</p>';
+        grid.innerHTML = '<div class="empty-state"><div class="empty-icon">📅</div><h3>Planning vide</h3><p>Utilise l\'IA pour planifier</p></div>';
+        document.getElementById('todayEvents').innerHTML = '<p class="empty-text">Rien aujourd\'hui</p>';
+        document.getElementById('upcomingEvents').innerHTML = '<p class="empty-text">Rien à venir</p>';
         return;
     }
     
-    // Generate week grid
     generateWeekGrid(grid);
-    
-    // Update today and upcoming sections
     updateEventsSections();
-    
-    // Update period label
     updatePeriodLabel();
 }
 
@@ -703,37 +644,32 @@ function generateWeekGrid(container) {
     weekStart.setDate(today.getDate() - today.getDay() + 1 + (state.currentWeekOffset * 7));
     
     const days = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
-    
     let html = '<div class="week-grid">';
     
     for (let i = 0; i < 7; i++) {
         const currentDay = new Date(weekStart);
         currentDay.setDate(weekStart.getDate() + i);
-        
         const isToday = currentDay.toDateString() === today.toDateString();
         
         const dayEvents = state.events.filter(e => {
-            const eventDate = new Date(e.date);
-            return eventDate.toDateString() === currentDay.toDateString();
+            return new Date(e.date).toDateString() === currentDay.toDateString();
         }).sort((a, b) => a.startTime.localeCompare(b.startTime));
         
-        html += `
-            <div class="day-column ${isToday ? 'today' : ''}">
-                <div class="day-header">
-                    <div class="day-name">${days[i]}</div>
-                    <div class="day-date">${currentDay.getDate()}</div>
-                </div>
-                <div class="day-events">
-                    ${dayEvents.length === 0 ? '<p class="empty-text" style="font-size: 0.75rem; padding: 1rem 0;">Libre</p>' :
-                    dayEvents.map(event => `
-                        <div class="event-card ${event.priority}">
-                            <div class="event-title">${event.title}</div>
-                            <div class="event-time">${event.startTime} - ${event.endTime}</div>
-                        </div>
-                    `).join('')}
-                </div>
+        html += `<div class="day-column ${isToday ? 'today' : ''}">
+            <div class="day-header">
+                <div class="day-name">${days[i]}</div>
+                <div class="day-date">${currentDay.getDate()}</div>
             </div>
-        `;
+            <div class="day-events">${
+                dayEvents.length === 0 ? '<p class="empty-text" style="font-size:0.75rem;padding:1rem 0;">Libre</p>' :
+                dayEvents.map(e => `
+                    <div class="event-card ${e.priority}">
+                        <div class="event-title">${e.title}</div>
+                        <div class="event-time">${e.startTime} - ${e.endTime}</div>
+                    </div>
+                `).join('')
+            }</div>
+        </div>`;
     }
     
     html += '</div>';
@@ -742,119 +678,202 @@ function generateWeekGrid(container) {
 
 function updateEventsSections() {
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    today.setHours(0,0,0,0);
     
-    // Today's events
     const todayEvents = state.events.filter(e => {
-        const eventDate = new Date(e.date);
-        eventDate.setHours(0, 0, 0, 0);
-        return eventDate.getTime() === today.getTime();
+        const d = new Date(e.date);
+        d.setHours(0,0,0,0);
+        return d.getTime() === today.getTime();
     }).sort((a, b) => a.startTime.localeCompare(b.startTime));
     
-    const todayContainer = document.getElementById('todayEvents');
-    if (todayEvents.length === 0) {
-        todayContainer.innerHTML = '<p class="empty-text">Aucun événement aujourd\'hui</p>';
-    } else {
-        todayContainer.innerHTML = todayEvents.map(event => renderEventItem(event)).join('');
-    }
-    
-    // Upcoming events
-    const upcomingEvents = state.events.filter(e => {
-        const eventDate = new Date(e.date);
-        eventDate.setHours(0, 0, 0, 0);
-        return eventDate > today;
+    const upcoming = state.events.filter(e => {
+        const d = new Date(e.date);
+        d.setHours(0,0,0,0);
+        return d > today;
     }).sort((a, b) => new Date(a.date) - new Date(b.date)).slice(0, 10);
     
-    const upcomingContainer = document.getElementById('upcomingEvents');
-    if (upcomingEvents.length === 0) {
-        upcomingContainer.innerHTML = '<p class="empty-text">Aucun événement à venir</p>';
-    } else {
-        upcomingContainer.innerHTML = upcomingEvents.map(event => renderEventItem(event)).join('');
-    }
+    document.getElementById('todayEvents').innerHTML = todayEvents.length === 0 ? '<p class="empty-text">Rien aujourd\'hui</p>' :
+        todayEvents.map(renderEvent).join('');
+    
+    document.getElementById('upcomingEvents').innerHTML = upcoming.length === 0 ? '<p class="empty-text">Rien à venir</p>' :
+        upcoming.map(renderEvent).join('');
 }
 
-function renderEventItem(event) {
-    const priorityEmoji = {
-        critical: '🔴',
-        high: '🟠',
-        medium: '🟡',
-        low: '🟢'
-    }[event.priority] || '🟡';
+function renderEvent(e) {
+    const emoji = {critical: '🔴', high: '🟠', medium: '🟡', low: '🟢'}[e.priority] || '🟡';
+    const d = new Date(e.date).toLocaleDateString('fr-FR', {weekday: 'long', day: 'numeric', month: 'long'});
     
-    const eventDate = new Date(event.date);
-    const dateStr = eventDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
-    
-    return `
-        <div class="event-item">
-            <div class="event-item-header">
-                <span class="event-item-title">${event.title}</span>
-                <span class="event-item-priority">${priorityEmoji}</span>
-            </div>
-            <div class="event-item-time">
-                📅 ${dateStr} • ⏰ ${event.startTime} - ${event.endTime} (${event.duration}min)
-            </div>
+    return `<div class="event-item">
+        <div class="event-item-header">
+            <span class="event-item-title">${e.title}</span>
+            <span class="event-item-priority">${emoji}</span>
         </div>
-    `;
-}
-
-function updateCalendarView() {
-    // Same as planning grid for now
-    const container = document.getElementById('calendarGrid');
-    generateWeekGrid(container);
+        <div class="event-item-time">📅 ${d} • ⏰ ${e.startTime} - ${e.endTime}</div>
+    </div>`;
 }
 
 function updatePeriodLabel() {
     const label = document.getElementById('periodLabel');
-    const calLabel = document.getElementById('calPeriodLabel');
-    
     let text = 'Cette semaine';
     if (state.currentWeekOffset === 1) text = 'Semaine prochaine';
     else if (state.currentWeekOffset === -1) text = 'Semaine dernière';
     else if (state.currentWeekOffset !== 0) text = `Semaine ${state.currentWeekOffset > 0 ? '+' : ''}${state.currentWeekOffset}`;
-    
-    if (label) label.textContent = text;
-    if (calLabel) calLabel.textContent = text;
+    label.textContent = text;
 }
 
 function changeWeek(offset) {
     state.currentWeekOffset += offset;
     updatePlanningView();
-    updateCalendarView();
 }
 
+// === MONTHLY CALENDAR ===
+function updateMonthlyCalendar() {
+    const container = document.getElementById('monthlyCalendar');
+    const today = new Date();
+    const targetMonth = new Date(today.getFullYear(), today.getMonth() + state.currentMonthOffset, 1);
+    
+    const monthLabel = document.getElementById('calMonthLabel');
+    monthLabel.textContent = targetMonth.toLocaleDateString('fr-FR', {month: 'long', year: 'numeric'});
+    
+    const firstDay = new Date(targetMonth.getFullYear(), targetMonth.getMonth(), 1);
+    const lastDay = new Date(targetMonth.getFullYear(), targetMonth.getMonth() + 1, 0);
+    const startDay = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1;
+    
+    let html = '<div class="calendar-weekdays">';
+    ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].forEach(d => {
+        html += `<div class="weekday-label">${d}</div>`;
+    });
+    html += '</div><div class="calendar-days">';
+    
+    for (let i = 0; i < startDay; i++) {
+        html += '<div class="calendar-day-cell other-month"></div>';
+    }
+    
+    for (let day = 1; day <= lastDay.getDate(); day++) {
+        const date = new Date(targetMonth.getFullYear(), targetMonth.getMonth(), day);
+        const isToday = date.toDateString() === today.toDateString();
+        
+        const dayEvents = state.events.filter(e => {
+            return new Date(e.date).toDateString() === date.toDateString();
+        }).slice(0, 3);
+        
+        html += `<div class="calendar-day-cell ${isToday ? 'today' : ''}">
+            <div class="day-number">${day}</div>
+            ${dayEvents.length > 0 ? `
+                <div class="mini-events">${
+                    dayEvents.map(e => `<div class="mini-event ${e.priority}">${e.title}</div>`).join('')
+                }</div>
+            ` : ''}
+        </div>`;
+    }
+    
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+function changeMonth(offset) {
+    state.currentMonthOffset += offset;
+    updateMonthlyCalendar();
+}
+
+// === INSIGHTS ===
 function updateInsightsView() {
-    // Placeholder - implement later if needed
+    const container = document.getElementById('insightsContent');
+    
+    const totalEvents = state.events.length;
+    const totalHours = state.events.reduce((s, e) => s + e.duration / 60, 0);
+    const studyEvents = state.events.filter(e => e.type === 'study');
+    const workEvents = state.events.filter(e => e.type === 'work');
+    const socialEvents = state.events.filter(e => e.type === 'social');
+    
+    html = `
+        <div class="insight-card">
+            <h3>📊 Vue d'ensemble</h3>
+            <p style="font-size: 2rem; font-weight: 700; color: var(--primary);">${totalEvents}</p>
+            <p>Événements planifiés</p>
+            <p style="margin-top: 1rem; font-size: 1.5rem; font-weight: 600;">${Math.round(totalHours)}h</p>
+            <p style="color: var(--text-muted);">Total d'heures</p>
+        </div>
+        
+        <div class="insight-card">
+            <h3>📚 Répartition</h3>
+            <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 1rem;">
+                <div style="display: flex; justify-content: space-between;">
+                    <span>Études</span>
+                    <strong>${studyEvents.length} (${Math.round(studyEvents.reduce((s,e) => s + e.duration/60, 0))}h)</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span>Travail</span>
+                    <strong>${workEvents.length} (${Math.round(workEvents.reduce((s,e) => s + e.duration/60, 0))}h)</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span>Social</span>
+                    <strong>${socialEvents.length} (${Math.round(socialEvents.reduce((s,e) => s + e.duration/60, 0))}h)</strong>
+                </div>
+            </div>
+        </div>
+        
+        <div class="insight-card">
+            <h3>⚡ Productivité</h3>
+            <p style="margin-top: 1rem;">Tes événements les plus fréquents sont liés aux <strong>études</strong>.</p>
+            <p style="margin-top: 0.5rem; color: var(--text-muted);">Continue comme ça !</p>
+        </div>
+    `;
+    
+    container.innerHTML = html;
 }
 
+// === TEMPLATES ===
 function updateTemplatesView() {
-    // Placeholder - implement later if needed
+    const container = document.getElementById('templatesContent');
+    
+    html = `
+        <div class="insight-card">
+            <h3>🎓 Template actif</h3>
+            <p style="font-size: 1.2rem; margin-top: 1rem;">
+                ${state.user.templateType === 'student' ? '🎓 Étudiant' : 
+                  state.user.templateType === 'worker' ? '💼 Travailleur' : '✨ Personnalisé'}
+            </p>
+            ${state.user.schedule.length > 0 ? `
+                <h4 style="margin-top: 1.5rem; font-size: 0.95rem;">Emploi du temps :</h4>
+                <div style="margin-top: 0.5rem; font-size: 0.85rem;">
+                    ${state.user.schedule.map(s => `
+                        <div style="padding: 0.5rem; background: var(--bg-hover); border-radius: 6px; margin-bottom: 0.5rem;">
+                            ${['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'][s.day]} ${s.startTime} - ${s.endTime} : ${s.subject}
+                        </div>
+                    `).join('')}
+                </div>
+            ` : ''}
+        </div>
+    `;
+    
+    container.innerHTML = html;
 }
 
+// === BADGES ===
 function updateBadgesView() {
     document.getElementById('streakDays').textContent = state.streak;
     
-    const badgesGrid = document.getElementById('badgesGrid');
     const badges = [
-        { icon: '⚡', name: 'Débutant', desc: '1er événement', unlocked: state.user.totalEvents >= 1 },
-        { icon: '🔥', name: '3 jours', desc: 'Streak de 3 jours', unlocked: state.streak >= 3 },
-        { icon: '✨', name: 'Semaine', desc: 'Streak de 7 jours', unlocked: state.streak >= 7 },
-        { icon: '💎', name: 'Champion', desc: 'Streak de 30 jours', unlocked: state.streak >= 30 },
-        { icon: '🎯', name: 'Organisé', desc: '50 événements', unlocked: state.user.totalEvents >= 50 },
+        {icon: '⚡', name: 'Débutant', desc: '1er événement', unlocked: state.user.totalEvents >= 1},
+        {icon: '🔥', name: '3 jours', desc: 'Streak 3j', unlocked: state.streak >= 3},
+        {icon: '✨', name: 'Semaine', desc: 'Streak 7j', unlocked: state.streak >= 7},
+        {icon: '💎', name: 'Champion', desc: 'Streak 30j', unlocked: state.streak >= 30},
     ];
     
-    badgesGrid.innerHTML = badges.map(badge => `
-        <div class="badge ${badge.unlocked ? '' : 'locked'}">
-            <div class="badge-icon">${badge.icon}</div>
-            <div class="badge-name">${badge.name}</div>
-            <div class="badge-desc">${badge.desc}</div>
+    document.getElementById('badgesGrid').innerHTML = badges.map(b => `
+        <div class="badge ${b.unlocked ? '' : 'locked'}">
+            <div class="badge-icon">${b.icon}</div>
+            <div class="badge-name">${b.name}</div>
+            <div class="badge-desc">${b.desc}</div>
         </div>
     `).join('');
 }
 
+// === PROFILE ===
 function updateProfileView() {
     document.getElementById('profileName').textContent = state.user.name;
     document.getElementById('profileEmail').textContent = state.user.email || '';
-    
     document.getElementById('totalEvents').textContent = state.user.totalEvents;
     document.getElementById('profileStreak').textContent = state.streak;
     document.getElementById('totalHours').textContent = Math.round(state.user.totalHours);
@@ -862,7 +881,6 @@ function updateProfileView() {
     document.getElementById('profileNameInput').value = state.user.name;
     document.getElementById('profileEmailInput').value = state.user.email;
     
-    // Update avatars
     if (state.user.avatar) {
         document.getElementById('profileAvatar').src = state.user.avatar;
         document.getElementById('profileAvatar').style.display = 'block';
@@ -873,13 +891,12 @@ function updateProfileView() {
 function saveProfile() {
     state.user.name = document.getElementById('profileNameInput').value;
     state.user.email = document.getElementById('profileEmailInput').value;
-    
     saveState();
     updateHeaderUI();
     showToast('✅ Profil sauvegardé !');
 }
 
-function handleProfileAvatarUpload(e) {
+function handleProfileAvatar(e) {
     const file = e.target.files[0];
     if (file) {
         const reader = new FileReader();
@@ -888,7 +905,6 @@ function handleProfileAvatarUpload(e) {
             saveState();
             updateHeaderUI();
             updateProfileView();
-            showToast('✅ Photo mise à jour !');
         };
         reader.readAsDataURL(file);
     }
@@ -896,73 +912,46 @@ function handleProfileAvatarUpload(e) {
 
 function updateHeaderUI() {
     document.getElementById('headerStreak').textContent = state.streak;
-    
-    // Update avatar in header
     if (state.user.avatar) {
         document.getElementById('headerAvatar').src = state.user.avatar;
         document.getElementById('headerAvatar').style.display = 'block';
         document.getElementById('headerAvatarFallback').style.display = 'none';
     }
-    
-    // Update sync status
-    Object.keys(state.syncedCalendars).forEach(platform => {
-        if (state.syncedCalendars[platform]) {
-            const btn = document.querySelector(`[data-platform="${platform}"]`);
-            const statusEl = btn.querySelector('.sync-status');
-            statusEl.textContent = '✓';
-            statusEl.classList.add('synced');
-        }
-    });
 }
 
-// ===== UTILITIES =====
-function showToast(message) {
+// === UTILS ===
+function showToast(msg) {
     const toast = document.getElementById('toast');
-    const toastMessage = document.getElementById('toastMessage');
-    
-    toastMessage.textContent = message;
+    document.getElementById('toastMessage').textContent = msg;
     toast.classList.add('show');
-    
-    setTimeout(() => {
-        toast.classList.remove('show');
-    }, 3000);
+    setTimeout(() => toast.classList.remove('show'), 3000);
 }
 
-// ===== STORAGE =====
+// === STORAGE ===
 function saveState() {
     try {
-        localStorage.setItem('chronoflow_v3', JSON.stringify({
+        localStorage.setItem('chronoflow_v4', JSON.stringify({
             user: state.user,
             events: state.events,
             theme: state.theme,
             streak: state.streak,
-            bestStreak: state.bestStreak,
             syncedCalendars: state.syncedCalendars
         }));
-    } catch (error) {
-        console.error('Error saving:', error);
-    }
+    } catch (e) {console.error(e);}
 }
 
 function loadState() {
     try {
-        const saved = localStorage.getItem('chronoflow_v3');
+        const saved = localStorage.getItem('chronoflow_v4');
         if (saved) {
             const data = JSON.parse(saved);
             state.user = data.user || state.user;
-            state.events = (data.events || []).map(e => ({
-                ...e,
-                date: new Date(e.date)
-            }));
+            state.events = (data.events || []).map(e => ({...e, date: new Date(e.date)}));
             state.theme = data.theme || 'light';
             state.streak = data.streak || 0;
-            state.bestStreak = data.bestStreak || 0;
             state.syncedCalendars = data.syncedCalendars || state.syncedCalendars;
         }
-    } catch (error) {
-        console.error('Error loading:', error);
-    }
+    } catch (e) {console.error(e);}
 }
 
-// Export for debugging
-window.ChronoFlow = { state, saveState, loadState };
+window.ChronoFlow = {state, saveState};
