@@ -1,236 +1,72 @@
-// ChronoFlow V4 - Complete AI Planning Assistant
-// With urgency detection, monthly calendar, insights, and complete template system
+// ChronoFlow V4 - Clean & Functional
 
 const state = {
-    user: {
-        name: '',
-        email: '',
-        avatar: '',
-        totalEvents: 0,
-        totalHours: 0,
-        lastUsedDate: null,
-        templateType: 'none',
-        schedule: [] // User's schedule (courses, work hours, etc.)
-    },
+    user: {name: '', email: '', totalEvents: 0, lastUsedDate: null, templateType: 'custom'},
     events: [],
-    currentWeekOffset: 0,
-    currentMonthOffset: 0,
+    weekOffset: 0,
+    monthOffset: 0,
     activeView: 'planning',
     theme: 'light',
-    streak: 0,
-    syncedCalendars: {google: false, apple: false, notion: false}
+    streak: 0
 };
 
-// === INIT ===
+// Init
 document.addEventListener('DOMContentLoaded', () => {
     loadState();
     if (!state.user.name) {
-        showOnboarding();
+        document.getElementById('onboardingModal').classList.add('show');
     } else {
-        initApp();
+        startApp();
     }
-    setupListeners();
 });
 
-function initApp() {
-    document.getElementById('appContainer').style.display = 'block';
+function startApp() {
     document.getElementById('onboardingModal').classList.remove('show');
+    document.getElementById('app').style.display = 'block';
     updateStreakBasedOnUsage();
-    setTheme(state.theme);
-    updateHeaderUI();
+    applyTheme(state.theme);
+    updateHeader();
     updateAllViews();
 }
 
-// === ONBOARDING ===
-function showOnboarding() {
-    document.getElementById('onboardingModal').classList.add('show');
-}
-
-function nextOnboardingStep(step) {
-    if (step === 2) {
-        const name = document.getElementById('onboardingName').value.trim();
-        if (!name) {
-            showToast('⚠️ Entre ton prénom !');
-            return;
-        }
-        state.user.name = name;
-        state.user.email = document.getElementById('onboardingEmail').value.trim();
+function nextStep() {
+    const name = document.getElementById('userName').value.trim();
+    if (!name) {
+        toast('⚠️ Entre ton prénom !');
+        return;
     }
+    state.user.name = name;
+    state.user.email = document.getElementById('userEmail').value.trim();
     
     document.querySelectorAll('.onboarding-step').forEach(s => s.classList.remove('active'));
-    document.querySelector(`[data-step="${step}"]`).classList.add('active');
+    document.querySelector('[data-step="2"]').classList.add('active');
 }
 
-function prevOnboardingStep(step) {
-    document.querySelectorAll('.onboarding-step').forEach(s => s.classList.remove('active'));
-    document.querySelector(`[data-step="${step}"]`).classList.add('active');
-}
-
-function selectTemplate(template) {
+function finishOnboarding(template) {
     state.user.templateType = template;
-    
-    if (template === 'student') {
-        nextOnboardingStep('3-student');
-    } else if (template === 'worker') {
-        nextOnboardingStep('3-worker');
-    } else {
-        completeOnboarding();
-    }
-}
-
-function addCourseRow() {
-    const container = document.getElementById('coursesContainer');
-    const row = document.createElement('div');
-    row.className = 'course-row';
-    row.innerHTML = `
-        <select class="day-select">
-            <option value="1">Lundi</option>
-            <option value="2">Mardi</option>
-            <option value="3">Mercredi</option>
-            <option value="4">Jeudi</option>
-            <option value="5">Vendredi</option>
-            <option value="6">Samedi</option>
-        </select>
-        <input type="time" class="time-input" placeholder="Début">
-        <input type="time" class="time-input" placeholder="Fin">
-        <input type="text" class="subject-input" placeholder="Matière">
-        <button class="btn-icon" onclick="removeCourseRow(this)">🗑️</button>
-    `;
-    container.appendChild(row);
-}
-
-function removeCourseRow(btn) {
-    btn.parentElement.remove();
-}
-
-function completeOnboarding() {
-    // Save schedule if student template
-    if (state.user.templateType === 'student') {
-        const rows = document.querySelectorAll('.course-row');
-        state.user.schedule = Array.from(rows).map(row => ({
-            day: parseInt(row.querySelector('.day-select').value),
-            startTime: row.querySelectorAll('.time-input')[0].value,
-            endTime: row.querySelectorAll('.time-input')[1].value,
-            subject: row.querySelector('.subject-input').value
-        })).filter(s => s.startTime && s.endTime && s.subject);
-        
-        // Add courses to calendar as recurring events
-        state.user.schedule.forEach(course => {
-            for (let week = 0; week < 4; week++) { // 4 weeks
-                const today = new Date();
-                const dayDiff = course.day - today.getDay();
-                const date = new Date(today);
-                date.setDate(today.getDate() + dayDiff + (week * 7));
-                
-                state.events.push({
-                    id: Date.now() + Math.random(),
-                    title: `Cours ${course.subject}`,
-                    type: 'study',
-                    date: date,
-                    startTime: course.startTime,
-                    endTime: course.endTime,
-                    duration: calculateDuration(course.startTime, course.endTime),
-                    priority: 'high',
-                    isRecurring: true
-                });
-            }
-        });
-    }
-    
     state.user.firstUseDate = new Date().toISOString();
     state.user.lastUsedDate = new Date().toISOString();
     saveState();
-    initApp();
-    showToast(`🎉 Bienvenue ${state.user.name} !`);
-}
-
-function calculateDuration(start, end) {
-    const [sh, sm] = start.split(':').map(Number);
-    const [eh, em] = end.split(':').map(Number);
-    return ((eh * 60 + em) - (sh * 60 + sm));
-}
-
-// Handle avatar upload
-document.getElementById('avatarInput')?.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            state.user.avatar = e.target.result;
-            document.getElementById('avatarPreview').innerHTML = `<img src="${e.target.result}">`;
-        };
-        reader.readAsDataURL(file);
-    }
-});
-
-// === LISTENERS ===
-function setupListeners() {
-    document.getElementById('sidebarToggle')?.addEventListener('click', toggleSidebar);
-    document.getElementById('themeToggle')?.addEventListener('click', toggleTheme);
-    document.getElementById('profileBtn')?.addEventListener('click', () => switchView('profile'));
-    
-    document.querySelectorAll('.nav-item').forEach(item => {
-        item.addEventListener('click', (e) => switchView(e.currentTarget.dataset.view));
-    });
-    
-    document.querySelectorAll('.tag-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => toggleQuickTag(e.currentTarget, e.currentTarget.dataset.tag));
-    });
-    
-    document.getElementById('generateBtn')?.addEventListener('click', handleGenerate);
-    
-    document.getElementById('prevWeek')?.addEventListener('click', () => changeWeek(-1));
-    document.getElementById('nextWeek')?.addEventListener('click', () => changeWeek(1));
-    
-    document.getElementById('calPrevMonth')?.addEventListener('click', () => changeMonth(-1));
-    document.getElementById('calNextMonth')?.addEventListener('click', () => changeMonth(1));
-    
-    document.querySelectorAll('.sync-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => syncCalendar(e.currentTarget.dataset.platform));
-    });
-    
-    document.getElementById('saveProfile')?.addEventListener('click', saveProfile);
-    document.getElementById('profileAvatarInput')?.addEventListener('change', handleProfileAvatar);
+    startApp();
+    toast(`🎉 Bienvenue ${state.user.name} !`);
 }
 
 function toggleSidebar() {
-    document.getElementById('sidebar').classList.toggle('collapsed');
-    if (window.innerWidth <= 768) {
-        document.getElementById('sidebar').classList.toggle('show');
-    }
+    document.getElementById('sidebar').classList.toggle('hidden');
 }
 
 function toggleTheme() {
     state.theme = state.theme === 'light' ? 'dark' : 'light';
-    setTheme(state.theme);
+    applyTheme(state.theme);
     saveState();
 }
 
-function setTheme(theme) {
+function applyTheme(theme) {
     document.documentElement.setAttribute('data-theme', theme);
-    document.querySelector('.theme-icon').textContent = theme === 'light' ? '🌙' : '☀️';
+    const btn = document.querySelectorAll('.btn-icon')[1];
+    if (btn) btn.textContent = theme === 'light' ? '🌙' : '☀️';
 }
 
-function toggleQuickTag(btn, tag) {
-    const textarea = document.getElementById('aiInput');
-    const tagText = {
-        '😴 Fatigué': 'Je suis fatigué, plus de temps libre',
-        '📚 Examen urgent': 'J\'ai un examen important et j\'ai rien révisé',
-        '👥 Amis': 'Voir mes amis ce weekend',
-        '🏃 Sport': 'Sport 3 fois cette semaine',
-        '⚖️ Équilibre': 'Besoin d\'équilibre vie/travail'
-    }[tag] || '';
-    
-    btn.classList.toggle('active');
-    
-    if (btn.classList.contains('active')) {
-        textarea.value = (textarea.value.trim() + '\n' + tagText).trim();
-    } else {
-        textarea.value = textarea.value.replace(tagText, '').trim();
-    }
-}
-
-// === STREAK ===
 function updateStreakBasedOnUsage() {
     const today = new Date();
     today.setHours(0,0,0,0);
@@ -255,93 +91,83 @@ function updateStreakBasedOnUsage() {
     saveState();
 }
 
-// === VIEWS ===
-function switchView(view) {
+function showView(view) {
     state.activeView = view;
     
-    document.querySelectorAll('.nav-item').forEach(i => {
-        i.classList.toggle('active', i.dataset.view === view);
+    document.querySelectorAll('.nav-btn').forEach((btn, i) => {
+        btn.classList.toggle('active', ['planning','calendar','insights','templates','badges'][i] === view);
     });
     
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-    document.getElementById(`${view}View`).classList.add('active');
+    document.getElementById(`view${view.charAt(0).toUpperCase() + view.slice(1)}`).classList.add('active');
     
-    const aiInput = document.getElementById('aiInputContainer');
-    aiInput.style.display = view === 'planning' ? 'block' : 'none';
+    const aiBox = document.getElementById('aiBox');
+    if (aiBox) aiBox.style.display = view === 'planning' ? 'block' : 'none';
     
     updateCurrentView();
 }
 
+function goToProfile() {
+    showView('profile');
+}
+
 function updateCurrentView() {
-    if (state.activeView === 'planning') updatePlanningView();
-    if (state.activeView === 'calendar') updateMonthlyCalendar();
-    if (state.activeView === 'insights') updateInsightsView();
-    if (state.activeView === 'templates') updateTemplatesView();
-    if (state.activeView === 'badges') updateBadgesView();
-    if (state.activeView === 'profile') updateProfileView();
+    if (state.activeView === 'planning') updatePlanning();
+    if (state.activeView === 'calendar') updateCalendar();
+    if (state.activeView === 'insights') updateInsights();
+    if (state.activeView === 'templates') updateTemplates();
+    if (state.activeView === 'badges') updateBadges();
+    if (state.activeView === 'profile') updateProfile();
 }
 
 function updateAllViews() {
-    updatePlanningView();
-    updateMonthlyCalendar();
+    updatePlanning();
+    updateCalendar();
 }
 
-// === AI GENERATION (WITH URGENCY DETECTION) ===
-async function handleGenerate() {
+// AI Generation
+async function generate() {
     const input = document.getElementById('aiInput').value.trim();
     
     if (!input) {
-        showToast('⚠️ Écris quelque chose !');
+        toast('⚠️ Écris quelque chose !');
         return;
     }
     
-    const btn = document.getElementById('generateBtn');
-    btn.disabled = true;
-    document.getElementById('generateText').textContent = 'Génération...';
-    document.getElementById('loadingOverlay').classList.add('show');
+    document.getElementById('loading').classList.add('show');
     
     await new Promise(r => setTimeout(r, 2000));
     
-    const newEvents = await parseInputWithUrgency(input);
+    const newEvents = parseInput(input);
     
     if (newEvents.length > 0) {
         newEvents.forEach(e => {
             state.events.push(e);
             state.user.totalEvents++;
-            state.user.totalHours += e.duration / 60;
         });
         
-        checkWorkloadAndAlert(newEvents);
         updateAllViews();
         saveState();
         
         document.getElementById('aiInput').value = '';
-        document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active'));
-        
-        showToast(`✨ ${newEvents.length} événement(s) ajouté(s) !`);
+        toast(`✨ ${newEvents.length} événement(s) ajouté(s) !`);
     } else {
-        showToast('⚠️ Impossible de générer. Reformule !');
+        toast('⚠️ Reformule ta demande');
     }
     
-    btn.disabled = false;
-    document.getElementById('generateText').textContent = 'Générer mon planning';
-    document.getElementById('loadingOverlay').classList.remove('show');
+    document.getElementById('loading').classList.remove('show');
 }
 
-async function parseInputWithUrgency(text) {
+function parseInput(text) {
     const lower = text.toLowerCase();
     const events = [];
     const today = new Date();
     
-    // URGENCY DETECTION
-    const isUrgent = lower.includes('rien révisé') || lower.includes('pas révisé') || 
-                     lower.includes('urgent') || lower.includes('dernière minute');
+    const isUrgent = lower.includes('rien révisé') || lower.includes('pas révisé') || lower.includes('urgent');
     const hasExam = lower.includes('examen') || lower.includes('éval') || lower.includes('contrôle');
-    const isTired = lower.includes('fatigué') || lower.includes('épuisé');
     
-    // Extract subject/topic
     let subject = 'Révision';
-    const subjects = ['maths', 'français', 'anglais', 'physique', 'chimie', 'histoire', 'géo', 'svt', 'philo'];
+    const subjects = ['maths', 'français', 'anglais', 'physique', 'chimie', 'histoire'];
     for (const s of subjects) {
         if (lower.includes(s)) {
             subject = s.charAt(0).toUpperCase() + s.slice(1);
@@ -349,36 +175,32 @@ async function parseInputWithUrgency(text) {
         }
     }
     
-    // Extract dates
-    const dates = extractDates(lower, today);
+    const dates = getDates(lower, today);
     const examDate = dates[0] || new Date(today.setDate(today.getDate() + 7));
     
-    // URGENCY-BASED PLANNING
     if (hasExam && isUrgent) {
-        // Intensive study sessions
-        const daysUntilExam = Math.floor((examDate - new Date()) / (1000 * 60 * 60 * 24));
-        const sessionsPerDay = daysUntilExam < 3 ? 3 : 2; // More sessions if very urgent
-        const sessionDuration = daysUntilExam < 3 ? 180 : 120; // Longer if urgent
+        const daysUntil = Math.floor((examDate - new Date()) / (1000 * 60 * 60 * 24));
+        const sessionsPerDay = daysUntil < 3 ? 3 : 2;
+        const sessionDuration = daysUntil < 3 ? 180 : 120;
         
-        for (let i = 0; i < daysUntilExam; i++) {
+        for (let i = 0; i < daysUntil; i++) {
             const date = new Date();
             date.setDate(date.getDate() + i + 1);
             
             for (let j = 0; j < sessionsPerDay; j++) {
-                const startTimes = ['9:00', '14:00', '17:00'];
-                events.push(createEvent({
+                const times = ['9:00', '14:00', '17:00'];
+                events.push(makeEvent({
                     title: `Révision ${subject} (SESSION ${j+1})`,
                     type: 'study',
                     date: date,
-                    startTime: startTimes[j],
+                    startTime: times[j],
                     duration: sessionDuration,
                     priority: 'critical'
                 }));
             }
         }
         
-        // Add exam itself
-        events.push(createEvent({
+        events.push(makeEvent({
             title: `📝 EXAMEN ${subject}`,
             type: 'study',
             date: examDate,
@@ -386,89 +208,31 @@ async function parseInputWithUrgency(text) {
             duration: 180,
             priority: 'critical'
         }));
-    } else if (hasExam) {
-        // Regular exam preparation
-        const daysUntilExam = Math.floor((examDate - new Date()) / (1000 * 60 * 60 * 24));
-        
-        for (let i = 0; i < daysUntilExam; i++) {
-            const date = new Date();
-            date.setDate(date.getDate() + i + 1);
-            
-            events.push(createEvent({
-                title: `Révision ${subject}`,
-                type: 'study',
-                date: date,
-                startTime: i % 2 === 0 ? '14:00' : '9:00',
-                duration: 120,
-                priority: 'high'
-            }));
-        }
-        
-        events.push(createEvent({
-            title: `📝 Examen ${subject}`,
-            type: 'study',
-            date: examDate,
-            startTime: '8:00',
-            duration: 180,
-            priority: 'critical'
-        }));
-    } else if (isTired) {
-        // Rest focus
-        for (let i = 1; i <= 5; i++) {
-            const date = new Date();
-            date.setDate(date.getDate() + i);
-            
-            events.push(createEvent({
-                title: 'Temps de repos',
-                type: 'personal',
-                date: date,
-                startTime: '15:00',
-                duration: 90,
-                priority: 'high'
-            }));
-        }
     } else {
-        // Regular event
-        const eventType = detectEventType(lower);
-        const duration = extractDuration(lower, eventType);
-        const frequency = extractFrequency(lower);
-        const priority = lower.includes('important') ? 'high' : 'medium';
-        
+        const eventType = getEventType(lower);
+        const duration = getDuration(lower);
         const targetDates = dates.length > 0 ? dates : [new Date(new Date().setDate(new Date().getDate() + 1))];
         
-        if (frequency > 1) {
-            for (let i = 0; i < frequency; i++) {
-                const date = new Date();
-                date.setDate(date.getDate() + i + 1);
-                
-                events.push(createEvent({
-                    title: eventType.title,
-                    type: eventType.type,
-                    date: date,
-                    startTime: generateTimeSlot(eventType.type, i),
-                    duration: duration,
-                    priority: priority
-                }));
-            }
-        } else {
-            targetDates.forEach(date => {
-                events.push(createEvent({
-                    title: eventType.title,
-                    type: eventType.type,
-                    date: date,
-                    startTime: generateTimeSlot(eventType.type),
-                    duration: duration,
-                    priority: priority
-                }));
-            });
-        }
+        targetDates.forEach(date => {
+            events.push(makeEvent({
+                title: eventType.title,
+                type: eventType.type,
+                date: date,
+                startTime: '14:00',
+                duration: duration,
+                priority: 'medium'
+            }));
+        });
     }
     
     return events;
 }
 
-function createEvent(data) {
-    const endTime = calculateEndTime(data.startTime, data.duration);
+function makeEvent(data) {
+    const [h, m] = data.startTime.split(':').map(Number);
+    const totalMin = h * 60 + m + data.duration;
+    const endTime = `${Math.floor(totalMin/60).toString().padStart(2,'0')}:${(totalMin%60).toString().padStart(2,'0')}`;
+    
     return {
         id: Date.now() + Math.random(),
         title: data.title,
@@ -481,167 +245,61 @@ function createEvent(data) {
     };
 }
 
-function calculateEndTime(start, durationMin) {
-    const [h, m] = start.split(':').map(Number);
-    const totalMin = h * 60 + m + durationMin;
-    return `${Math.floor(totalMin / 60).toString().padStart(2, '0')}:${(totalMin % 60).toString().padStart(2, '0')}`;
-}
-
-// PARSING HELPERS
-function detectEventType(text) {
-    const types = [
-        {keywords: ['ami', 'amis', 'sortie'], type: 'social', title: 'Voir amis'},
-        {keywords: ['sport', 'gym'], type: 'personal', title: 'Sport'},
-        {keywords: ['travail', 'projet'], type: 'work', title: 'Travail'},
-        {keywords: ['repos', 'détente'], type: 'personal', title: 'Temps libre'}
-    ];
-    
-    for (const t of types) {
-        if (t.keywords.some(k => text.includes(k))) return t;
-    }
+function getEventType(text) {
+    if (text.includes('ami')) return {type: 'social', title: 'Voir amis'};
+    if (text.includes('sport')) return {type: 'personal', title: 'Sport'};
+    if (text.includes('travail')) return {type: 'work', title: 'Travail'};
     return {type: 'personal', title: 'Activité'};
 }
 
-function extractDuration(text, eventType) {
-    const hourMatch = text.match(/(\d+)\s*h(eure)?s?/i);
+function getDuration(text) {
+    const hourMatch = text.match(/(\d+)\s*h/i);
     if (hourMatch) return parseInt(hourMatch[1]) * 60;
-    
-    const minMatch = text.match(/(\d+)\s*min(ute)?s?/i);
-    if (minMatch) return parseInt(minMatch[1]);
-    
-    const defaults = {study: 120, work: 180, social: 150, personal: 60};
-    return defaults[eventType.type] || 60;
+    return 120;
 }
 
-function extractFrequency(text) {
-    const match = text.match(/(\d+)\s*(fois|x)/i);
-    if (match) return parseInt(match[1]);
-    if (text.includes('tous les jours')) return 7;
-    return 1;
-}
-
-function extractDates(text, baseDate) {
+function getDates(text, base) {
     const dates = [];
     
     if (text.includes('dans') && text.includes('jour')) {
         const match = text.match(/dans\s*(\d+)\s*jours?/i);
         if (match) {
-            const date = new Date(baseDate);
-            date.setDate(baseDate.getDate() + parseInt(match[1]));
+            const date = new Date(base);
+            date.setDate(base.getDate() + parseInt(match[1]));
             dates.push(date);
         }
     }
     
-    if (text.includes('weekend') || text.includes('samedi')) {
-        const saturday = new Date(baseDate);
-        const daysToSat = (6 - baseDate.getDay() + 7) % 7 || 7;
-        saturday.setDate(baseDate.getDate() + daysToSat);
-        dates.push(saturday);
+    if (text.includes('demain')) {
+        const date = new Date(base);
+        date.setDate(base.getDate() + 1);
+        dates.push(date);
+    }
+    
+    if (text.includes('samedi')) {
+        const date = new Date(base);
+        const daysToSat = (6 - base.getDay() + 7) % 7 || 7;
+        date.setDate(base.getDate() + daysToSat);
+        dates.push(date);
     }
     
     return dates;
 }
 
-function generateTimeSlot(type, index = 0) {
-    const slots = {
-        study: ['9:00', '14:00', '16:00'],
-        work: ['9:00', '13:00', '15:00'],
-        social: ['18:00', '19:00', '20:00'],
-        personal: ['10:00', '15:00', '17:00']
-    };
-    return (slots[type] || slots.personal)[index % 3];
-}
-
-// WORKLOAD CHECK
-function checkWorkloadAndAlert(newEvents) {
-    const thisWeek = state.events.filter(e => {
-        const d = new Date(e.date);
-        const now = new Date();
-        const weekStart = new Date(now.setDate(now.getDate() - now.getDay() + 1));
-        const weekEnd = new Date(weekStart);
-        weekEnd.setDate(weekStart.getDate() + 7);
-        return d >= weekStart && d < weekEnd;
-    });
-    
-    const totalH = thisWeek.reduce((s, e) => s + e.duration / 60, 0);
-    
-    if (totalH > 60) showWorkloadAlert('overloaded', totalH);
-    else if (totalH < 10) showWorkloadAlert('underloaded', totalH);
-}
-
-function showWorkloadAlert(type, hours) {
-    const modal = document.getElementById('workloadModal');
-    document.getElementById('workloadTitle').textContent = type === 'overloaded' ? '⚠️ Planning surchargé' : '💤 Planning léger';
-    document.getElementById('workloadMessage').textContent = type === 'overloaded' ? 
-        `${Math.round(hours)}h cette semaine. C'est beaucoup ! Ajuster ?` :
-        `${Math.round(hours)}h cette semaine. Ajouter plus d'activités ?`;
-    
-    modal.classList.add('show');
-    
-    document.getElementById('workloadKeep').onclick = () => modal.classList.remove('show');
-    document.getElementById('workloadAdjust').onclick = () => {
-        if (type === 'overloaded') {
-            state.events = state.events.filter(e => e.priority !== 'low');
-        } else {
-            for (let i = 1; i <= 3; i++) {
-                const date = new Date();
-                date.setDate(date.getDate() + i);
-                state.events.push(createEvent({
-                    title: 'Temps libre',
-                    type: 'personal',
-                    date: date,
-                    startTime: '17:00',
-                    duration: 60,
-                    priority: 'low'
-                }));
-            }
-        }
-        updateAllViews();
-        saveState();
-        modal.classList.remove('show');
-        showToast('✅ Planning ajusté !');
-    };
-}
-
-// === CALENDAR SYNC ===
-async function syncCalendar(platform) {
-    const modal = document.getElementById('syncModal');
-    modal.classList.add('show');
-    
-    await new Promise(r => setTimeout(r, 2000));
-    
-    state.syncedCalendars[platform] = true;
-    
-    const btn = document.querySelector(`[data-platform="${platform}"]`);
-    const status = btn.querySelector('.sync-status');
-    status.textContent = '✓';
-    status.classList.add('synced');
-    
-    saveState();
-    modal.classList.remove('show');
-    showToast('✅ Synchronisé !');
-}
-
-// === PLANNING VIEW ===
-function updatePlanningView() {
+// Planning View
+function updatePlanning() {
     const grid = document.getElementById('planningGrid');
     
     if (state.events.length === 0) {
-        grid.innerHTML = '<div class="empty-state"><div class="empty-icon">📅</div><h3>Planning vide</h3><p>Utilise l\'IA pour planifier</p></div>';
-        document.getElementById('todayEvents').innerHTML = '<p class="empty-text">Rien aujourd\'hui</p>';
-        document.getElementById('upcomingEvents').innerHTML = '<p class="empty-text">Rien à venir</p>';
+        grid.innerHTML = '<div class="empty"><div class="empty-icon">📅</div><h3>Planning vide</h3><p>Utilise l\'IA pour planifier</p></div>';
+        document.getElementById('today').innerHTML = '<p class="empty-text">Rien</p>';
+        document.getElementById('upcoming').innerHTML = '<p class="empty-text">Rien</p>';
         return;
     }
     
-    generateWeekGrid(grid);
-    updateEventsSections();
-    updatePeriodLabel();
-}
-
-function generateWeekGrid(container) {
     const today = new Date();
     const weekStart = new Date(today);
-    weekStart.setDate(today.getDate() - today.getDay() + 1 + (state.currentWeekOffset * 7));
+    weekStart.setDate(today.getDate() - today.getDay() + 1 + (state.weekOffset * 7));
     
     const days = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
     let html = '<div class="week-grid">';
@@ -651,17 +309,17 @@ function generateWeekGrid(container) {
         currentDay.setDate(weekStart.getDate() + i);
         const isToday = currentDay.toDateString() === today.toDateString();
         
-        const dayEvents = state.events.filter(e => {
-            return new Date(e.date).toDateString() === currentDay.toDateString();
-        }).sort((a, b) => a.startTime.localeCompare(b.startTime));
+        const dayEvents = state.events.filter(e => 
+            new Date(e.date).toDateString() === currentDay.toDateString()
+        ).sort((a, b) => a.startTime.localeCompare(b.startTime));
         
-        html += `<div class="day-column ${isToday ? 'today' : ''}">
+        html += `<div class="day-col ${isToday ? 'today' : ''}">
             <div class="day-header">
                 <div class="day-name">${days[i]}</div>
                 <div class="day-date">${currentDay.getDate()}</div>
             </div>
             <div class="day-events">${
-                dayEvents.length === 0 ? '<p class="empty-text" style="font-size:0.75rem;padding:1rem 0;">Libre</p>' :
+                dayEvents.length === 0 ? '<p class="empty-text" style="font-size:0.75rem;padding:1rem 0">Libre</p>' :
                 dayEvents.map(e => `
                     <div class="event-card ${e.priority}">
                         <div class="event-title">${e.title}</div>
@@ -673,7 +331,10 @@ function generateWeekGrid(container) {
     }
     
     html += '</div>';
-    container.innerHTML = html;
+    grid.innerHTML = html;
+    
+    updateEventsSections();
+    updateWeekLabel();
 }
 
 function updateEventsSections() {
@@ -692,73 +353,77 @@ function updateEventsSections() {
         return d > today;
     }).sort((a, b) => new Date(a.date) - new Date(b.date)).slice(0, 10);
     
-    document.getElementById('todayEvents').innerHTML = todayEvents.length === 0 ? '<p class="empty-text">Rien aujourd\'hui</p>' :
-        todayEvents.map(renderEvent).join('');
+    document.getElementById('today').innerHTML = todayEvents.length === 0 ? '<p class="empty-text">Rien</p>' :
+        todayEvents.map(e => `
+            <div class="event-item">
+                <div style="font-weight:600">${e.title}</div>
+                <div style="font-size:0.85rem;color:var(--text2)">${e.startTime} - ${e.endTime}</div>
+            </div>
+        `).join('');
     
-    document.getElementById('upcomingEvents').innerHTML = upcoming.length === 0 ? '<p class="empty-text">Rien à venir</p>' :
-        upcoming.map(renderEvent).join('');
+    document.getElementById('upcoming').innerHTML = upcoming.length === 0 ? '<p class="empty-text">Rien</p>' :
+        upcoming.map(e => {
+            const d = new Date(e.date).toLocaleDateString('fr-FR', {weekday: 'long', day: 'numeric', month: 'long'});
+            return `
+                <div class="event-item">
+                    <div style="font-weight:600">${e.title}</div>
+                    <div style="font-size:0.85rem;color:var(--text2)">📅 ${d} • ${e.startTime} - ${e.endTime}</div>
+                </div>
+            `;
+        }).join('');
 }
 
-function renderEvent(e) {
-    const emoji = {critical: '🔴', high: '🟠', medium: '🟡', low: '🟢'}[e.priority] || '🟡';
-    const d = new Date(e.date).toLocaleDateString('fr-FR', {weekday: 'long', day: 'numeric', month: 'long'});
+function updateWeekLabel() {
+    const label = document.getElementById('weekLabel');
+    if (!label) return;
     
-    return `<div class="event-item">
-        <div class="event-item-header">
-            <span class="event-item-title">${e.title}</span>
-            <span class="event-item-priority">${emoji}</span>
-        </div>
-        <div class="event-item-time">📅 ${d} • ⏰ ${e.startTime} - ${e.endTime}</div>
-    </div>`;
-}
-
-function updatePeriodLabel() {
-    const label = document.getElementById('periodLabel');
     let text = 'Cette semaine';
-    if (state.currentWeekOffset === 1) text = 'Semaine prochaine';
-    else if (state.currentWeekOffset === -1) text = 'Semaine dernière';
-    else if (state.currentWeekOffset !== 0) text = `Semaine ${state.currentWeekOffset > 0 ? '+' : ''}${state.currentWeekOffset}`;
+    if (state.weekOffset === 1) text = 'Semaine prochaine';
+    else if (state.weekOffset === -1) text = 'Semaine dernière';
+    else if (state.weekOffset !== 0) text = `Semaine ${state.weekOffset > 0 ? '+' : ''}${state.weekOffset}`;
     label.textContent = text;
 }
 
 function changeWeek(offset) {
-    state.currentWeekOffset += offset;
-    updatePlanningView();
+    state.weekOffset += offset;
+    updatePlanning();
 }
 
-// === MONTHLY CALENDAR ===
-function updateMonthlyCalendar() {
-    const container = document.getElementById('monthlyCalendar');
+// Calendar View
+function updateCalendar() {
+    const container = document.getElementById('monthCalendar');
     const today = new Date();
-    const targetMonth = new Date(today.getFullYear(), today.getMonth() + state.currentMonthOffset, 1);
+    const targetMonth = new Date(today.getFullYear(), today.getMonth() + state.monthOffset, 1);
     
-    const monthLabel = document.getElementById('calMonthLabel');
-    monthLabel.textContent = targetMonth.toLocaleDateString('fr-FR', {month: 'long', year: 'numeric'});
+    const monthLabel = document.getElementById('monthLabel');
+    if (monthLabel) {
+        monthLabel.textContent = targetMonth.toLocaleDateString('fr-FR', {month: 'long', year: 'numeric'});
+    }
     
     const firstDay = new Date(targetMonth.getFullYear(), targetMonth.getMonth(), 1);
     const lastDay = new Date(targetMonth.getFullYear(), targetMonth.getMonth() + 1, 0);
     const startDay = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1;
     
-    let html = '<div class="calendar-weekdays">';
+    let html = '<div class="cal-weekdays">';
     ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].forEach(d => {
-        html += `<div class="weekday-label">${d}</div>`;
+        html += `<div class="weekday">${d}</div>`;
     });
-    html += '</div><div class="calendar-days">';
+    html += '</div><div class="cal-days">';
     
     for (let i = 0; i < startDay; i++) {
-        html += '<div class="calendar-day-cell other-month"></div>';
+        html += '<div class="cal-day other"></div>';
     }
     
     for (let day = 1; day <= lastDay.getDate(); day++) {
         const date = new Date(targetMonth.getFullYear(), targetMonth.getMonth(), day);
         const isToday = date.toDateString() === today.toDateString();
         
-        const dayEvents = state.events.filter(e => {
-            return new Date(e.date).toDateString() === date.toDateString();
-        }).slice(0, 3);
+        const dayEvents = state.events.filter(e => 
+            new Date(e.date).toDateString() === date.toDateString()
+        ).slice(0, 3);
         
-        html += `<div class="calendar-day-cell ${isToday ? 'today' : ''}">
-            <div class="day-number">${day}</div>
+        html += `<div class="cal-day ${isToday ? 'today' : ''}">
+            <div class="day-num">${day}</div>
             ${dayEvents.length > 0 ? `
                 <div class="mini-events">${
                     dayEvents.map(e => `<div class="mini-event ${e.priority}">${e.title}</div>`).join('')
@@ -772,172 +437,100 @@ function updateMonthlyCalendar() {
 }
 
 function changeMonth(offset) {
-    state.currentMonthOffset += offset;
-    updateMonthlyCalendar();
+    state.monthOffset += offset;
+    updateCalendar();
 }
 
-// === INSIGHTS ===
-function updateInsightsView() {
+// Insights
+function updateInsights() {
     const container = document.getElementById('insightsContent');
-    
     const totalEvents = state.events.length;
-    const totalHours = state.events.reduce((s, e) => s + e.duration / 60, 0);
     const studyEvents = state.events.filter(e => e.type === 'study');
-    const workEvents = state.events.filter(e => e.type === 'work');
-    const socialEvents = state.events.filter(e => e.type === 'social');
     
-    html = `
+    container.innerHTML = `
         <div class="insight-card">
             <h3>📊 Vue d'ensemble</h3>
-            <p style="font-size: 2rem; font-weight: 700; color: var(--primary);">${totalEvents}</p>
+            <p style="font-size:2rem;font-weight:700;color:var(--primary);margin:1rem 0">${totalEvents}</p>
             <p>Événements planifiés</p>
-            <p style="margin-top: 1rem; font-size: 1.5rem; font-weight: 600;">${Math.round(totalHours)}h</p>
-            <p style="color: var(--text-muted);">Total d'heures</p>
         </div>
-        
         <div class="insight-card">
             <h3>📚 Répartition</h3>
-            <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 1rem;">
-                <div style="display: flex; justify-content: space-between;">
+            <div style="margin-top:1rem">
+                <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem">
                     <span>Études</span>
-                    <strong>${studyEvents.length} (${Math.round(studyEvents.reduce((s,e) => s + e.duration/60, 0))}h)</strong>
-                </div>
-                <div style="display: flex; justify-content: space-between;">
-                    <span>Travail</span>
-                    <strong>${workEvents.length} (${Math.round(workEvents.reduce((s,e) => s + e.duration/60, 0))}h)</strong>
-                </div>
-                <div style="display: flex; justify-content: space-between;">
-                    <span>Social</span>
-                    <strong>${socialEvents.length} (${Math.round(socialEvents.reduce((s,e) => s + e.duration/60, 0))}h)</strong>
+                    <strong>${studyEvents.length}</strong>
                 </div>
             </div>
         </div>
-        
-        <div class="insight-card">
-            <h3>⚡ Productivité</h3>
-            <p style="margin-top: 1rem;">Tes événements les plus fréquents sont liés aux <strong>études</strong>.</p>
-            <p style="margin-top: 0.5rem; color: var(--text-muted);">Continue comme ça !</p>
-        </div>
     `;
-    
-    container.innerHTML = html;
 }
 
-// === TEMPLATES ===
-function updateTemplatesView() {
+// Templates
+function updateTemplates() {
     const container = document.getElementById('templatesContent');
-    
-    html = `
+    container.innerHTML = `
         <div class="insight-card">
-            <h3>🎓 Template actif</h3>
-            <p style="font-size: 1.2rem; margin-top: 1rem;">
+            <h3>🎯 Template actif</h3>
+            <p style="font-size:1.2rem;margin-top:1rem">
                 ${state.user.templateType === 'student' ? '🎓 Étudiant' : 
                   state.user.templateType === 'worker' ? '💼 Travailleur' : '✨ Personnalisé'}
             </p>
-            ${state.user.schedule.length > 0 ? `
-                <h4 style="margin-top: 1.5rem; font-size: 0.95rem;">Emploi du temps :</h4>
-                <div style="margin-top: 0.5rem; font-size: 0.85rem;">
-                    ${state.user.schedule.map(s => `
-                        <div style="padding: 0.5rem; background: var(--bg-hover); border-radius: 6px; margin-bottom: 0.5rem;">
-                            ${['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'][s.day]} ${s.startTime} - ${s.endTime} : ${s.subject}
-                        </div>
-                    `).join('')}
-                </div>
-            ` : ''}
         </div>
     `;
-    
-    container.innerHTML = html;
 }
 
-// === BADGES ===
-function updateBadgesView() {
+// Badges
+function updateBadges() {
     document.getElementById('streakDays').textContent = state.streak;
     
     const badges = [
         {icon: '⚡', name: 'Débutant', desc: '1er événement', unlocked: state.user.totalEvents >= 1},
         {icon: '🔥', name: '3 jours', desc: 'Streak 3j', unlocked: state.streak >= 3},
         {icon: '✨', name: 'Semaine', desc: 'Streak 7j', unlocked: state.streak >= 7},
-        {icon: '💎', name: 'Champion', desc: 'Streak 30j', unlocked: state.streak >= 30},
     ];
     
     document.getElementById('badgesGrid').innerHTML = badges.map(b => `
         <div class="badge ${b.unlocked ? '' : 'locked'}">
             <div class="badge-icon">${b.icon}</div>
-            <div class="badge-name">${b.name}</div>
-            <div class="badge-desc">${b.desc}</div>
+            <div style="font-weight:600;margin-bottom:0.5rem">${b.name}</div>
+            <div style="font-size:0.75rem;color:var(--text2)">${b.desc}</div>
         </div>
     `).join('');
 }
 
-// === PROFILE ===
-function updateProfileView() {
+// Profile
+function updateProfile() {
     document.getElementById('profileName').textContent = state.user.name;
-    document.getElementById('profileEmail').textContent = state.user.email || '';
-    document.getElementById('totalEvents').textContent = state.user.totalEvents;
-    document.getElementById('profileStreak').textContent = state.streak;
-    document.getElementById('totalHours').textContent = Math.round(state.user.totalHours);
-    
-    document.getElementById('profileNameInput').value = state.user.name;
-    document.getElementById('profileEmailInput').value = state.user.email;
-    
-    if (state.user.avatar) {
-        document.getElementById('profileAvatar').src = state.user.avatar;
-        document.getElementById('profileAvatar').style.display = 'block';
-        document.getElementById('profileAvatarFallback').style.display = 'none';
+    document.getElementById('statEvents').textContent = state.user.totalEvents;
+    document.getElementById('statStreak').textContent = state.streak;
+}
+
+function updateHeader() {
+    const streakEl = document.getElementById('streakNum');
+    if (streakEl) streakEl.textContent = state.streak;
+}
+
+// Utils
+function toast(msg) {
+    const toastEl = document.getElementById('toast');
+    const toastMsg = document.getElementById('toastMsg');
+    if (toastEl && toastMsg) {
+        toastMsg.textContent = msg;
+        toastEl.classList.add('show');
+        setTimeout(() => toastEl.classList.remove('show'), 3000);
     }
 }
 
-function saveProfile() {
-    state.user.name = document.getElementById('profileNameInput').value;
-    state.user.email = document.getElementById('profileEmailInput').value;
-    saveState();
-    updateHeaderUI();
-    showToast('✅ Profil sauvegardé !');
-}
-
-function handleProfileAvatar(e) {
-    const file = e.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            state.user.avatar = e.target.result;
-            saveState();
-            updateHeaderUI();
-            updateProfileView();
-        };
-        reader.readAsDataURL(file);
-    }
-}
-
-function updateHeaderUI() {
-    document.getElementById('headerStreak').textContent = state.streak;
-    if (state.user.avatar) {
-        document.getElementById('headerAvatar').src = state.user.avatar;
-        document.getElementById('headerAvatar').style.display = 'block';
-        document.getElementById('headerAvatarFallback').style.display = 'none';
-    }
-}
-
-// === UTILS ===
-function showToast(msg) {
-    const toast = document.getElementById('toast');
-    document.getElementById('toastMessage').textContent = msg;
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 3000);
-}
-
-// === STORAGE ===
+// Storage
 function saveState() {
     try {
         localStorage.setItem('chronoflow_v4', JSON.stringify({
             user: state.user,
             events: state.events,
             theme: state.theme,
-            streak: state.streak,
-            syncedCalendars: state.syncedCalendars
+            streak: state.streak
         }));
-    } catch (e) {console.error(e);}
+    } catch (e) {console.error(e)}
 }
 
 function loadState() {
@@ -949,9 +542,8 @@ function loadState() {
             state.events = (data.events || []).map(e => ({...e, date: new Date(e.date)}));
             state.theme = data.theme || 'light';
             state.streak = data.streak || 0;
-            state.syncedCalendars = data.syncedCalendars || state.syncedCalendars;
         }
-    } catch (e) {console.error(e);}
+    } catch (e) {console.error(e)}
 }
 
 window.ChronoFlow = {state, saveState};
