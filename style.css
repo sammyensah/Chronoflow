@@ -915,6 +915,9 @@ button:active, .btn-auth:active, .btn-primary:active, .btn-secondary:active,
     margin-bottom: 2rem;
 }
 
+.planning-grid.slide-right { animation: slideInRight 0.4s ease-out; }
+.planning-grid.slide-left { animation: slideInLeft 0.4s ease-out; }
+
 .empty-state {
     display: flex;
     flex-direction: column;
@@ -1066,9 +1069,10 @@ button:active, .btn-auth:active, .btn-primary:active, .btn-secondary:active,
     border-radius: 9px;
     padding: 0.4rem;
     background: var(--bg);
-    transition: all 0.25s;
+    transition: all 0.2s ease-out;
     overflow: hidden;
     cursor: pointer;
+    position: relative;
 }
 
 .cal-cell:hover {
@@ -1076,7 +1080,10 @@ button:active, .btn-auth:active, .btn-primary:active, .btn-secondary:active,
     transform: scale(1.06);
     box-shadow: 0 6px 16px rgba(255,107,53,0.2);
     z-index: 1;
-    position: relative;
+}
+
+.cal-cell:active {
+    transform: scale(0.98);
 }
 
 .cal-cell.today {
@@ -1121,14 +1128,19 @@ button:active, .btn-auth:active, .btn-primary:active, .btn-secondary:active,
     padding: 1.5rem;
     box-shadow: var(--shadow);
     border: 1px solid var(--border);
-    transition: all 0.25s;
+    transition: all 0.2s ease-out;
     cursor: pointer;
+    position: relative;
 }
 
 .insight-card:hover {
     transform: translateY(-6px);
     box-shadow: 0 16px 40px rgba(0,0,0,0.12);
     border-color: rgba(255,107,53,0.4);
+}
+
+.insight-card:active {
+    transform: translateY(-3px);
 }
 
 .insight-card h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 1rem; color: var(--text2); }
@@ -1336,6 +1348,7 @@ button:active, .btn-auth:active, .btn-primary:active, .btn-secondary:active,
     display: grid;
     gap: 1.5rem;
     max-width: 800px;
+    margin: 0 auto;
 }
 
 .setting-card {
@@ -1450,7 +1463,7 @@ button:active, .btn-auth:active, .btn-primary:active, .btn-secondary:active,
     border: 1px solid var(--border);
 }
 
-.modal-box h3 { font-size: 1.25rem; margin-bottom: 0.75rem; }
+.modal-box h3 { font-size: 1.25rem; margin-bottom: 0.75rem; color: var(--text); }
 .modal-box p { color: var(--text2); margin-bottom: 1.5rem; }
 
 .modal-btns { display: flex; gap: 1rem; }
@@ -1495,6 +1508,7 @@ button:active, .btn-auth:active, .btn-primary:active, .btn-secondary:active,
     font-size: 1.3rem;
     cursor: pointer;
     transition: all 0.2s;
+    color: var(--text);
 }
 
 .modal-close-btn:hover {
@@ -1510,7 +1524,7 @@ button:active, .btn-auth:active, .btn-primary:active, .btn-secondary:active,
     margin: 1.5rem 0;
 }
 
-.priority-selector label { font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; }
+.priority-selector label { font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text); }
 
 .priority-btn {
     padding: 0.6rem 1rem;
@@ -1522,6 +1536,7 @@ button:active, .btn-auth:active, .btn-primary:active, .btn-secondary:active,
     font-family: inherit;
     transition: all 0.2s;
     text-align: left;
+    color: var(--text);
 }
 
 .priority-btn:hover {
@@ -1646,7 +1661,7 @@ button:active, .btn-auth:active, .btn-primary:active, .btn-secondary:active,
     
     .content { padding: 1rem; }
     
-    .mascot { display: none; }
+    .mascot { left: 1rem !important; bottom: 1rem; font-size: 0.8em; }
     
     .lang-grid { grid-template-columns: repeat(2, 1fr); }
     .profile-cards { grid-template-columns: 1fr; }

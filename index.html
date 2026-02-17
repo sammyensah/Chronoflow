@@ -207,7 +207,7 @@
                     <span class="nav-mini-label">Insights</span>
                 </button>
                 <button class="nav-mini-btn" data-view="templates" onclick="switchView('templates')" title="Templates">
-                    <span class="nav-mini-icon">⚙️</span>
+                    <span class="nav-mini-icon">📁</span>
                     <span class="nav-mini-label">Templates</span>
                 </button>
                 <button class="nav-mini-btn" data-view="badges" onclick="switchView('badges')" title="Badges">
@@ -399,7 +399,7 @@
 </div>
 
 <!-- Day Detail Modal -->
-<div class="modal-full" id="dayDetailModal">
+<div class="modal-full" id="dayDetailModal" onclick="if(event.target === this) closeDayDetail()">
     <div class="modal-full-content">
         <button class="modal-close-btn" onclick="closeDayDetail()">✕</button>
         <div id="dayDetailContent"></div>
@@ -407,7 +407,7 @@
 </div>
 
 <!-- Insight Detail Modal -->
-<div class="modal-full" id="insightDetailModal">
+<div class="modal-full" id="insightDetailModal" onclick="if(event.target === this) closeInsightDetail()">
     <div class="modal-full-content">
         <button class="modal-close-btn" onclick="closeInsightDetail()">✕</button>
         <div id="insightDetailContent"></div>

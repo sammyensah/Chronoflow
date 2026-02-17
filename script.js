@@ -5,6 +5,7 @@ const state = {
     accounts: {},
     events: [],
     weekOffset: 0,
+    weekDirection: 'right',
     monthOffset: 0,
     monthDirection: 'right',
     activeView: 'planning',
@@ -27,7 +28,9 @@ document.addEventListener('DOMContentLoaded', () => {
     createParticles('particles');
     createParticles('particles2');
     
-    if (!state.lang) {
+    // ALWAYS check language first, BEFORE auth
+    const hasLang = localStorage.getItem('cf_lang');
+    if (!hasLang) {
         document.getElementById('langScreen').style.display = 'flex';
     } else if (!state.user) {
         document.getElementById('authScreen').style.display = 'flex';
@@ -55,6 +58,7 @@ function createParticles(id) {
 /* === LANGUAGE === */
 function selectLang(lang) {
     state.lang = lang;
+    localStorage.setItem('cf_lang', lang);
     saveState();
     document.getElementById('langScreen').style.display = 'none';
     document.getElementById('authScreen').style.display = 'flex';
@@ -529,7 +533,20 @@ function updateWeekLabel() {
     wl.textContent = txt;
 }
 
-function changeWeek(d) { state.weekOffset += d; updatePlanning(); }
+function changeWeek(d) {
+    state.weekOffset += d;
+    state.weekDirection = d > 0 ? 'right' : 'left';
+    
+    const grid = document.getElementById('planningGrid');
+    if (grid) {
+        grid.classList.remove('slide-right', 'slide-left');
+        setTimeout(() => {
+            grid.classList.add(`slide-${state.weekDirection}`);
+        }, 50);
+    }
+    
+    updatePlanning();
+}
 
 /* === CALENDAR WITH SLIDE === */
 function updateCalendar() {
@@ -619,7 +636,27 @@ function updateInsights() {
     const total = state.events.length;
     const totalH = state.events.reduce((s,e) => s + e.duration/60, 0);
     const studyEvs = state.events.filter(e => e.type === 'study');
+    const workEvs = state.events.filter(e => e.type === 'work');
+    const socialEvs = state.events.filter(e => e.type === 'social');
+    const personalEvs = state.events.filter(e => e.type === 'personal');
     const studyH = studyEvs.reduce((s,e) => s + e.duration/60, 0);
+    const workH = workEvs.reduce((s,e) => s + e.duration/60, 0);
+    const socialH = socialEvs.reduce((s,e) => s + e.duration/60, 0);
+    const personalH = personalEvs.reduce((s,e) => s + e.duration/60, 0);
+    const criticalEvs = state.events.filter(e => e.priority === 'critical');
+    
+    const now = new Date();
+    const weekStart = new Date(now.setDate(now.getDate() - now.getDay() + 1));
+    weekStart.setHours(0,0,0,0);
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 7);
+    const thisWeekEvs = state.events.filter(e => {
+        const d = new Date(e.date);
+        return d >= weekStart && d < weekEnd;
+    });
+    const thisWeekH = thisWeekEvs.reduce((s,e) => s + e.duration/60, 0);
+    
+    const avgPerDay = total > 0 ? totalH / Math.max(1, Math.ceil((new Date() - new Date(state.user?.createdAt || new Date())) / 86400000)) : 0;
     
     container.innerHTML = `
         <div class="insight-card" onclick="showInsightDetail('overview')">
@@ -627,10 +664,47 @@ function updateInsights() {
             <div class="big-stat">${total}</div>
             <p style="color:var(--text2);margin-top:0.25rem">événements (${Math.round(totalH)}h)</p>
         </div>
+        
         <div class="insight-card" onclick="showInsightDetail('distribution')">
             <h3>📚 Répartition</h3>
-            <div class="big-stat">${studyEvs.length}</div>
-            <p style="color:var(--text2);margin-top:0.25rem">études (${Math.round(studyH)}h)</p>
+            <div style="font-size:0.85rem;margin-top:0.75rem">
+                <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem">
+                    <span>📖 Études</span><strong>${studyEvs.length} (${Math.round(studyH)}h)</strong>
+                </div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem">
+                    <span>💼 Travail</span><strong>${workEvs.length} (${Math.round(workH)}h)</strong>
+                </div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem">
+                    <span>👥 Social</span><strong>${socialEvs.length} (${Math.round(socialH)}h)</strong>
+                </div>
+                <div style="display:flex;justify-content:space-between">
+                    <span>⚡ Personnel</span><strong>${personalEvs.length} (${Math.round(personalH)}h)</strong>
+                </div>
+            </div>
+        </div>
+        
+        <div class="insight-card" onclick="showInsightDetail('week')">
+            <h3>📅 Cette semaine</h3>
+            <div class="big-stat">${thisWeekEvs.length}</div>
+            <p style="color:var(--text2);margin-top:0.25rem">${Math.round(thisWeekH)}h planifiées</p>
+        </div>
+        
+        <div class="insight-card" onclick="showInsightDetail('critical')">
+            <h3>🚨 Priorités critiques</h3>
+            <div class="big-stat" style="color:var(--critical)">${criticalEvs.length}</div>
+            <p style="color:var(--text2);margin-top:0.25rem">événements urgents</p>
+        </div>
+        
+        <div class="insight-card" onclick="showInsightDetail('average')">
+            <h3>⚡ Moyenne quotidienne</h3>
+            <div class="big-stat">${Math.round(avgPerDay * 10) / 10}</div>
+            <p style="color:var(--text2);margin-top:0.25rem">heures par jour</p>
+        </div>
+        
+        <div class="insight-card" onclick="showInsightDetail('streak')">
+            <h3>🔥 Streak actuel</h3>
+            <div class="big-stat">${state.streak}</div>
+            <p style="color:var(--text2);margin-top:0.25rem">jours consécutifs</p>
         </div>
     `;
 }
@@ -712,19 +786,94 @@ function updateTemplates() {
         {id:'custom', label:'✨ Personnalisé', active: state.template === 'custom'}
     ];
     
-    container.innerHTML = `<div class="template-tabs">
+    let html = `<div class="template-tabs">
         ${templates.map(t => `<button class="template-tab-btn ${t.active ? 'active' : ''}" onclick="switchTemplate('${t.id}')">${t.label}</button>`).join('')}
-    </div>
-    <div class="template-form-card">
-        <p style="color:var(--text2)">Template actif : <strong>${templates.find(t => t.active)?.label}</strong></p>
     </div>`;
+    
+    if (state.template === 'student') {
+        html += `
+        <div class="template-form-card">
+            <h3 style="margin-bottom:1.25rem">🎓 Configuration Étudiant</h3>
+            <div id="tplCoursesContainer">
+                ${(state.templateData.courses || []).map(c => `
+                    <div class="course-row">
+                        <select class="sel">
+                            ${['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'].map((d,i) => `<option value="${i+1}" ${c.day===i+1?'selected':''}>${d}</option>`).join('')}
+                        </select>
+                        <input type="time" class="tinp" value="${c.start || '08:00'}">
+                        <input type="time" class="tinp" value="${c.end || '10:00'}">
+                        <input type="text" class="sinp" value="${c.subject || ''}" placeholder="Matière">
+                        <button class="btn-remove" onclick="removeTplCourse(this)">✕</button>
+                    </div>
+                `).join('')}
+                ${(state.templateData.courses || []).length === 0 ? `
+                    <div class="course-row">
+                        <select class="sel"><option value="1">Lundi</option><option value="2">Mardi</option><option value="3">Mercredi</option><option value="4">Jeudi</option><option value="5">Vendredi</option><option value="6">Samedi</option></select>
+                        <input type="time" class="tinp" value="08:00">
+                        <input type="time" class="tinp" value="10:00">
+                        <input type="text" class="sinp" placeholder="Matière">
+                        <button class="btn-remove" onclick="removeTplCourse(this)">✕</button>
+                    </div>` : ''}
+            </div>
+            <button class="btn-secondary" onclick="addTplCourse()" style="margin:1rem 0">+ Ajouter un cours</button>
+            <button class="btn-primary" onclick="saveTplStudent()">Enregistrer</button>
+        </div>`;
+    } else if (state.template === 'worker') {
+        html += `
+        <div class="template-form-card">
+            <h3 style="margin-bottom:1.25rem">💼 Configuration Travailleur</h3>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+                <div class="form-group"><label>Début</label><input type="time" id="tplWorkStart" value="${state.templateData.workStart || '09:00'}"></div>
+                <div class="form-group"><label>Fin</label><input type="time" id="tplWorkEnd" value="${state.templateData.workEnd || '18:00'}"></div>
+            </div>
+            <button class="btn-primary" onclick="saveTplWorker()">Enregistrer</button>
+        </div>`;
+    } else {
+        html += `<div class="template-form-card"><p style="color:var(--text2)">Mode personnalisé : utilise directement l'IA.</p></div>`;
+    }
+    
+    container.innerHTML = html;
 }
 
 function switchTemplate(id) {
     state.template = id;
     saveState();
     updateTemplates();
+    updatePlanning();
     toast(`✅ Template changé`);
+}
+
+function addTplCourse() {
+    const container = document.getElementById('tplCoursesContainer');
+    const row = document.createElement('div');
+    row.className = 'course-row';
+    row.innerHTML = `<select class="sel"><option value="1">Lundi</option><option value="2">Mardi</option><option value="3">Mercredi</option><option value="4">Jeudi</option><option value="5">Vendredi</option><option value="6">Samedi</option></select>
+        <input type="time" class="tinp" value="08:00">
+        <input type="time" class="tinp" value="10:00">
+        <input type="text" class="sinp" placeholder="Matière">
+        <button class="btn-remove" onclick="removeTplCourse(this)">✕</button>`;
+    container.appendChild(row);
+}
+
+function removeTplCourse(btn) { btn.parentElement.remove(); }
+
+function saveTplStudent() {
+    const rows = document.querySelectorAll('#tplCoursesContainer .course-row');
+    state.templateData.courses = Array.from(rows).map(r => ({
+        day: parseInt(r.querySelector('.sel').value),
+        start: r.querySelectorAll('.tinp')[0].value,
+        end: r.querySelectorAll('.tinp')[1].value,
+        subject: r.querySelector('.sinp').value
+    })).filter(c => c.subject);
+    saveState();
+    toast('✅ Template étudiant sauvegardé !');
+}
+
+function saveTplWorker() {
+    state.templateData.workStart = document.getElementById('tplWorkStart').value;
+    state.templateData.workEnd = document.getElementById('tplWorkEnd').value;
+    saveState();
+    toast('✅ Template travailleur sauvegardé !');
 }
 
 /* === BADGES === */
@@ -952,6 +1101,7 @@ function saveState() {
 
 function loadState() {
     try {
+        state.lang = localStorage.getItem('cf_lang') || null;
         const saved = localStorage.getItem('cf_v3');
         if (saved) {
             const d = JSON.parse(saved);
@@ -963,7 +1113,6 @@ function loadState() {
             state.theme = d.theme || 'light';
             state.streak = d.streak || 0;
             state.lastUsedDate = d.lastUsedDate || null;
-            state.lang = d.lang || null;
             state.notifications = d.notifications || {events:true, daily:true};
         }
     } catch(e) { console.error(e); }
