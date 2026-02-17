@@ -9,68 +9,99 @@
 </head>
 <body>
 
-<!-- ═══════════ AUTH SCREEN ═══════════ -->
-<div id="authScreen" class="auth-screen">
-    <div class="auth-bg">
-        <div class="auth-particles" id="particles"></div>
+<!-- LANGUAGE SELECTOR (First time only) -->
+<div id="langScreen" class="auth-screen" style="display:none">
+    <div class="auth-bg"><div class="auth-particles" id="particlesLang"></div></div>
+    <div class="auth-container">
+        <div class="ob-welcome">
+            <div class="ob-icon animate-pop">⚡</div>
+            <h1 class="ob-title animate-down">ChronoFlow</h1>
+            <p class="ob-sub animate-down delay-1">Choisis ta langue</p>
+        </div>
+        <div class="lang-grid animate-up delay-2">
+            <div class="lang-card" onclick="selectLang('fr')">
+                <div class="lang-flag">🇫🇷</div>
+                <div class="lang-name">Français</div>
+            </div>
+            <div class="lang-card" onclick="selectLang('en')">
+                <div class="lang-flag">🇬🇧</div>
+                <div class="lang-name">English</div>
+            </div>
+            <div class="lang-card" onclick="selectLang('de')">
+                <div class="lang-flag">🇩🇪</div>
+                <div class="lang-name">Deutsch</div>
+            </div>
+            <div class="lang-card" onclick="selectLang('es')">
+                <div class="lang-flag">🇪🇸</div>
+                <div class="lang-name">Español</div>
+            </div>
+            <div class="lang-card" onclick="selectLang('it')">
+                <div class="lang-flag">🇮🇹</div>
+                <div class="lang-name">Italiano</div>
+            </div>
+            <div class="lang-card" onclick="selectLang('ar')">
+                <div class="lang-flag">🇸🇦</div>
+                <div class="lang-name">العربية</div>
+            </div>
+            <div class="lang-card" onclick="selectLang('pt')">
+                <div class="lang-flag">🇵🇹</div>
+                <div class="lang-name">Português</div>
+            </div>
+        </div>
     </div>
+</div>
+
+<!-- AUTH SCREEN -->
+<div id="authScreen" class="auth-screen" style="display:none">
+    <div class="auth-bg"><div class="auth-particles" id="particles"></div></div>
     <div class="auth-container">
         <div class="auth-logo animate-down">
             <span class="auth-logo-icon">⚡</span>
             <h1 class="auth-logo-text">ChronoFlow</h1>
         </div>
         <p class="auth-tagline animate-down delay-1">Ton assistant planning intelligent</p>
-
-        <!-- Tabs Login / Register -->
         <div class="auth-tabs animate-down delay-2">
             <button class="auth-tab active" onclick="switchAuthTab('login')">Se connecter</button>
             <button class="auth-tab" onclick="switchAuthTab('register')">S'inscrire</button>
         </div>
-
-        <!-- Login Form -->
         <div class="auth-form animate-up delay-3" id="loginForm">
             <div class="form-group">
                 <label>Email</label>
-                <input type="email" id="loginEmail" placeholder="toi@exemple.com" autocomplete="email">
+                <input type="email" id="loginEmail" placeholder="toi@exemple.com">
             </div>
             <div class="form-group">
                 <label>Mot de passe</label>
-                <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
+                <input type="password" id="loginPassword" placeholder="••••••••">
             </div>
             <button class="btn-auth" onclick="handleLogin()">Se connecter →</button>
         </div>
-
-        <!-- Register Form -->
         <div class="auth-form" id="registerForm" style="display:none">
             <div class="form-group">
                 <label>Prénom *</label>
-                <input type="text" id="regName" placeholder="Ex: Marie" autocomplete="given-name">
+                <input type="text" id="regName" placeholder="Marie">
             </div>
             <div class="form-group">
                 <label>Email *</label>
-                <input type="email" id="regEmail" placeholder="toi@exemple.com" autocomplete="email">
+                <input type="email" id="regEmail" placeholder="toi@exemple.com">
             </div>
             <div class="form-group">
                 <label>Mot de passe *</label>
-                <input type="password" id="regPassword" placeholder="••••••••" autocomplete="new-password">
+                <input type="password" id="regPassword" placeholder="••••••••">
             </div>
             <button class="btn-auth" onclick="handleRegister()">Créer mon compte →</button>
         </div>
     </div>
 </div>
 
-<!-- ═══════════ ONBOARDING ═══════════ -->
+<!-- ONBOARDING -->
 <div id="onboardingScreen" class="auth-screen" style="display:none">
-    <div class="auth-bg">
-        <div class="auth-particles" id="particles2"></div>
-    </div>
+    <div class="auth-bg"><div class="auth-particles" id="particles2"></div></div>
     <div class="auth-container wide">
-        <!-- Step 1: Welcome -->
         <div class="ob-step active" id="obStep1">
             <div class="ob-welcome">
                 <div class="ob-icon animate-pop">⚡</div>
                 <h1 class="ob-title animate-down delay-1">Bienvenue sur<br><span>ChronoFlow</span></h1>
-                <p class="ob-sub animate-down delay-2">Choisis ton profil pour personnaliser ton expérience</p>
+                <p class="ob-sub animate-down delay-2">Choisis ton profil</p>
             </div>
             <div class="profile-cards animate-up delay-3">
                 <div class="profile-card-big" onclick="selectProfile('student')">
@@ -82,68 +113,42 @@
                 <div class="profile-card-big" onclick="selectProfile('worker')">
                     <div class="profile-card-icon">💼</div>
                     <h3>Travailleur</h3>
-                    <p>Projets, réunions, deadlines</p>
+                    <p>Projets, réunions</p>
                     <button class="btn-choose">Choisir</button>
                 </div>
                 <div class="profile-card-big" onclick="selectProfile('custom')">
                     <div class="profile-card-icon">✨</div>
                     <h3>Personnalisé</h3>
-                    <p>Je configure moi-même</p>
+                    <p>Je configure</p>
                     <button class="btn-choose">Choisir</button>
                 </div>
             </div>
         </div>
-
-        <!-- Step 2: Student Config -->
         <div class="ob-step" id="obStep2">
             <h1 class="ob-title animate-down">🎓 Configuration Étudiant</h1>
-            <p class="ob-sub animate-down delay-1">Entre ton emploi du temps</p>
             <div class="ob-form animate-up delay-2">
                 <div id="coursesContainer">
                     <div class="course-row">
                         <select class="sel"><option value="1">Lundi</option><option value="2">Mardi</option><option value="3">Mercredi</option><option value="4">Jeudi</option><option value="5">Vendredi</option><option value="6">Samedi</option></select>
                         <input type="time" class="tinp" value="08:00">
                         <input type="time" class="tinp" value="10:00">
-                        <input type="text" class="sinp" placeholder="Matière (ex: Maths)">
+                        <input type="text" class="sinp" placeholder="Matière">
                         <button class="btn-remove" onclick="removeCourse(this)">✕</button>
                     </div>
                 </div>
                 <button class="btn-secondary" onclick="addCourse()">+ Ajouter un cours</button>
-                <div class="form-group" style="margin-top:1.5rem">
-                    <label>Durée de révision idéale</label>
-                    <select id="sessionDuration"><option value="60">1 heure</option><option value="90" selected>1h30</option><option value="120">2 heures</option><option value="180">3 heures</option></select>
-                </div>
-                <div class="form-group">
-                    <label>Moment préféré</label>
-                    <select id="preferredTime"><option value="morning">Matin (8h-12h)</option><option value="afternoon" selected>Après-midi (14h-18h)</option><option value="evening">Soir (18h-22h)</option></select>
-                </div>
                 <div class="ob-btns">
                     <button class="btn-secondary" onclick="goObStep(1)">← Retour</button>
                     <button class="btn-primary" onclick="finishOnboarding()">Terminer 🚀</button>
                 </div>
             </div>
         </div>
-
-        <!-- Step 2b: Worker Config -->
         <div class="ob-step" id="obStep2w">
             <h1 class="ob-title animate-down">💼 Configuration Travailleur</h1>
-            <p class="ob-sub animate-down delay-1">Tes horaires de travail</p>
             <div class="ob-form animate-up delay-2">
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
                     <div class="form-group"><label>Début</label><input type="time" id="workStart" value="09:00"></div>
                     <div class="form-group"><label>Fin</label><input type="time" id="workEnd" value="18:00"></div>
-                </div>
-                <div class="form-group">
-                    <label>Jours travaillés</label>
-                    <div class="day-checks">
-                        <label class="day-check"><input type="checkbox" checked> Lun</label>
-                        <label class="day-check"><input type="checkbox" checked> Mar</label>
-                        <label class="day-check"><input type="checkbox" checked> Mer</label>
-                        <label class="day-check"><input type="checkbox" checked> Jeu</label>
-                        <label class="day-check"><input type="checkbox" checked> Ven</label>
-                        <label class="day-check"><input type="checkbox"> Sam</label>
-                        <label class="day-check"><input type="checkbox"> Dim</label>
-                    </div>
                 </div>
                 <div class="ob-btns">
                     <button class="btn-secondary" onclick="goObStep(1)">← Retour</button>
@@ -154,29 +159,31 @@
     </div>
 </div>
 
-<!-- ═══════════ APP ═══════════ -->
+<!-- APP -->
 <div id="appScreen" class="app-screen" style="display:none">
 
     <!-- Header -->
     <header class="header">
         <div class="header-left">
-            <button class="btn-sidebar" id="sidebarToggle" onclick="toggleSidebar()" title="Menu">
+            <button class="btn-sidebar" id="sidebarHover">
                 <span class="ham-line"></span>
                 <span class="ham-line"></span>
                 <span class="ham-line"></span>
             </button>
-            <div class="logo-link" onclick="reloadApp()" title="Retour accueil">
+        </div>
+        <div class="header-center">
+            <div class="logo-link" onclick="reloadApp()">
                 <span class="logo-icon">⚡</span>
                 <span class="logo-text">ChronoFlow</span>
             </div>
         </div>
         <div class="header-right">
-            <button class="header-btn" onclick="toggleTheme()" id="themeBtn" title="Thème">🌙</button>
-            <div class="streak-badge">
+            <button class="header-btn theme-btn" onclick="toggleTheme()" id="themeBtn">🌙</button>
+            <div class="streak-badge" onclick="switchView('badges')" title="Voir les badges">
                 <span>🔥</span>
                 <span id="headerStreak">0</span>
             </div>
-            <button class="avatar-btn" onclick="switchView('profile')" id="headerAvatarBtn" title="Mon profil">
+            <button class="avatar-btn" onclick="switchView('profile')">
                 <span id="headerAvatarEmoji">👤</span>
                 <img id="headerAvatarImg" src="" alt="" style="display:none">
             </button>
@@ -184,55 +191,49 @@
     </header>
 
     <div class="app-body">
-        <!-- Sidebar -->
-        <aside class="sidebar" id="sidebar">
-            <nav class="nav">
-                <button class="nav-btn active" data-view="planning" onclick="switchView('planning')">
-                    <span class="nav-icon">📋</span>
-                    <span>Planning</span>
+        <!-- Sidebar Mini -->
+        <aside class="sidebar-mini" id="sidebar">
+            <nav class="nav-mini">
+                <button class="nav-mini-btn active" data-view="planning" onclick="switchView('planning')" title="Planning">
+                    <span class="nav-mini-icon">📋</span>
+                    <span class="nav-mini-label">Planning</span>
                 </button>
-                <button class="nav-btn" data-view="calendar" onclick="switchView('calendar')">
-                    <span class="nav-icon">📅</span>
-                    <span>Calendrier</span>
+                <button class="nav-mini-btn" data-view="calendar" onclick="switchView('calendar')" title="Calendrier">
+                    <span class="nav-mini-icon">📅</span>
+                    <span class="nav-mini-label">Calendrier</span>
                 </button>
-                <button class="nav-btn" data-view="insights" onclick="switchView('insights')">
-                    <span class="nav-icon">📊</span>
-                    <span>Insights</span>
+                <button class="nav-mini-btn" data-view="insights" onclick="switchView('insights')" title="Insights">
+                    <span class="nav-mini-icon">📊</span>
+                    <span class="nav-mini-label">Insights</span>
                 </button>
-                <button class="nav-btn" data-view="templates" onclick="switchView('templates')">
-                    <span class="nav-icon">⚙️</span>
-                    <span>Templates</span>
+                <button class="nav-mini-btn" data-view="templates" onclick="switchView('templates')" title="Templates">
+                    <span class="nav-mini-icon">⚙️</span>
+                    <span class="nav-mini-label">Templates</span>
                 </button>
-                <button class="nav-btn" data-view="badges" onclick="switchView('badges')">
-                    <span class="nav-icon">🏆</span>
-                    <span>Badges</span>
+                <button class="nav-mini-btn" data-view="badges" onclick="switchView('badges')" title="Badges">
+                    <span class="nav-mini-icon">🏆</span>
+                    <span class="nav-mini-label">Badges</span>
+                </button>
+                <button class="nav-mini-btn" data-view="settings" onclick="switchView('settings')" title="Paramètres">
+                    <span class="nav-mini-icon">⚙️</span>
+                    <span class="nav-mini-label">Paramètres</span>
                 </button>
             </nav>
-
-            <div class="sidebar-footer">
-                <h4>Sync</h4>
-                <button class="sync-btn" data-platform="google" onclick="syncCalendar(this)">
-                    <span>📗</span><span>Google Calendar</span>
-                    <span class="sync-status" id="syncGoogle"></span>
-                </button>
-                <button class="sync-btn" data-platform="apple" onclick="syncCalendar(this)">
-                    <span>🍎</span><span>Apple Calendar</span>
-                    <span class="sync-status" id="syncApple"></span>
-                </button>
-                <button class="sync-btn" data-platform="notion" onclick="syncCalendar(this)">
-                    <span>📝</span><span>Notion</span>
-                    <span class="sync-status" id="syncNotion"></span>
-                </button>
-            </div>
         </aside>
 
         <!-- Content -->
         <main class="content">
 
-            <!-- AI Input (Planning only) -->
+            <!-- Mascot -->
+            <div class="mascot" id="mascot">
+                <div class="mascot-char">⚡</div>
+                <div class="mascot-bubble" id="mascotBubble">Bienvenue !</div>
+            </div>
+
+            <!-- AI Input -->
             <div class="ai-panel" id="aiPanel">
                 <div class="ai-inner">
-                    <textarea id="aiInput" placeholder="Dis-moi ce que tu veux planifier...&#10;Ex: 'J\'ai une éval de maths dans 3 jours et j\'ai rien révisé'&#10;Ex: 'Voir mes amis samedi soir, sport 3 fois cette semaine'"></textarea>
+                    <textarea id="aiInput" placeholder="Dis-moi ce que tu veux planifier...&#10;Ex: J'ai une éval de maths dans 3 jours et j'ai rien révisé"></textarea>
                     <div class="ai-actions">
                         <div class="quick-tags">
                             <button class="tag" data-txt="Je suis fatigué cette semaine" onclick="addTag(this)">😴 Fatigué</button>
@@ -242,9 +243,9 @@
                             <button class="tag" data-txt="Besoin d'équilibre vie perso et travail" onclick="addTag(this)">⚖️ Équilibre</button>
                         </div>
                         <div class="ai-right-actions">
-                            <button class="btn-voice" onclick="startVoice()" title="Message vocal" id="voiceBtn">🎤</button>
+                            <button class="btn-voice" onclick="startVoice()" id="voiceBtn">🎤</button>
                             <button class="btn-generate" onclick="generate()">
-                                <span>Générer mon planning</span>
+                                <span>Générer</span>
                                 <span>✨</span>
                             </button>
                         </div>
@@ -252,12 +253,10 @@
                 </div>
             </div>
 
-            <!-- ── Planning View ── -->
+            <!-- Planning View -->
             <div class="view active" id="viewPlanning">
                 <div class="view-header">
-                    <div>
-                        <h2>Mon Planning <span class="template-badge" id="planningTemplateBadge"></span></h2>
-                    </div>
+                    <h2>Mon Planning <span class="template-badge" id="planningTemplateBadge"></span></h2>
                     <div class="week-nav">
                         <button class="nav-arrow" onclick="changeWeek(-1)">←</button>
                         <span id="weekLabel">Cette semaine</span>
@@ -275,22 +274,22 @@
                     <div class="empty-state">
                         <div class="empty-icon">📅</div>
                         <h3>Planning vide</h3>
-                        <p>Utilise l'IA pour planifier tes journées</p>
+                        <p>Utilise l'IA pour planifier</p>
                     </div>
                 </div>
                 <div class="event-sections">
                     <div class="event-section">
                         <h3>📍 Aujourd'hui</h3>
-                        <div id="todayList"><p class="hint">Rien pour aujourd'hui</p></div>
+                        <div id="todayList"><p class="hint">Rien</p></div>
                     </div>
                     <div class="event-section">
                         <h3>📅 À venir</h3>
-                        <div id="upcomingList"><p class="hint">Rien à venir</p></div>
+                        <div id="upcomingList"><p class="hint">Rien</p></div>
                     </div>
                 </div>
             </div>
 
-            <!-- ── Calendar View ── -->
+            <!-- Calendar View -->
             <div class="view" id="viewCalendar">
                 <div class="view-header">
                     <h2>Calendrier</h2>
@@ -303,78 +302,94 @@
                 <div id="monthCal" class="month-cal"></div>
             </div>
 
-            <!-- ── Insights View ── -->
+            <!-- Insights View -->
             <div class="view" id="viewInsights">
                 <div class="view-header"><h2>Insights 📊</h2></div>
                 <div id="insightsGrid" class="insights-grid"></div>
             </div>
 
-            <!-- ── Templates View ── -->
+            <!-- Templates View -->
             <div class="view" id="viewTemplates">
                 <div class="view-header"><h2>Templates</h2></div>
                 <div id="templatesContent"></div>
             </div>
 
-            <!-- ── Badges View ── -->
+            <!-- Badges View -->
             <div class="view" id="viewBadges">
                 <div class="view-header"><h2>Badges 🏆</h2></div>
                 <div class="streak-hero">
                     <div class="streak-flame">🔥</div>
                     <div>
                         <h2><span id="streakCount">0</span> jours</h2>
-                        <p id="streakMsg">Continue chaque jour !</p>
+                        <p id="streakMsg">Continue !</p>
                     </div>
                 </div>
                 <div id="badgeGrid" class="badge-grid"></div>
             </div>
 
-            <!-- ── Profile View ── -->
+            <!-- Profile View -->
             <div class="view" id="viewProfile">
-                <div class="view-header"><h2>Mon Profil</h2></div>
+                <div class="view-header"><h2>Profil</h2></div>
                 <div class="profile-layout">
                     <div class="profile-left">
                         <div class="profile-avatar-wrap">
-                            <div class="profile-avatar" id="profileAvatarWrap">
+                            <div class="profile-avatar">
                                 <span id="profileAvatarEmoji">👤</span>
                                 <img id="profileAvatarImg" src="" alt="" style="display:none">
-                                <div class="camera-overlay" onclick="document.getElementById('avatarFileInput').click()" title="Changer la photo">📷</div>
+                                <div class="camera-overlay" onclick="document.getElementById('avatarFileInput').click()">📷</div>
                             </div>
                             <input type="file" id="avatarFileInput" accept="image/*" style="display:none" onchange="handleAvatarChange(this)">
                         </div>
-                        <h3 id="profileName">Utilisateur</h3>
-                        <p id="profileEmail" style="color:var(--text2);font-size:0.9rem"></p>
+                        <h3 id="profileName">User</h3>
+                        <p id="profileEmail"></p>
                     </div>
                     <div class="profile-right">
                         <div class="stats-grid">
-                            <div class="stat-card">
-                                <span class="stat-val" id="statEvents">0</span>
-                                <span class="stat-lbl">Événements</span>
-                            </div>
-                            <div class="stat-card">
-                                <span class="stat-val" id="statStreak">0</span>
-                                <span class="stat-lbl">Jours streak</span>
-                            </div>
-                            <div class="stat-card">
-                                <span class="stat-val" id="statHours">0</span>
-                                <span class="stat-lbl">Heures</span>
-                            </div>
-                            <div class="stat-card">
-                                <span class="stat-val" id="statBadges">0</span>
-                                <span class="stat-lbl">Badges</span>
-                            </div>
+                            <div class="stat-card"><span class="stat-val" id="statEvents">0</span><span class="stat-lbl">Événements</span></div>
+                            <div class="stat-card"><span class="stat-val" id="statStreak">0</span><span class="stat-lbl">Jours</span></div>
+                            <div class="stat-card"><span class="stat-val" id="statHours">0</span><span class="stat-lbl">Heures</span></div>
+                            <div class="stat-card"><span class="stat-val" id="statBadges">0</span><span class="stat-lbl">Badges</span></div>
                         </div>
                         <div class="profile-settings">
-                            <h3>Paramètres</h3>
-                            <div class="form-group">
-                                <label>Prénom</label>
-                                <input type="text" id="profileNameInput">
-                            </div>
-                            <div class="form-group">
-                                <label>Email <span style="font-size:0.75rem;color:var(--text2)">(non modifiable)</span></label>
-                                <input type="email" id="profileEmailInput" disabled style="opacity:0.6;cursor:not-allowed">
-                            </div>
+                            <h3>Infos</h3>
+                            <div class="form-group"><label>Prénom</label><input type="text" id="profileNameInput"></div>
+                            <div class="form-group"><label>Email (non modifiable)</label><input type="email" id="profileEmailInput" disabled></div>
                             <button class="btn-primary" onclick="saveProfile()">Sauvegarder</button>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings View -->
+            <div class="view" id="viewSettings">
+                <div class="view-header"><h2>Paramètres ⚙️</h2></div>
+                <div class="settings-content">
+                    <div class="setting-card">
+                        <h3>🌐 Langue</h3>
+                        <select id="settingsLang" onchange="changeLang(this.value)">
+                            <option value="fr">🇫🇷 Français</option>
+                            <option value="en">🇬🇧 English</option>
+                            <option value="de">🇩🇪 Deutsch</option>
+                            <option value="es">🇪🇸 Español</option>
+                            <option value="it">🇮🇹 Italiano</option>
+                            <option value="ar">🇸🇦 العربية</option>
+                            <option value="pt">🇵🇹 Português</option>
+                        </select>
+                    </div>
+                    <div class="setting-card">
+                        <h3>🔔 Notifications</h3>
+                        <label class="switch-row"><span>Événements à venir</span><input type="checkbox" id="notifEvents" checked><span class="switch"></span></label>
+                        <label class="switch-row"><span>Rappels quotidiens</span><input type="checkbox" id="notifDaily" checked><span class="switch"></span></label>
+                    </div>
+                    <div class="setting-card">
+                        <h3>🔒 Confidentialité</h3>
+                        <button class="btn-secondary" onclick="requestPasswordChange()">Changer le mot de passe</button>
+                        <p style="font-size:0.85rem;color:var(--text2);margin-top:0.5rem">Un email de confirmation sera envoyé</p>
+                    </div>
+                    <div class="setting-card">
+                        <h3>📊 Données</h3>
+                        <button class="btn-secondary" onclick="exportData()">Exporter mes données</button>
+                        <button class="btn-secondary" onclick="deleteAccount()" style="margin-top:0.5rem;background:rgba(239,68,68,0.1);color:var(--critical)">Supprimer mon compte</button>
                     </div>
                 </div>
             </div>
@@ -383,33 +398,69 @@
     </div>
 </div>
 
-<!-- Workload alert -->
-<div class="modal" id="workloadModal">
+<!-- Day Detail Modal -->
+<div class="modal-full" id="dayDetailModal">
+    <div class="modal-full-content">
+        <button class="modal-close-btn" onclick="closeDayDetail()">✕</button>
+        <div id="dayDetailContent"></div>
+    </div>
+</div>
+
+<!-- Insight Detail Modal -->
+<div class="modal-full" id="insightDetailModal">
+    <div class="modal-full-content">
+        <button class="modal-close-btn" onclick="closeInsightDetail()">✕</button>
+        <div id="insightDetailContent"></div>
+    </div>
+</div>
+
+<!-- Event Detail Modal -->
+<div class="modal" id="eventDetailModal">
     <div class="modal-box">
-        <h3 id="workloadTitle">⚠️ Attention</h3>
-        <p id="workloadMsg"></p>
+        <h3 id="eventDetailTitle">Détails</h3>
+        <div id="eventDetailBody"></div>
+        <div class="priority-selector" id="prioritySelector">
+            <label>Priorité :</label>
+            <button class="priority-btn critical" onclick="changePriority('critical')">🔴 Critique</button>
+            <button class="priority-btn high" onclick="changePriority('high')">🟠 Haute</button>
+            <button class="priority-btn medium" onclick="changePriority('medium')">🟡 Moyenne</button>
+            <button class="priority-btn low" onclick="changePriority('low')">🟢 Basse</button>
+        </div>
         <div class="modal-btns">
-            <button class="btn-secondary" onclick="closeModal('workloadModal')">Garder</button>
-            <button class="btn-primary" onclick="adjustWorkload()">Ajuster</button>
+            <button class="btn-secondary" onclick="closeEventDetail()">Fermer</button>
         </div>
     </div>
 </div>
 
-<!-- Voice modal -->
+<!-- Password Change Modal -->
+<div class="modal" id="passwordModal">
+    <div class="modal-box">
+        <h3>🔒 Changer le mot de passe</h3>
+        <p style="font-size:0.9rem;color:var(--text2);margin-bottom:1rem">Un code a été envoyé à <strong id="pwdEmail"></strong></p>
+        <div class="form-group"><label>Code de vérification</label><input type="text" id="pwdCode" placeholder="123456"></div>
+        <div class="form-group"><label>Nouveau mot de passe</label><input type="password" id="pwdNew" placeholder="••••••••"></div>
+        <div class="modal-btns">
+            <button class="btn-secondary" onclick="closeModal('passwordModal')">Annuler</button>
+            <button class="btn-primary" onclick="confirmPasswordChange()">Confirmer</button>
+        </div>
+    </div>
+</div>
+
+<!-- Voice Modal -->
 <div class="modal" id="voiceModal">
     <div class="modal-box">
-        <h3>🎤 Enregistrement vocal</h3>
-        <div class="voice-indicator" id="voiceIndicator">
+        <h3>🎤 Enregistrement</h3>
+        <div class="voice-indicator">
             <div class="voice-ring"></div>
             <div class="voice-ring delay1"></div>
             <div class="voice-ring delay2"></div>
             <span>🎤</span>
         </div>
-        <p id="voiceStatus">Parle maintenant...</p>
+        <p id="voiceStatus">Parle...</p>
         <p id="voiceTranscript" class="voice-transcript"></p>
         <div class="modal-btns">
             <button class="btn-secondary" onclick="stopVoice()">Annuler</button>
-            <button class="btn-primary" id="voiceConfirm" onclick="confirmVoice()" style="display:none">Utiliser ce texte</button>
+            <button class="btn-primary" id="voiceConfirm" onclick="confirmVoice()" style="display:none">Utiliser</button>
         </div>
     </div>
 </div>
@@ -424,7 +475,7 @@
 <div class="loading" id="loading">
     <div class="loading-inner">
         <div class="loading-ring"></div>
-        <p>L'IA analyse ta demande...</p>
+        <p>L'IA analyse...</p>
     </div>
 </div>
 
