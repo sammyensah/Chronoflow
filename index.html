@@ -9,42 +9,42 @@
 </head>
 <body>
 
-<!-- LANGUAGE SELECTOR (First time only) -->
+<!-- LANGUAGE SELECTOR (First time) -->
 <div id="langScreen" class="auth-screen" style="display:none">
     <div class="auth-bg"><div class="auth-particles" id="particlesLang"></div></div>
     <div class="auth-container">
         <div class="ob-welcome">
             <div class="ob-icon animate-pop">⚡</div>
             <h1 class="ob-title animate-down">ChronoFlow</h1>
-            <p class="ob-sub animate-down delay-1">Choisis ta langue</p>
+            <p class="ob-sub animate-down delay-1">Choose your language</p>
         </div>
         <div class="lang-grid animate-up delay-2">
             <div class="lang-card" onclick="selectLang('fr')">
-                <div class="lang-flag">🇫🇷</div>
+                <img class="lang-flag" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 900 600'%3E%3Cpath fill='%230055A4' d='M0 0h300v600H0z'/%3E%3Cpath fill='%23FFF' d='M300 0h300v600H300z'/%3E%3Cpath fill='%23EF4135' d='M600 0h300v600H600z'/%3E%3C/svg%3E" alt="FR">
                 <div class="lang-name">Français</div>
             </div>
             <div class="lang-card" onclick="selectLang('en')">
-                <div class="lang-flag">🇬🇧</div>
+                <img class="lang-flag" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 30'%3E%3Cpath fill='%23012169' d='M0 0h60v30H0z'/%3E%3Cpath stroke='%23FFF' stroke-width='6' d='M0 0l60 30m0-30L0 30'/%3E%3Cpath stroke='%23C8102E' stroke-width='4' d='M0 0l60 30m0-30L0 30'/%3E%3Cpath stroke='%23FFF' stroke-width='10' d='M30 0v30M0 15h60'/%3E%3Cpath stroke='%23C8102E' stroke-width='6' d='M30 0v30M0 15h60'/%3E%3C/svg%3E" alt="EN">
                 <div class="lang-name">English</div>
             </div>
             <div class="lang-card" onclick="selectLang('de')">
-                <div class="lang-flag">🇩🇪</div>
+                <img class="lang-flag" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 5 3'%3E%3Cpath d='M0 0h5v3H0z'/%3E%3Cpath fill='%23D00' d='M0 1h5v2H0z'/%3E%3Cpath fill='%23FFCE00' d='M0 2h5v1H0z'/%3E%3C/svg%3E" alt="DE">
                 <div class="lang-name">Deutsch</div>
             </div>
             <div class="lang-card" onclick="selectLang('es')">
-                <div class="lang-flag">🇪🇸</div>
+                <img class="lang-flag" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 750 500'%3E%3Cpath fill='%23c60b1e' d='M0 0h750v500H0z'/%3E%3Cpath fill='%23ffc400' d='M0 125h750v250H0z'/%3E%3C/svg%3E" alt="ES">
                 <div class="lang-name">Español</div>
             </div>
             <div class="lang-card" onclick="selectLang('it')">
-                <div class="lang-flag">🇮🇹</div>
+                <img class="lang-flag" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 3 2'%3E%3Cpath fill='%23009246' d='M0 0h1v2H0z'/%3E%3Cpath fill='%23fff' d='M1 0h1v2H1z'/%3E%3Cpath fill='%23ce2b37' d='M2 0h1v2H2z'/%3E%3C/svg%3E" alt="IT">
                 <div class="lang-name">Italiano</div>
             </div>
             <div class="lang-card" onclick="selectLang('ar')">
-                <div class="lang-flag">🇸🇦</div>
+                <img class="lang-flag" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 900 600'%3E%3Cpath fill='%23165e3a' d='M0 0h900v600H0z'/%3E%3C/svg%3E" alt="AR">
                 <div class="lang-name">العربية</div>
             </div>
             <div class="lang-card" onclick="selectLang('pt')">
-                <div class="lang-flag">🇵🇹</div>
+                <img class="lang-flag" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 400'%3E%3Cpath fill='%23060' d='M0 0h600v400H0z'/%3E%3Cpath fill='%23ff0' d='M0 0h250v400H0z'/%3E%3C/svg%3E" alt="PT">
                 <div class="lang-name">Português</div>
             </div>
         </div>
@@ -60,35 +60,45 @@
             <h1 class="auth-logo-text">ChronoFlow</h1>
         </div>
         <p class="auth-tagline animate-down delay-1">Ton assistant planning intelligent</p>
+        
         <div class="auth-tabs animate-down delay-2">
-            <button class="auth-tab active" onclick="switchAuthTab('login')">Se connecter</button>
-            <button class="auth-tab" onclick="switchAuthTab('register')">S'inscrire</button>
+            <button class="auth-tab active" data-tab="login" onclick="switchAuthTab('login')">Se connecter</button>
+            <button class="auth-tab" data-tab="register" onclick="switchAuthTab('register')">S'inscrire</button>
+            <div class="auth-tab-slider" id="authTabSlider"></div>
         </div>
-        <div class="auth-form animate-up delay-3" id="loginForm">
-            <div class="form-group">
-                <label>Email</label>
-                <input type="email" id="loginEmail" placeholder="toi@exemple.com">
+        
+        <div class="auth-forms-container">
+            <div class="auth-form-wrapper active" id="loginFormWrapper">
+                <div class="auth-form" id="loginForm">
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="loginEmail" placeholder="toi@exemple.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Mot de passe</label>
+                        <input type="password" id="loginPassword" placeholder="••••••••">
+                    </div>
+                    <button class="btn-auth" onclick="handleLogin()">Se connecter →</button>
+                </div>
             </div>
-            <div class="form-group">
-                <label>Mot de passe</label>
-                <input type="password" id="loginPassword" placeholder="••••••••">
+            
+            <div class="auth-form-wrapper" id="registerFormWrapper">
+                <div class="auth-form" id="registerForm">
+                    <div class="form-group">
+                        <label>Prénom *</label>
+                        <input type="text" id="regName" placeholder="Marie">
+                    </div>
+                    <div class="form-group">
+                        <label>Email *</label>
+                        <input type="email" id="regEmail" placeholder="toi@exemple.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Mot de passe *</label>
+                        <input type="password" id="regPassword" placeholder="••••••••">
+                    </div>
+                    <button class="btn-auth" onclick="handleRegister()">Créer mon compte →</button>
+                </div>
             </div>
-            <button class="btn-auth" onclick="handleLogin()">Se connecter →</button>
-        </div>
-        <div class="auth-form" id="registerForm" style="display:none">
-            <div class="form-group">
-                <label>Prénom *</label>
-                <input type="text" id="regName" placeholder="Marie">
-            </div>
-            <div class="form-group">
-                <label>Email *</label>
-                <input type="email" id="regEmail" placeholder="toi@exemple.com">
-            </div>
-            <div class="form-group">
-                <label>Mot de passe *</label>
-                <input type="password" id="regPassword" placeholder="••••••••">
-            </div>
-            <button class="btn-auth" onclick="handleRegister()">Créer mon compte →</button>
         </div>
     </div>
 </div>
@@ -107,13 +117,13 @@
                 <div class="profile-card-big" onclick="selectProfile('student')">
                     <div class="profile-card-icon">🎓</div>
                     <h3>Étudiant</h3>
-                    <p>Cours, révisions, examens</p>
+                    <p>Cours, révisions</p>
                     <button class="btn-choose">Choisir</button>
                 </div>
                 <div class="profile-card-big" onclick="selectProfile('worker')">
                     <div class="profile-card-icon">💼</div>
                     <h3>Travailleur</h3>
-                    <p>Projets, réunions</p>
+                    <p>Projets</p>
                     <button class="btn-choose">Choisir</button>
                 </div>
                 <div class="profile-card-big" onclick="selectProfile('custom')">
@@ -124,36 +134,22 @@
                 </div>
             </div>
         </div>
-        <div class="ob-step" id="obStep2">
-            <h1 class="ob-title animate-down">🎓 Configuration Étudiant</h1>
-            <div class="ob-form animate-up delay-2">
-                <div id="coursesContainer">
-                    <div class="course-row">
-                        <select class="sel"><option value="1">Lundi</option><option value="2">Mardi</option><option value="3">Mercredi</option><option value="4">Jeudi</option><option value="5">Vendredi</option><option value="6">Samedi</option></select>
-                        <input type="time" class="tinp" value="08:00">
-                        <input type="time" class="tinp" value="10:00">
-                        <input type="text" class="sinp" placeholder="Matière">
-                        <button class="btn-remove" onclick="removeCourse(this)">✕</button>
-                    </div>
-                </div>
-                <button class="btn-secondary" onclick="addCourse()">+ Ajouter un cours</button>
-                <div class="ob-btns">
-                    <button class="btn-secondary" onclick="goObStep(1)">← Retour</button>
-                    <button class="btn-primary" onclick="finishOnboarding()">Terminer 🚀</button>
-                </div>
-            </div>
+    </div>
+</div>
+
+<!-- WELCOME CHRONOS MODAL -->
+<div id="welcomeChronosModal" class="modal-full" style="display:none">
+    <div class="welcome-chronos-content">
+        <div class="chronos-large">
+            <div class="chronos-character" id="welcomeChronos">⚡</div>
         </div>
-        <div class="ob-step" id="obStep2w">
-            <h1 class="ob-title animate-down">💼 Configuration Travailleur</h1>
-            <div class="ob-form animate-up delay-2">
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
-                    <div class="form-group"><label>Début</label><input type="time" id="workStart" value="09:00"></div>
-                    <div class="form-group"><label>Fin</label><input type="time" id="workEnd" value="18:00"></div>
-                </div>
-                <div class="ob-btns">
-                    <button class="btn-secondary" onclick="goObStep(1)">← Retour</button>
-                    <button class="btn-primary" onclick="finishOnboarding()">Terminer 🚀</button>
-                </div>
+        <div class="chronos-welcome-bubble">
+            <h2>Bienvenue sur ChronoFlow !</h2>
+            <p id="welcomeChronosText">Je suis Chronos, ton assistant personnel. Je vais t'aider à organiser ton temps comme un pro !</p>
+            <p style="margin-top:1rem;font-weight:600">Veux-tu que je te fasse visiter l'application ?</p>
+            <div class="chronos-welcome-btns">
+                <button class="btn-secondary" onclick="skipTutorial()">Non merci</button>
+                <button class="btn-primary" onclick="startTutorial()">Oui, montre-moi ! 🚀</button>
             </div>
         </div>
     </div>
@@ -161,6 +157,12 @@
 
 <!-- APP -->
 <div id="appScreen" class="app-screen" style="display:none">
+    
+    <!-- Tutorial Overlay -->
+    <div class="tutorial-overlay" id="tutorialOverlay" style="display:none"></div>
+    
+    <!-- Tutorial Spotlight -->
+    <div class="tutorial-spotlight" id="tutorialSpotlight" style="display:none"></div>
 
     <!-- Header -->
     <header class="header">
@@ -178,12 +180,16 @@
             </div>
         </div>
         <div class="header-right">
-            <button class="header-btn theme-btn" onclick="toggleTheme()" id="themeBtn">🌙</button>
-            <div class="streak-badge" onclick="switchView('badges')" title="Voir les badges">
+            <div class="theme-toggle-modern" id="themeToggleModern">
+                <div class="theme-option" data-theme="light">☀️</div>
+                <div class="theme-option active" data-theme="dark">🌙</div>
+                <div class="theme-slider"></div>
+            </div>
+            <div class="streak-badge" onclick="switchView('badges')">
                 <span>🔥</span>
                 <span id="headerStreak">0</span>
             </div>
-            <button class="avatar-btn" onclick="switchView('profile')">
+            <button class="avatar-btn" onclick="switchView('profile')" id="headerAvatarBtn">
                 <span id="headerAvatarEmoji">👤</span>
                 <img id="headerAvatarImg" src="" alt="" style="display:none">
             </button>
@@ -194,27 +200,27 @@
         <!-- Sidebar Mini -->
         <aside class="sidebar-mini" id="sidebar">
             <nav class="nav-mini">
-                <button class="nav-mini-btn active" data-view="planning" onclick="switchView('planning')" title="Planning">
+                <button class="nav-mini-btn active" data-view="planning" onclick="switchView('planning')">
                     <span class="nav-mini-icon">📋</span>
                     <span class="nav-mini-label">Planning</span>
                 </button>
-                <button class="nav-mini-btn" data-view="calendar" onclick="switchView('calendar')" title="Calendrier">
+                <button class="nav-mini-btn" data-view="calendar" onclick="switchView('calendar')">
                     <span class="nav-mini-icon">📅</span>
                     <span class="nav-mini-label">Calendrier</span>
                 </button>
-                <button class="nav-mini-btn" data-view="insights" onclick="switchView('insights')" title="Insights">
+                <button class="nav-mini-btn" data-view="insights" onclick="switchView('insights')">
                     <span class="nav-mini-icon">📊</span>
                     <span class="nav-mini-label">Insights</span>
                 </button>
-                <button class="nav-mini-btn" data-view="templates" onclick="switchView('templates')" title="Templates">
+                <button class="nav-mini-btn" data-view="templates" onclick="switchView('templates')">
                     <span class="nav-mini-icon">📁</span>
                     <span class="nav-mini-label">Templates</span>
                 </button>
-                <button class="nav-mini-btn" data-view="badges" onclick="switchView('badges')" title="Badges">
+                <button class="nav-mini-btn" data-view="badges" onclick="switchView('badges')">
                     <span class="nav-mini-icon">🏆</span>
                     <span class="nav-mini-label">Badges</span>
                 </button>
-                <button class="nav-mini-btn" data-view="settings" onclick="switchView('settings')" title="Paramètres">
+                <button class="nav-mini-btn" data-view="settings" onclick="switchView('settings')">
                     <span class="nav-mini-icon">⚙️</span>
                     <span class="nav-mini-label">Paramètres</span>
                 </button>
@@ -224,10 +230,13 @@
         <!-- Content -->
         <main class="content">
 
-            <!-- Mascot -->
-            <div class="mascot" id="mascot">
-                <div class="mascot-char">⚡</div>
-                <div class="mascot-bubble" id="mascotBubble">Bienvenue !</div>
+            <!-- Chronos Assistant (always visible) -->
+            <div class="chronos-assistant" id="chronosAssistant" onclick="openChronosChat()">
+                <div class="chronos-avatar" id="chronosAvatar">
+                    <div class="chronos-suit" id="chronosSuit">👔</div>
+                    <div class="chronos-head">⚡</div>
+                </div>
+                <div class="chronos-bubble-mini" id="chronosBubbleMini">Clique pour discuter !</div>
             </div>
 
             <!-- AI Input -->
@@ -253,9 +262,11 @@
                 </div>
             </div>
 
-            <!-- Planning View -->
+            <!-- VIEWS (Planning, Calendar, Insights, Templates, Badges, Profile, Settings) -->
+            <!-- Je vais mettre les structures minimales ici, le contenu sera généré en JS -->
+            
             <div class="view active" id="viewPlanning">
-                <div class="view-header">
+                <div class="view-header centered">
                     <h2>Mon Planning <span class="template-badge" id="planningTemplateBadge"></span></h2>
                     <div class="week-nav">
                         <button class="nav-arrow" onclick="changeWeek(-1)">←</button>
@@ -270,13 +281,7 @@
                     <span class="pill medium">🟡 Moyenne</span>
                     <span class="pill low">🟢 Basse</span>
                 </div>
-                <div id="planningGrid" class="planning-grid">
-                    <div class="empty-state">
-                        <div class="empty-icon">📅</div>
-                        <h3>Planning vide</h3>
-                        <p>Utilise l'IA pour planifier</p>
-                    </div>
-                </div>
+                <div id="planningGrid" class="planning-grid"></div>
                 <div class="event-sections">
                     <div class="event-section">
                         <h3>📍 Aujourd'hui</h3>
@@ -289,9 +294,8 @@
                 </div>
             </div>
 
-            <!-- Calendar View -->
             <div class="view" id="viewCalendar">
-                <div class="view-header">
+                <div class="view-header centered">
                     <h2>Calendrier</h2>
                     <div class="week-nav">
                         <button class="nav-arrow" onclick="changeMonth(-1)">←</button>
@@ -302,21 +306,31 @@
                 <div id="monthCal" class="month-cal"></div>
             </div>
 
-            <!-- Insights View -->
             <div class="view" id="viewInsights">
-                <div class="view-header"><h2>Insights 📊</h2></div>
+                <div class="view-header centered"><h2>Insights 📊</h2></div>
                 <div id="insightsGrid" class="insights-grid"></div>
             </div>
 
-            <!-- Templates View -->
             <div class="view" id="viewTemplates">
-                <div class="view-header"><h2>Templates</h2></div>
+                <div class="view-header centered"><h2>Templates</h2></div>
                 <div id="templatesContent"></div>
             </div>
 
-            <!-- Badges View -->
             <div class="view" id="viewBadges">
-                <div class="view-header"><h2>Badges 🏆</h2></div>
+                <div class="view-header centered"><h2>Badges & Progression 🏆</h2></div>
+                
+                <!-- XP Bar -->
+                <div class="xp-container">
+                    <div class="xp-level">Niveau <span id="xpLevel">1</span></div>
+                    <div class="xp-bar-wrapper">
+                        <div class="xp-bar">
+                            <div class="xp-bar-fill" id="xpBarFill"></div>
+                        </div>
+                        <div class="xp-text"><span id="xpCurrent">0</span> / <span id="xpNeeded">100</span> XP</div>
+                    </div>
+                    <div class="rank-badge" id="rankBadge">🥉 Bronze</div>
+                </div>
+                
                 <div class="streak-hero">
                     <div class="streak-flame">🔥</div>
                     <div>
@@ -327,12 +341,11 @@
                 <div id="badgeGrid" class="badge-grid"></div>
             </div>
 
-            <!-- Profile View -->
             <div class="view" id="viewProfile">
-                <div class="view-header"><h2>Profil</h2></div>
+                <div class="view-header centered"><h2>Profil</h2></div>
                 <div class="profile-layout">
                     <div class="profile-left">
-                        <div class="profile-avatar-wrap">
+                        <div class="profile-avatar-wrap" id="profileAvatarWrap">
                             <div class="profile-avatar">
                                 <span id="profileAvatarEmoji">👤</span>
                                 <img id="profileAvatarImg" src="" alt="" style="display:none">
@@ -348,7 +361,7 @@
                             <div class="stat-card"><span class="stat-val" id="statEvents">0</span><span class="stat-lbl">Événements</span></div>
                             <div class="stat-card"><span class="stat-val" id="statStreak">0</span><span class="stat-lbl">Jours</span></div>
                             <div class="stat-card"><span class="stat-val" id="statHours">0</span><span class="stat-lbl">Heures</span></div>
-                            <div class="stat-card"><span class="stat-val" id="statBadges">0</span><span class="stat-lbl">Badges</span></div>
+                            <div class="stat-card"><span class="stat-val" id="statXP">0</span><span class="stat-lbl">XP</span></div>
                         </div>
                         <div class="profile-settings">
                             <h3>Infos</h3>
@@ -360,36 +373,47 @@
                 </div>
             </div>
 
-            <!-- Settings View -->
             <div class="view" id="viewSettings">
-                <div class="view-header"><h2>Paramètres ⚙️</h2></div>
+                <div class="view-header centered"><h2>Paramètres ⚙️</h2></div>
                 <div class="settings-content">
                     <div class="setting-card">
                         <h3>🌐 Langue</h3>
-                        <select id="settingsLang" onchange="changeLang(this.value)">
-                            <option value="fr">🇫🇷 Français</option>
-                            <option value="en">🇬🇧 English</option>
-                            <option value="de">🇩🇪 Deutsch</option>
-                            <option value="es">🇪🇸 Español</option>
-                            <option value="it">🇮🇹 Italiano</option>
-                            <option value="ar">🇸🇦 العربية</option>
-                            <option value="pt">🇵🇹 Português</option>
-                        </select>
+                        <div class="lang-dropdown" id="langDropdown" onclick="toggleLangDropdown()">
+                            <span id="langCurrent">🇫🇷 Français</span>
+                            <span class="dropdown-arrow">▼</span>
+                        </div>
+                        <div class="lang-dropdown-menu" id="langDropdownMenu"></div>
                     </div>
+                    
                     <div class="setting-card">
                         <h3>🔔 Notifications</h3>
-                        <label class="switch-row"><span>Événements à venir</span><input type="checkbox" id="notifEvents" checked><span class="switch"></span></label>
-                        <label class="switch-row"><span>Rappels quotidiens</span><input type="checkbox" id="notifDaily" checked><span class="switch"></span></label>
+                        <div class="setting-row">
+                            <span>Événements à venir</span>
+                            <div class="toggle-modern" id="toggleEvents" onclick="toggleSetting('events')">
+                                <div class="toggle-option" data-val="yes">Oui</div>
+                                <div class="toggle-option active" data-val="no">Non</div>
+                                <div class="toggle-slider"></div>
+                            </div>
+                        </div>
+                        <div class="setting-row">
+                            <span>Rappels quotidiens</span>
+                            <div class="toggle-modern" id="toggleDaily" onclick="toggleSetting('daily')">
+                                <div class="toggle-option" data-val="yes">Oui</div>
+                                <div class="toggle-option active" data-val="no">Non</div>
+                                <div class="toggle-slider"></div>
+                            </div>
+                        </div>
                     </div>
+                    
                     <div class="setting-card">
                         <h3>🔒 Confidentialité</h3>
                         <button class="btn-secondary" onclick="requestPasswordChange()">Changer le mot de passe</button>
-                        <p style="font-size:0.85rem;color:var(--text2);margin-top:0.5rem">Un email de confirmation sera envoyé</p>
                     </div>
+                    
                     <div class="setting-card">
                         <h3>📊 Données</h3>
                         <button class="btn-secondary" onclick="exportData()">Exporter mes données</button>
-                        <button class="btn-secondary" onclick="deleteAccount()" style="margin-top:0.5rem;background:rgba(239,68,68,0.1);color:var(--critical)">Supprimer mon compte</button>
+                        <button class="btn-danger" onclick="deleteAccount()">Supprimer mon compte</button>
                     </div>
                 </div>
             </div>
@@ -398,24 +422,50 @@
     </div>
 </div>
 
-<!-- Day Detail Modal -->
-<div class="modal-full" id="dayDetailModal" onclick="if(event.target === this) closeDayDetail()">
+<!-- Chronos Chat Modal -->
+<div class="modal-full" id="chronosChatModal" style="display:none" onclick="if(event.target === this) closeChronosChat()">
+    <div class="chronos-chat-container">
+        <div class="chronos-chat-header">
+            <div class="chronos-chat-avatar">⚡</div>
+            <div>
+                <h3>Chronos</h3>
+                <p>Ton assistant personnel</p>
+            </div>
+            <button class="modal-close-btn" onclick="closeChronosChat()">✕</button>
+        </div>
+        <div class="chronos-chat-messages" id="chronosChatMessages"></div>
+        <div class="chronos-chat-input">
+            <input type="text" id="chronosChatInput" placeholder="Demande conseil à Chronos...">
+            <button onclick="sendChronosMessage()">Envoyer</button>
+        </div>
+    </div>
+</div>
+
+<!-- Tutorial Bubble (Chronos speaking during tutorial) -->
+<div class="tutorial-bubble" id="tutorialBubble" style="display:none">
+    <div class="chronos-tutorial-avatar">⚡</div>
+    <div class="tutorial-bubble-content">
+        <p id="tutorialBubbleText"></p>
+        <button class="btn-tutorial-next" id="tutorialNextBtn" onclick="nextTutorialStep()" style="display:none">Suivant →</button>
+    </div>
+</div>
+
+<!-- Modals (Day Detail, Insight Detail, Event Detail, Password, Voice) -->
+<div class="modal-full" id="dayDetailModal" style="display:none" onclick="if(event.target === this) closeDayDetail()">
     <div class="modal-full-content">
         <button class="modal-close-btn" onclick="closeDayDetail()">✕</button>
         <div id="dayDetailContent"></div>
     </div>
 </div>
 
-<!-- Insight Detail Modal -->
-<div class="modal-full" id="insightDetailModal" onclick="if(event.target === this) closeInsightDetail()">
+<div class="modal-full" id="insightDetailModal" style="display:none" onclick="if(event.target === this) closeInsightDetail()">
     <div class="modal-full-content">
         <button class="modal-close-btn" onclick="closeInsightDetail()">✕</button>
         <div id="insightDetailContent"></div>
     </div>
 </div>
 
-<!-- Event Detail Modal -->
-<div class="modal" id="eventDetailModal">
+<div class="modal" id="eventDetailModal" style="display:none">
     <div class="modal-box">
         <h3 id="eventDetailTitle">Détails</h3>
         <div id="eventDetailBody"></div>
@@ -432,12 +482,11 @@
     </div>
 </div>
 
-<!-- Password Change Modal -->
-<div class="modal" id="passwordModal">
+<div class="modal" id="passwordModal" style="display:none">
     <div class="modal-box">
         <h3>🔒 Changer le mot de passe</h3>
-        <p style="font-size:0.9rem;color:var(--text2);margin-bottom:1rem">Un code a été envoyé à <strong id="pwdEmail"></strong></p>
-        <div class="form-group"><label>Code de vérification</label><input type="text" id="pwdCode" placeholder="123456"></div>
+        <p>Code envoyé : <strong id="pwdEmail"></strong></p>
+        <div class="form-group"><label>Code</label><input type="text" id="pwdCode" placeholder="123456"></div>
         <div class="form-group"><label>Nouveau mot de passe</label><input type="password" id="pwdNew" placeholder="••••••••"></div>
         <div class="modal-btns">
             <button class="btn-secondary" onclick="closeModal('passwordModal')">Annuler</button>
@@ -446,8 +495,7 @@
     </div>
 </div>
 
-<!-- Voice Modal -->
-<div class="modal" id="voiceModal">
+<div class="modal" id="voiceModal" style="display:none">
     <div class="modal-box">
         <h3>🎤 Enregistrement</h3>
         <div class="voice-indicator">
@@ -472,7 +520,7 @@
 </div>
 
 <!-- Loading -->
-<div class="loading" id="loading">
+<div class="loading" id="loading" style="display:none">
     <div class="loading-inner">
         <div class="loading-ring"></div>
         <p>L'IA analyse...</p>
