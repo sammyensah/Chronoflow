@@ -43,7 +43,7 @@
                 <div class="lang-flag"><svg viewBox="0 0 60 40"><rect width="60" height="40" fill="#006C35"/><rect width="20" height="40" fill="#fff"/><circle cx="32" cy="20" r="7" fill="#006C35" stroke="#fff" stroke-width="2"/></svg></div>
                 <div class="lang-name">العربية</div>
             </div>
-            <div class="lang-card" onclick="selectLang('pt')">
+            <div class="lang-card lang-card-center" onclick="selectLang('pt')">
                 <div class="lang-flag"><svg viewBox="0 0 60 40"><rect width="60" height="40" fill="#E21C1C"/><rect width="24" height="40" fill="#006600"/><circle cx="24" cy="20" r="8" fill="#FFFF00" stroke="#006600" stroke-width="1.5"/></svg></div>
                 <div class="lang-name">Português</div>
             </div>
@@ -183,7 +183,12 @@
             <div class="streak-badge" onclick="switchView('badges')" title="Badges">
                 <span>🔥</span><span id="headerStreak">0</span>
             </div>
-            <div class="rank-pill" id="headerRankPill">Bronze</div>
+            <!-- Theme toggle soleil/lune -->
+            <div class="header-theme-toggle" id="headerThemeToggle">
+                <div class="htt-slider" id="httSlider"></div>
+                <button class="htt-btn" id="httLight" onclick="setTheme('light')" title="Mode clair">☀️</button>
+                <button class="htt-btn" id="httDark" onclick="setTheme('dark')" title="Mode sombre">🌙</button>
+            </div>
             <button class="avatar-btn" id="headerAvatarBtn" onclick="switchView('profile')">
                 <span id="headerAvatarEmoji">👤</span>
                 <img id="headerAvatarImg" src="" alt="" style="display:none">
@@ -205,13 +210,41 @@
 
         <main class="content" id="mainContent">
 
-            <!-- CHRONOS MASCOT -->
+            <!-- CHRONOS MASCOT (style Koro-sensei) -->
             <div class="mascot" id="mascot" onclick="openChronosChat()">
                 <div class="mascot-body" id="mascotBody">
-                    <div class="mascot-figure" id="mascotFigure">
-                        <div class="mascot-head-wrap"><div class="mascot-head">⚡</div></div>
-                        <div class="mascot-torso" id="mascotTorso"></div>
-                        <div class="mascot-legs"></div>
+                    <div class="mascot-koro" id="mascotKoro">
+                        <!-- Tête ronde lumineuse style Koro-sensei -->
+                        <div class="koro-head" id="koroHead">
+                            <div class="koro-face">
+                                <div class="koro-eyes">
+                                    <div class="koro-eye"><div class="koro-pupil"></div></div>
+                                    <div class="koro-eye"><div class="koro-pupil"></div></div>
+                                </div>
+                                <div class="koro-smile"></div>
+                            </div>
+                            <div class="koro-glow" id="koroGlow"></div>
+                        </div>
+                        <!-- Corps avec costume -->
+                        <div class="koro-body-wrap">
+                            <div class="koro-collar"></div>
+                            <div class="koro-suit" id="koroSuit">
+                                <div class="koro-tie" id="koroTie"></div>
+                                <div class="koro-btn1"></div>
+                                <div class="koro-btn2"></div>
+                            </div>
+                            <div class="koro-arms">
+                                <div class="koro-arm left"><div class="koro-hand"></div></div>
+                                <div class="koro-arm right"><div class="koro-hand"></div></div>
+                            </div>
+                        </div>
+                        <!-- Accessoire équipé -->
+                        <div class="koro-accessory" id="koroAccessory"></div>
+                        <!-- Jambes -->
+                        <div class="koro-legs">
+                            <div class="koro-leg"><div class="koro-shoe"></div></div>
+                            <div class="koro-leg"><div class="koro-shoe"></div></div>
+                        </div>
                     </div>
                 </div>
                 <div class="mascot-name-tag">Chronos</div>
@@ -221,8 +254,8 @@
             <div class="tut-overlay" id="tutOverlay" style="display:none"></div>
             <div class="tut-panel" id="tutPanel" style="display:none">
                 <div class="tut-chrono-figure">
-                    <div class="tut-head">⚡</div>
-                    <div class="tut-body"></div>
+                    <div class="tut-koro-head"><div class="tut-koro-face"><div class="tut-koro-eyes"><div class="tut-koro-eye"></div><div class="tut-koro-eye"></div></div><div class="tut-koro-smile"></div></div></div>
+                    <div class="tut-koro-body"></div>
                 </div>
                 <div class="tut-bubble">
                     <div class="tut-text" id="tutText"></div>
@@ -306,20 +339,20 @@
 
             <!-- BADGES VIEW -->
             <div class="view" id="viewBadges">
-                <div class="view-header"><h2>Badges 🏆</h2></div>
+                <div class="view-header"><h2 class="badges-title">Badges 🏆</h2></div>
                 <!-- XP Bar -->
-                <div class="xp-section">
+                <div class="xp-section" id="xpSection">
                     <div class="xp-level-label" id="xpLevelLabel">Niveau 1</div>
                     <div class="xp-bar-row">
                         <div class="xp-bar-track"><div class="xp-bar-fill" id="xpBarFill"></div></div>
                         <span class="xp-bar-text" id="xpBarText">0 / 100 XP</span>
                     </div>
-                    <div class="xp-rank-pill" id="xpRankPill">🥉 Bronze</div>
+                    <div class="xp-rank-pill" id="xpRankPill" onclick="openRankModal()">🥉 Bronze ▼</div>
                 </div>
-                <!-- Streak -->
-                <div class="streak-hero">
-                    <div class="streak-flame">🔥</div>
-                    <div><h2><span id="streakCount">0</span> jours</h2><p id="streakMsg">Continue !</p></div>
+                <!-- Message Chronos contextuel badges -->
+                <div class="chrono-badge-msg" id="chronoBadgeMsg">
+                    <div class="cbm-koro"><div class="cbm-head"></div><div class="cbm-body"></div></div>
+                    <div class="cbm-bubble" id="chronoBadgeBubble">...</div>
                 </div>
                 <div id="badgeGrid" class="badge-grid"></div>
             </div>
@@ -432,10 +465,9 @@
 <!-- WELCOME CHRONOS MODAL -->
 <div class="modal" id="welcomeModal">
     <div class="modal-box welcome-chronos-box">
-        <div class="wc-figure">
-            <div class="wc-head">⚡</div>
-            <div class="wc-body"></div>
-            <div class="wc-legs"></div>
+        <div class="wc-koro">
+            <div class="wc-koro-head"><div class="wc-koro-face"><div class="wc-koro-eyes"><div class="wc-koro-eye"></div><div class="wc-koro-eye"></div></div><div class="wc-koro-smile"></div></div></div>
+            <div class="wc-koro-body"></div>
         </div>
         <h3 style="font-size:1.4rem;margin:1rem 0 0.5rem">Bonjour ! Je suis <span style="color:var(--primary)">Chronos</span> !</h3>
         <p style="color:var(--text2);margin-bottom:0.75rem">Ton assistant IA pour organiser ta vie et atteindre tes objectifs. Je suis là pour te guider, te motiver et planifier avec toi !</p>
@@ -452,21 +484,33 @@
     <div class="modal-box chronos-chat-box">
         <div class="chat-header">
             <div class="chat-chrono-mini">
-                <div class="ccm-head">⚡</div>
-                <div class="ccm-body"></div>
+                <div class="ccm-koro-head" id="ccmKoroHead"></div>
             </div>
             <div class="chat-header-info">
                 <strong>Chronos</strong>
                 <span>Assistant IA</span>
             </div>
+            <!-- Slider Parler / Casier -->
+            <div class="chat-mode-toggle" id="chatModeToggle">
+                <div class="cmt-slider" id="cmtSlider"></div>
+                <button class="cmt-btn active" id="cmtTalk" onclick="setChatMode('talk')">💬 Parler</button>
+                <button class="cmt-btn" id="cmtLocker" onclick="setChatMode('locker')">🎒 Casier</button>
+            </div>
             <button class="chat-close-btn" onclick="closeChronosChat()">✕</button>
         </div>
-        <div class="chat-messages" id="chatMessages">
-            <div class="chat-msg chrono-msg"><div class="chat-bubble">Salut ! Comment puis-je t'aider à mieux t'organiser aujourd'hui ? 😊</div></div>
+        <!-- Vue Parler -->
+        <div id="chatTalkView">
+            <div class="chat-messages" id="chatMessages">
+                <div class="chat-msg chrono-msg"><div class="chat-bubble">Salut ! Comment puis-je t'aider à mieux t'organiser aujourd'hui ? 😊</div></div>
+            </div>
+            <div class="chat-input-row">
+                <input type="text" id="chatInput" placeholder="Pose ta question à Chronos..." onkeydown="if(event.key==='Enter')sendMsg()">
+                <button class="chat-send-btn" onclick="sendMsg()">➤</button>
+            </div>
         </div>
-        <div class="chat-input-row">
-            <input type="text" id="chatInput" placeholder="Pose ta question à Chronos..." onkeydown="if(event.key==='Enter')sendMsg()">
-            <button class="chat-send-btn" onclick="sendMsg()">➤</button>
+        <!-- Vue Casier -->
+        <div id="chatLockerView" style="display:none">
+            <div class="locker-grid" id="lockerGrid"></div>
         </div>
     </div>
 </div>
@@ -530,6 +574,17 @@
         <div class="modal-btns">
             <button class="btn-secondary" onclick="stopVoice()">Annuler</button>
             <button class="btn-primary" id="voiceConfirm" onclick="confirmVoice()" style="display:none">Utiliser ce texte</button>
+        </div>
+    </div>
+</div>
+
+<!-- RANK MODAL -->
+<div class="modal" id="rankModal" onclick="if(event.target===this)closeRankModal()">
+    <div class="modal-box" style="max-width:420px">
+        <h3 style="margin-bottom:1.25rem">🏆 Tous les Rangs</h3>
+        <div id="rankModalContent"></div>
+        <div class="modal-btns" style="margin-top:1.25rem">
+            <button class="btn-secondary" onclick="closeRankModal()">Fermer</button>
         </div>
     </div>
 </div>

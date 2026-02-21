@@ -1057,3 +1057,279 @@ button:active { animation: pressDown 0.15s ease forwards !important; }
     .modal-full-content { width:95%; padding:1.5rem; }
     .chronos-chat-box { width:95% !important; }
 }
+
+/* ═══════════════════════════════════════
+   NOUVELLES RÈGLES V4.1
+═══════════════════════════════════════ */
+
+/* Portugais centré */
+.lang-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; }
+.lang-card-center { grid-column: 2; }
+
+/* Header theme toggle (soleil/lune) */
+.header-theme-toggle {
+    position:relative; display:flex; align-items:center;
+    background:var(--card); border:1px solid var(--border);
+    border-radius:999px; padding:3px; gap:0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.htt-slider {
+    position:absolute; top:3px; left:3px;
+    width:calc(50% - 3px); height:calc(100% - 6px);
+    background:var(--primary); border-radius:999px;
+    transition:transform 0.3s cubic-bezier(0.16,1,0.3,1);
+    z-index:0;
+}
+.htt-slider.to-right { transform:translateX(100%); }
+.htt-btn {
+    position:relative; z-index:1; border:none; background:transparent;
+    padding:0.3rem 0.6rem; cursor:pointer; border-radius:999px;
+    font-size:1.1rem; transition:opacity 0.2s; line-height:1;
+}
+
+/* ═══ CHRONOS KORO-SENSEI ═══ */
+.mascot { position:fixed; bottom:1.5rem; left:1.5rem; z-index:200; cursor:pointer; }
+.mascot-body { transition:transform 0.25s cubic-bezier(0.16,1,0.3,1); }
+.mascot:hover .mascot-body { transform:scale(1.15) translateY(-4px); }
+.mascot-koro { display:flex; flex-direction:column; align-items:center; width:64px; }
+
+/* Tête ronde Koro */
+.koro-head {
+    position:relative; width:52px; height:52px; border-radius:50%;
+    background:radial-gradient(circle at 35% 35%, #ffe680, #ffd000);
+    box-shadow: 0 0 16px rgba(255,208,0,0.6), 0 2px 8px rgba(0,0,0,0.2);
+    display:flex; align-items:center; justify-content:center;
+    transition:box-shadow 0.3s;
+}
+.mascot:hover .koro-head { box-shadow:0 0 28px rgba(255,208,0,0.9), 0 4px 16px rgba(0,0,0,0.25); }
+.koro-glow {
+    position:absolute; inset:-6px; border-radius:50%;
+    background:transparent; border:2px solid rgba(255,208,0,0.3);
+    animation:koroGlow 2s ease-in-out infinite;
+}
+@keyframes koroGlow { 0%,100%{opacity:0.4;transform:scale(1);} 50%{opacity:1;transform:scale(1.08);} }
+
+.koro-face { display:flex; flex-direction:column; align-items:center; gap:5px; }
+.koro-eyes { display:flex; gap:8px; }
+.koro-eye {
+    width:10px; height:10px; border-radius:50%; background:#fff;
+    display:flex; align-items:center; justify-content:center;
+}
+.koro-pupil { width:5px; height:5px; border-radius:50%; background:#222; }
+.koro-smile {
+    width:22px; height:10px; border-bottom:2.5px solid #c47a00;
+    border-radius:0 0 50% 50%; border-left:none; border-right:none;
+}
+
+/* Corps costume */
+.koro-body-wrap { position:relative; width:42px; margin-top:-2px; }
+.koro-collar {
+    width:100%; height:8px;
+    background:linear-gradient(180deg, #fff 0%, #e8e8e8 100%);
+    border-radius:4px 4px 0 0;
+}
+.koro-suit {
+    position:relative; width:100%; height:30px;
+    background:linear-gradient(160deg, #1a1a2e, #16213e);
+    display:flex; align-items:center; justify-content:center;
+    border-radius:0 0 4px 4px; overflow:hidden;
+}
+.koro-suit::before {
+    content:''; position:absolute; left:50%; top:0; bottom:0;
+    width:2px; background:rgba(255,255,255,0.15); transform:translateX(-50%);
+}
+.koro-tie {
+    width:6px; height:22px; background:var(--primary);
+    clip-path:polygon(20% 0%,80% 0%,100% 60%,50% 100%,0% 60%);
+    position:relative; z-index:1;
+}
+.koro-btn1,.koro-btn2 {
+    position:absolute; right:8px; width:4px; height:4px;
+    background:rgba(255,255,255,0.4); border-radius:50%;
+}
+.koro-btn1 { top:6px; } .koro-btn2 { top:16px; }
+
+.koro-arms { position:absolute; top:0; left:-10px; right:-10px; display:flex; justify-content:space-between; height:30px; }
+.koro-arm {
+    width:10px; height:24px; background:#ffd000;
+    border-radius:999px; position:relative; top:4px;
+}
+.koro-hand { position:absolute; bottom:-4px; left:50%; transform:translateX(-50%); width:10px; height:10px; background:#ffd000; border-radius:50%; }
+
+.koro-accessory { position:absolute; top:-8px; right:-16px; font-size:1rem; pointer-events:none; transition:opacity 0.3s; }
+
+.koro-legs { display:flex; gap:6px; margin-top:2px; }
+.koro-leg {
+    width:14px; height:18px;
+    background:linear-gradient(180deg,#1a1a2e,#16213e);
+    border-radius:4px; position:relative;
+}
+.koro-shoe {
+    position:absolute; bottom:-4px; left:-2px; right:-2px; height:8px;
+    background:#111; border-radius:4px 4px 6px 6px;
+}
+
+/* Couleurs Chronos selon rank */
+.koro-rank-bronze .koro-head { background:radial-gradient(circle at 35% 35%,#e8a95d,#CD7F32); box-shadow:0 0 16px rgba(205,127,50,0.6); }
+.koro-rank-silver .koro-head { background:radial-gradient(circle at 35% 35%,#d4d4d4,#A8A9AD); box-shadow:0 0 16px rgba(168,169,173,0.6); }
+.koro-rank-gold .koro-head { background:radial-gradient(circle at 35% 35%,#ffe680,#FFD700); box-shadow:0 0 16px rgba(255,215,0,0.8); }
+.koro-rank-diamond .koro-head { background:radial-gradient(circle at 35% 35%,#d4faff,#B9F2FF); box-shadow:0 0 20px rgba(185,242,255,0.9); }
+.koro-rank-master .koro-head { background:radial-gradient(circle at 35% 35%,#c17ee8,#9B59B6); box-shadow:0 0 20px rgba(155,89,182,0.8); }
+.koro-rank-legend .koro-head { background:radial-gradient(circle at 35% 35%,#ff8c55,#FF4500); box-shadow:0 0 24px rgba(255,69,0,0.9); animation:legendFlame 1.5s ease-in-out infinite; }
+@keyframes legendFlame { 0%,100%{box-shadow:0 0 24px rgba(255,69,0,0.9);} 50%{box-shadow:0 0 40px rgba(255,140,0,1);} }
+
+/* ═══ TUTORIAL LOCK ═══ */
+.tut-overlay {
+    position:fixed; inset:0; background:rgba(0,0,0,0.75);
+    z-index:1000; pointer-events:all;
+}
+body.tutorial-locked { overflow:hidden; }
+.spotlight {
+    position:fixed; z-index:1001; pointer-events:none;
+    box-shadow:0 0 0 9999px rgba(0,0,0,0.0);
+    border-radius:12px;
+    border:3px solid var(--primary);
+    animation:spotGlow 1.5s ease-in-out infinite;
+    transition:all 0.4s cubic-bezier(0.16,1,0.3,1);
+}
+@keyframes spotGlow {
+    0%,100%{box-shadow:0 0 0 9999px rgba(0,0,0,0), 0 0 20px var(--primary);}
+    50%{box-shadow:0 0 0 9999px rgba(0,0,0,0), 0 0 40px var(--primary);}
+}
+.tut-panel {
+    position:fixed; bottom:2rem; left:50%; transform:translateX(-50%);
+    z-index:1002; display:flex; align-items:flex-start; gap:1rem;
+    background:var(--card); padding:1.25rem 1.5rem; border-radius:16px;
+    border:1px solid var(--border); box-shadow:0 8px 32px rgba(0,0,0,0.25);
+    max-width:520px; width:90%; pointer-events:all;
+}
+/* Tuto Koro mini */
+.tut-koro-head {
+    width:42px; height:42px; border-radius:50%; flex-shrink:0;
+    background:radial-gradient(circle at 35% 35%,#ffe680,#ffd000);
+    box-shadow:0 0 12px rgba(255,208,0,0.7);
+    display:flex; align-items:center; justify-content:center;
+}
+.tut-koro-face { display:flex; flex-direction:column; align-items:center; gap:4px; }
+.tut-koro-eyes { display:flex; gap:6px; }
+.tut-koro-eye { width:7px; height:7px; border-radius:50%; background:#fff; }
+.tut-koro-smile { width:16px; height:7px; border-bottom:2px solid #c47a00; border-radius:0 0 50% 50%; }
+.tut-koro-body { width:42px; height:28px; background:linear-gradient(160deg,#1a1a2e,#16213e); border-radius:4px; margin-top:1px; flex-shrink:0; }
+.tut-chrono-figure { display:flex; flex-direction:column; align-items:center; gap:0; }
+
+/* ═══ BADGES - POLICE ÉPIQUE ═══ */
+.xp-level-label {
+    font-family:'Crimson Pro',serif;
+    font-size:2.8rem !important; font-weight:700;
+    background:linear-gradient(135deg, var(--primary), #ff9a6c, var(--primary));
+    background-size:200%;
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+    animation:shimmerText 3s linear infinite;
+    letter-spacing:0.02em; text-align:center; margin-bottom:0.5rem;
+}
+@keyframes shimmerText { 0%{background-position:0%} 100%{background-position:200%} }
+
+/* ═══ BADGES - titre épique ═══ */
+.badges-title {
+    font-family:'Crimson Pro',serif;
+    font-size:1.8rem; letter-spacing:0.03em;
+}
+
+/* ═══ CHRONOS MSG BADGES ═══ */
+.chrono-badge-msg {
+    display:flex; align-items:center; gap:1rem;
+    background:var(--card); border:1px solid var(--border);
+    border-radius:14px; padding:1rem 1.25rem;
+    margin:1rem 0; box-shadow:var(--shadow);
+}
+.cbm-koro { display:flex; flex-direction:column; align-items:center; flex-shrink:0; }
+.cbm-head {
+    width:38px; height:38px; border-radius:50%;
+    background:radial-gradient(circle at 35% 35%,#ffe680,#ffd000);
+    box-shadow:0 0 10px rgba(255,208,0,0.6);
+}
+.cbm-body { width:32px; height:20px; background:linear-gradient(160deg,#1a1a2e,#16213e); border-radius:4px; margin-top:1px; }
+.cbm-bubble { flex:1; font-size:0.9rem; color:var(--text); line-height:1.5; }
+.cbm-bubble strong { color:var(--primary); }
+
+/* ═══ RANK MODAL ═══ */
+.rank-row {
+    display:flex; align-items:center; gap:1rem;
+    padding:0.75rem 1rem; border-radius:10px;
+    border:1px solid var(--border); margin-bottom:0.6rem;
+    transition:border-color 0.2s, background 0.2s;
+}
+.rank-row.current { border-color:var(--primary); background:rgba(255,107,53,0.07); }
+.rank-row.locked { opacity:0.5; }
+.rank-icon { font-size:1.6rem; }
+.rank-info { flex:1; }
+.rank-info strong { display:block; font-size:1rem; }
+.rank-info span { font-size:0.8rem; color:var(--text2); }
+.rank-xp-badge { font-size:0.8rem; font-weight:700; padding:0.25rem 0.65rem; border-radius:999px; background:var(--bg); color:var(--text); }
+
+/* ═══ HEADER STREAK VISIBLE ═══ */
+.streak-badge { display:flex; align-items:center; gap:4px; cursor:pointer; padding:0.35rem 0.75rem; background:var(--card); border:1px solid var(--border); border-radius:999px; font-weight:700; font-size:0.9rem; transition:background 0.2s; }
+.streak-badge:hover { background:rgba(255,107,53,0.1); border-color:var(--primary); }
+
+/* ═══ CHAT MODE TOGGLE ═══ */
+.chat-mode-toggle {
+    position:relative; display:flex; align-items:center;
+    background:var(--bg); border:1px solid var(--border);
+    border-radius:999px; padding:3px; margin-left:auto; margin-right:0.5rem;
+}
+.cmt-slider {
+    position:absolute; top:3px; left:3px;
+    width:calc(50% - 3px); height:calc(100% - 6px);
+    background:var(--primary); border-radius:999px;
+    transition:transform 0.3s cubic-bezier(0.16,1,0.3,1);
+    z-index:0;
+}
+.cmt-slider.to-right { transform:translateX(100%); }
+.cmt-btn {
+    position:relative; z-index:1; border:none; background:transparent;
+    padding:0.3rem 0.65rem; cursor:pointer; border-radius:999px;
+    font-size:0.78rem; font-weight:600; font-family:inherit;
+    color:var(--text2); white-space:nowrap; transition:color 0.2s;
+}
+.cmt-btn.active { color:#fff; }
+
+/* Mini tête Koro dans chat header */
+.ccm-koro-head {
+    width:36px; height:36px; border-radius:50%; flex-shrink:0;
+    background:radial-gradient(circle at 35% 35%,#ffe680,#ffd000);
+    box-shadow:0 0 10px rgba(255,208,0,0.6);
+}
+
+/* ═══ LOCKER ═══ */
+.locker-grid {
+    display:grid; grid-template-columns:repeat(3,1fr); gap:0.75rem;
+    padding:1rem; max-height:340px; overflow-y:auto;
+}
+.locker-item {
+    display:flex; flex-direction:column; align-items:center; gap:0.4rem;
+    padding:0.75rem 0.5rem; background:var(--bg);
+    border:2px solid var(--border); border-radius:12px;
+    cursor:pointer; transition:all 0.2s; text-align:center;
+}
+.locker-item.equipped { border-color:var(--primary); background:rgba(255,107,53,0.08); }
+.locker-item.locked { opacity:0.4; cursor:not-allowed; filter:grayscale(1); }
+.locker-item:not(.locked):hover { border-color:var(--primary); transform:translateY(-2px); }
+.locker-item .li-icon { font-size:1.8rem; }
+.locker-item .li-name { font-size:0.75rem; font-weight:600; }
+.locker-item .li-lvl { font-size:0.68rem; color:var(--text2); }
+.locker-item .li-badge { font-size:0.65rem; background:var(--primary); color:#fff; padding:1px 6px; border-radius:999px; }
+
+/* ═══ WC KORO ═══ */
+.wc-koro { display:flex; flex-direction:column; align-items:center; gap:0; margin-bottom:0.5rem; }
+.wc-koro-head {
+    width:60px; height:60px; border-radius:50%;
+    background:radial-gradient(circle at 35% 35%,#ffe680,#ffd000);
+    box-shadow:0 0 20px rgba(255,208,0,0.8);
+    display:flex; align-items:center; justify-content:center;
+}
+.wc-koro-face { display:flex; flex-direction:column; align-items:center; gap:5px; }
+.wc-koro-eyes { display:flex; gap:8px; }
+.wc-koro-eye { width:10px; height:10px; border-radius:50%; background:#fff; }
+.wc-koro-smile { width:24px; height:11px; border-bottom:2.5px solid #c47a00; border-radius:0 0 50% 50%; }
+.wc-koro-body { width:50px; height:36px; background:linear-gradient(160deg,#1a1a2e,#16213e); border-radius:6px 6px 4px 4px; margin-top:2px; }
+

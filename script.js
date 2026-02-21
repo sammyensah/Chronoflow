@@ -65,14 +65,20 @@ function updateXpBar() {
 
 function updateRankDisplays() {
     const rank=getRank(state.level);
-    const hp=document.getElementById('headerRankPill');
-    if(hp) { hp.textContent=rank.icon+' '+rank.name; hp.className='rank-pill '+rank.cls; }
     const pr=document.getElementById('profileRankDisplay');
     if(pr) pr.innerHTML='<span class="'+rank.cls+'" style="font-size:1.1rem">'+rank.icon+' '+rank.name+'</span>';
     const pa=document.getElementById('profileAvatarEl');
     if(pa) pa.className='profile-avatar avatar-'+rank.cls;
-    const ha=document.getElementById('headerAvatarBtn');
-    if(ha) { ha.style.borderColor=rank.color; ha.style.boxShadow='0 0 12px '+rank.color+'66'; }
+    // Chronos couleur rank
+    const koro=document.getElementById('mascotKoro');
+    if(koro) {
+        koro.className='mascot-koro koro-rank-'+rank.cls.replace('rank-','');
+        // Tie color = rank
+        const tie=document.getElementById('koroTie');
+        if(tie) tie.style.background=rank.color;
+    }
+    // Accessory équipé
+    updateChronosAccessory();
 }
 
 function getMascotLevel() {
@@ -287,11 +293,25 @@ function updateStreakBasedOnUsage() {
 function applyTheme(theme) { document.documentElement.setAttribute('data-theme',theme); state.theme=theme; }
 function setTheme(theme) {
     applyTheme(theme); saveState();
+    // Settings toggle
     const sl=document.getElementById('themeSlider');
     const lb=document.getElementById('themeLight'); const db=document.getElementById('themeDark');
-    if(!sl) return;
-    if(theme==='dark') { sl.classList.add('to-right'); db?.classList.add('active-btn'); lb?.classList.remove('active-btn'); }
-    else { sl.classList.remove('to-right'); lb?.classList.add('active-btn'); db?.classList.remove('active-btn'); }
+    if(sl) {
+        if(theme==='dark') { sl.classList.add('to-right'); db?.classList.add('active-btn'); lb?.classList.remove('active-btn'); }
+        else { sl.classList.remove('to-right'); lb?.classList.add('active-btn'); db?.classList.remove('active-btn'); }
+    }
+    // Header toggle
+    const hs=document.getElementById('httSlider');
+    if(hs) { hs.classList.toggle('to-right', theme==='dark'); }
+}
+function initToggles() {
+    const ns=document.getElementById('notifSlider');
+    if(ns) { if(!state.notifications){ns.classList.add('to-right');document.getElementById('notifNo')?.classList.add('active-btn');}else document.getElementById('notifYes')?.classList.add('active-btn'); }
+    const ts=document.getElementById('themeSlider');
+    if(ts) { if(state.theme==='dark'){ts.classList.add('to-right');document.getElementById('themeDark')?.classList.add('active-btn');}else{ts.classList.remove('to-right');document.getElementById('themeLight')?.classList.add('active-btn');} }
+    // Header theme toggle
+    const hs=document.getElementById('httSlider');
+    if(hs) { hs.classList.toggle('to-right', state.theme==='dark'); }
 }
 function setNotif(on) {
     state.notifications=on; saveState();
@@ -301,12 +321,6 @@ function setNotif(on) {
     if(on) { sl.classList.remove('to-right'); yb?.classList.add('active-btn'); nb?.classList.remove('active-btn'); }
     else   { sl.classList.add('to-right');    nb?.classList.add('active-btn'); yb?.classList.remove('active-btn'); }
     toast(on?'🔔 Notifications activées':'🔕 Notifications désactivées');
-}
-function initToggles() {
-    const ns=document.getElementById('notifSlider');
-    if(ns) { if(!state.notifications){ns.classList.add('to-right');document.getElementById('notifNo')?.classList.add('active-btn');}else document.getElementById('notifYes')?.classList.add('active-btn'); }
-    const ts=document.getElementById('themeSlider');
-    if(ts) { if(state.theme==='dark'){ts.classList.add('to-right');document.getElementById('themeDark')?.classList.add('active-btn');}else{ts.classList.remove('to-right');document.getElementById('themeLight')?.classList.add('active-btn');} }
 }
 
 // HEADER
@@ -695,9 +709,6 @@ const ALL_BADGES=[
     {id:'90d',    emoji:'👑',name:'Légende',     desc:'Streak de 90 jours',  xp:XP_GAINS.badge_90day,msg:'LÉGENDE ABSOLUE !',              cond:()=>state.streak>=90},
     {id:'ev10',   emoji:'📋',name:'Planificateur',desc:'10 événements',      xp:30,msg:'Tu organises comme un pro !',    cond:()=>(state.user?.totalEvents||0)>=10},
     {id:'ev50',   emoji:'🗓️',name:'Organisateur',desc:'50 événements',       xp:80,msg:'Organisation au top !',          cond:()=>(state.user?.totalEvents||0)>=50},
-    {id:'lvl5',   emoji:'🎖️',name:'Aspirant',    desc:'Niveau 5',            xp:0, msg:'Tu progresses !',               cond:()=>state.level>=5},
-    {id:'lvl10',  emoji:'🏅',name:'Vétéran',     desc:'Niveau 10',           xp:0, msg:'Un vrai vétéran !',              cond:()=>state.level>=10},
-    {id:'lvl20',  emoji:'🌙',name:'Expert',      desc:'Niveau 20',           xp:0, msg:'Tu maîtrises tout !',            cond:()=>state.level>=20},
 ];
 const unlockedBadges=new Set(JSON.parse(localStorage.getItem('cf_badges')||'[]'));
 function checkBadges() {
@@ -821,3 +832,191 @@ function loadState() {
 }
 
 window.ChronoFlow={state,saveState,toast};
+
+/* ════════════════════════════════════════
+   NOUVELLES FONCTIONS V4.1
+════════════════════════════════════════ */
+
+// TUTORIAL LOCK ÉCRAN
+function runTutStep() {
+    const step=TUT_STEPS[state.tutorialStep]; if(!step) { endTut(); return; }
+    switchView(step.view);
+    document.body.classList.add('tutorial-locked');
+    document.getElementById('tutOverlay').style.display='block';
+    document.getElementById('tutPanel').style.display='flex';
+    document.getElementById('spotlight').style.display='block';
+    // Bloquer le scroll et les clics hors tutorial
+    document.getElementById('tutOverlay').style.pointerEvents='all';
+    setTimeout(()=>{
+        const t=document.getElementById(step.target);
+        if(t) {
+            const r=t.getBoundingClientRect(); const sp=document.getElementById('spotlight');
+            sp.style.top=(r.top-8)+'px'; sp.style.left=(r.left-8)+'px';
+            sp.style.width=(r.width+16)+'px'; sp.style.height=(r.height+16)+'px';
+        }
+    },350);
+    const te=document.getElementById('tutText'); const nb=document.getElementById('tutNext');
+    te.textContent=''; te.classList.remove('done'); nb.style.display='none';
+    typeText(te,step.text,()=>{ te.classList.add('done'); nb.style.display='block'; });
+}
+function endTut() {
+    ['tutOverlay','tutPanel','spotlight'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
+    document.body.classList.remove('tutorial-locked');
+    state.tutorialDone=true; saveState(); switchView('planning'); toast('🎉 Tutoriel terminé ! Bonne planification !');
+}
+
+// RANK MODAL
+function openRankModal() {
+    const rank=getRank(state.level);
+    const totalForRank=(r)=>getTotalXpForLevel(r.minLevel);
+    document.getElementById('rankModalContent').innerHTML=RANKS.map(r=>{
+        const isCur=r.name===rank.name;
+        const reached=state.level>=r.minLevel;
+        const xpNeeded=totalForRank(r);
+        return '<div class="rank-row'+(isCur?' current':'')+(reached?'':' locked')+'" style="border-left:4px solid '+(reached?r.color:'var(--border)')+'">'+
+            '<div class="rank-icon">'+r.icon+'</div>'+
+            '<div class="rank-info"><strong>'+r.name+'</strong>'+
+            '<span>Niveaux '+r.minLevel+(r.maxLevel<999?'–'+r.maxLevel:'+')+'</span></div>'+
+            '<div class="rank-xp-badge" style="'+(reached?'background:'+r.color+'22;color:'+r.color:'')+'">'+
+            (reached?'✅ Atteint':'Niveau '+r.minLevel+' · '+xpNeeded+' XP total')+'</div></div>';
+    }).join('');
+    document.getElementById('rankModal').classList.add('show');
+}
+function closeRankModal() { document.getElementById('rankModal').classList.remove('show'); }
+
+// BADGES - XP BAR UPDATE (sans streak)
+function updateXpBar() {
+    const ll=document.getElementById('xpLevelLabel');
+    const bf=document.getElementById('xpBarFill');
+    const bt=document.getElementById('xpBarText');
+    const rp=document.getElementById('xpRankPill');
+    if(!ll) return;
+    const rank=getRank(state.level);
+    const cur=getCurrentLevelXp(); const need=getXpNeededForNextLevel();
+    const pct=Math.min(100,Math.round((cur/need)*100));
+    ll.textContent='Niveau '+state.level;
+    if(bf) bf.style.width=pct+'%';
+    if(bt) bt.textContent=cur+' / '+need+' XP';
+    if(rp) { rp.textContent=rank.icon+' '+rank.name+' ▼'; rp.className='xp-rank-pill '+rank.cls; }
+    updateChronosBadgeMsg();
+}
+
+// MESSAGE CHRONOS SUR ONGLET BADGES
+const NEXT_LEVEL_REWARDS = {
+    2:'accès au costume Sombre pour Chronos ! 🌑',
+    3:'la cravate Dorée pour Chronos ✨',
+    5:'le costume Étoilé pour Chronos 🌟',
+    8:'les lunettes de Maître 👓',
+    10:'le costume Diamant 💎',
+    15:'la cape de Légende 🦸',
+    20:'les ailes de Chronos 🪶',
+    30:'la couronne ultime 👑',
+};
+function getNextRewardMsg() {
+    const levels=Object.keys(NEXT_LEVEL_REWARDS).map(Number).sort((a,b)=>a-b);
+    const next=levels.find(l=>l>state.level);
+    if(!next) return 'Tu as tout débloqué ! Tu es une légende absolue ! 👑';
+    const reward=NEXT_LEVEL_REWARDS[next];
+    const gap=next-state.level;
+    return 'Plus que <strong>'+gap+' niveau'+(gap>1?'x':'')+' pour débloquer '+reward+'</strong>';
+}
+function updateChronosBadgeMsg() {
+    const el=document.getElementById('chronoBadgeBubble');
+    if(el) el.innerHTML='Au <strong>niveau '+state.level+'</strong> ! '+getNextRewardMsg();
+}
+
+// CASIER / LOCKER
+const CHRONOS_ITEMS = [
+    {id:'default',    icon:'👔', name:'Costume de base',  lvl:1,   type:'suit'},
+    {id:'dark',       icon:'🌑', name:'Costume Sombre',   lvl:2,   type:'suit'},
+    {id:'gold_tie',   icon:'✨', name:'Cravate Dorée',    lvl:3,   type:'tie'},
+    {id:'star_suit',  icon:'🌟', name:'Costume Étoilé',   lvl:5,   type:'suit'},
+    {id:'glasses',    icon:'👓', name:'Lunettes Maître',  lvl:8,   type:'acc'},
+    {id:'diamond',    icon:'💎', name:'Costume Diamant',  lvl:10,  type:'suit'},
+    {id:'cape',       icon:'🦸', name:'Cape Légende',     lvl:15,  type:'acc'},
+    {id:'wings',      icon:'🪶', name:'Ailes',            lvl:20,  type:'acc'},
+    {id:'crown',      icon:'👑', name:'Couronne',         lvl:30,  type:'acc'},
+];
+let equippedItem = localStorage.getItem('cf_equipped')||'default';
+function updateLockerGrid() {
+    const grid=document.getElementById('lockerGrid'); if(!grid) return;
+    grid.innerHTML=CHRONOS_ITEMS.map(item=>{
+        const unlocked=state.level>=item.lvl;
+        const isEquipped=equippedItem===item.id;
+        return '<div class="locker-item'+(isEquipped?' equipped':'')+(unlocked?'':' locked')+'" onclick="'+(unlocked?'equipItem(\''+item.id+'\')':'')+'">'+
+            '<div class="li-icon">'+item.icon+'</div>'+
+            '<div class="li-name">'+item.name+'</div>'+
+            '<div class="li-lvl">Niv. '+item.lvl+'</div>'+
+            (isEquipped?'<div class="li-badge">Équipé</div>':(unlocked?'':'🔒'))+
+            '</div>';
+    }).join('');
+}
+function equipItem(id) {
+    equippedItem=id; localStorage.setItem('cf_equipped',id);
+    updateLockerGrid(); updateChronosAccessory();
+    toast('✅ Équipement changé !');
+}
+function updateChronosAccessory() {
+    const acc=document.getElementById('koroAccessory'); if(!acc) return;
+    const item=CHRONOS_ITEMS.find(i=>i.id===equippedItem);
+    if(item && item.type==='acc') { acc.textContent=item.icon; acc.style.opacity='1'; }
+    else acc.style.opacity='0';
+    // Suit changes
+    const suit=document.getElementById('koroSuit');
+    const tie=document.getElementById('koroTie');
+    if(suit && equippedItem==='dark') { suit.style.background='linear-gradient(160deg,#0a0a0a,#111)'; }
+    else if(suit && equippedItem==='star_suit') { suit.style.background='linear-gradient(160deg,#1a1040,#2d1b6e)'; suit.style.boxShadow='0 0 8px rgba(155,89,182,0.5)'; }
+    else if(suit && equippedItem==='diamond') { suit.style.background='linear-gradient(160deg,#0a2a3a,#0d3d5a)'; suit.style.boxShadow='0 0 8px rgba(185,242,255,0.5)'; }
+    else if(suit) { suit.style.background=''; suit.style.boxShadow=''; }
+    if(tie && equippedItem==='gold_tie') { tie.style.background='linear-gradient(180deg,#FFD700,#c4a800)'; }
+    else if(tie) { tie.style.background=''; }
+}
+
+// MODE CHAT TOGGLE
+let chatMode='talk';
+function setChatMode(mode) {
+    chatMode=mode;
+    const sl=document.getElementById('cmtSlider');
+    const tb=document.getElementById('cmtTalk');
+    const lb=document.getElementById('cmtLocker');
+    const tv=document.getElementById('chatTalkView');
+    const lv=document.getElementById('chatLockerView');
+    if(mode==='locker') {
+        sl.classList.add('to-right');
+        tb.classList.remove('active'); lb.classList.add('active');
+        tv.style.display='none'; lv.style.display='block';
+        updateLockerGrid();
+    } else {
+        sl.classList.remove('to-right');
+        lb.classList.remove('active'); tb.classList.add('active');
+        lv.style.display='none'; tv.style.display='block';
+    }
+}
+
+// TUTORIAL STEPS - ajout étape Chronos
+const TUT_STEPS_OVERRIDE = [
+    {view:'planning',  target:'aiPanel',      text:"Bienvenue ! 👋 Voici la zone de planning IA. Écris ce que tu dois faire — révisions, sport, rendez-vous — et je génère ton planning optimisé automatiquement !"},
+    {view:'planning',  target:'planningGrid', text:"Ton planning hebdomadaire s'affiche ici ! Clique sur un événement pour changer sa priorité. Les couleurs t'aident à voir l'urgence d'un coup d'œil 🎨"},
+    {view:'calendar',  target:'monthCal',     text:"Le Calendrier donne une vue mensuelle. Clique sur une date pour voir tous les événements de la journée 📅"},
+    {view:'insights',  target:'insightsGrid', text:"Les Insights affichent tes statistiques ! Heures travaillées, répartition, objectifs XP... Clique sur une carte pour les détails 📊"},
+    {view:'badges',    target:'xpSection',    text:"Ici, gagne des XP et monte de niveau ! Chaque connexion, badge, et semaine planifiée rapporte des XP 🎖️"},
+    {view:'planning',  target:'mascot',       text:"Et moi, Chronos ! 🌟 Clique sur moi pour me parler et me poser des questions sur ton planning. Dans l'onglet 'Casier', tu peux me changer de costume en débloquant des équipements en montant de niveau !"},
+];
+
+// Overwrite TUT_STEPS at runtime
+document.addEventListener('DOMContentLoaded', ()=>{
+    // Override TUT_STEPS with new version including Chronos step
+    if(typeof TUT_STEPS !== 'undefined') {
+        TUT_STEPS.length=0;
+        TUT_STEPS_OVERRIDE.forEach(s=>TUT_STEPS.push(s));
+    }
+});
+
+// UPDATEBADGES - sans streak
+function updateBadges() {
+    checkBadges(); updateXpBar();
+    const grid=document.getElementById('badgeGrid'); if(!grid) return;
+    grid.innerHTML=ALL_BADGES.map(b=>{ const u=b.cond(); return '<div class="badge-card '+(u?'unlocked':'locked')+'"><span class="badge-emoji">'+b.emoji+'</span><div class="badge-name">'+b.name+'</div><div class="badge-desc">'+b.desc+'</div><span class="badge-xp">+'+b.xp+' XP</span>'+(u?'<span class="badge-msg">"'+b.msg+'"</span>':'')+'</div>'; }).join('');
+    // Message Chronos contextuel
+    setTimeout(updateChronosBadgeMsg, 100);
+}
