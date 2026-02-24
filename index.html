@@ -688,6 +688,12 @@ console.log("✅ Firebase prêt");
 // Charger script.js maintenant que Firebase est prêt
 const s = document.createElement('script');
 s.src = 'script.js';
+s.onload = () => {
+  // script.js est chargé — lancer l'app
+  if(typeof initApp === 'function') initApp();
+  else console.error('initApp non trouvée');
+};
+s.onerror = () => console.error('Erreur chargement script.js');
 document.head.appendChild(s);
 </script>
 </body>

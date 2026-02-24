@@ -457,8 +457,6 @@ function initApp(){
     }
   });
 }
-// DOM est déjà prêt quand script.js est chargé dynamiquement
-if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',initApp);}else{initApp();}
 
 function handleEsc(){
   if(S.sessionActive){tryExitSession();return;}
