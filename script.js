@@ -403,7 +403,7 @@ function makeParticles(id){
 }
 
 /* ═══ INIT ═══ */
-document.addEventListener('DOMContentLoaded',()=>{
+function initApp(){
   // Charge la langue depuis localStorage (pas sensible, juste UI)
   S.lang = localStorage.getItem('cf_lang') || 'fr';
   S.equippedItem = localStorage.getItem('cf_equipped') || 'default';
@@ -456,7 +456,9 @@ document.addEventListener('DOMContentLoaded',()=>{
       }
     }
   });
-});
+}
+// DOM est déjà prêt quand script.js est chargé dynamiquement
+if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',initApp);}else{initApp();}
 
 function handleEsc(){
   if(S.sessionActive){tryExitSession();return;}
