@@ -45,7 +45,7 @@ const LANGS = {
     tut3:"Le calendrier mensuel. Clique sur une date pour voir tous les événements 📅",
     tut4:"Les Insights te montrent tes stats et ta progression 📊",
     tut5:"Ici tu gagnes des XP et tu montes de niveau ! 🎖️",
-    tut6:"Je suis Chronos ! Clique sur moi pour me parler ou changer mon costume dans le Casier 🌟",
+    tut6:"Je suis Chronos ! Clique sur moi pour me parler ou changer mon costume dans le Casier 🌟",tut7:"Chaque semaine, je t'afficherai un bilan complet de ce que tu as accompli — avec des stats et des conseils pour la semaine à venir ! 📊",
     obChooseProfile:'Choisis ton profil',obStudentTitle:'🎓 Configuration Étudiant',obWorkerTitle:'💼 Configuration Travailleur',obCustomTitle:'✨ Configuration Personnalisée',
     pcStudent:'Étudiant',pcWorker:'Travailleur',pcCustom:'Personnalisé',pcStudentDesc:'Cours, révisions, examens',pcWorkerDesc:'Projets, réunions, deadlines',pcCustomDesc:'Je configure moi-même',
     btnAddCourse:'Ajouter un cours',btnBack:'Retour',btnFinish:'Terminer',
@@ -79,7 +79,7 @@ const LANGS = {
     tut3:'Monthly calendar. Click a date to see all events 📅',
     tut4:'Insights show your stats and progress 📊',
     tut5:'Here you earn XP and level up! 🎖️',
-    tut6:"I'm Chronos! Click me to chat or change my costume in the Locker 🌟",
+    tut6:"I'm Chronos! Click me to chat or change my costume in the Locker 🌟",tut7:"Every week on Monday, I'll show you a full review of what you accomplished — with stats and advice for the week ahead! 📊",
     obChooseProfile:'Choose your profile',obStudentTitle:'🎓 Student Setup',obWorkerTitle:'💼 Worker Setup',obCustomTitle:'✨ Custom Setup',
     pcStudent:'Student',pcWorker:'Worker',pcCustom:'Custom',pcStudentDesc:'Classes, studying, exams',pcWorkerDesc:'Projects, meetings, deadlines',pcCustomDesc:'I set it up myself',
     btnAddCourse:'Add a class',btnBack:'Back',btnFinish:'Finish',
@@ -382,6 +382,7 @@ const TUT_STEPS=[
   {view:'insights',target:'insightsGrid', txtKey:'tut4'},
   {view:'badges',  target:'xpSection',    txtKey:'tut5'},
   {view:'planning',target:'mascot',       txtKey:'tut6'},
+  {view:'insights',target:'weeklyReviewBtnInsights', txtKey:'tut7'},
 ];
 
 /* ═══ FLAG SVGs ═══ */
@@ -605,6 +606,7 @@ function launchApp(){
   if(hz){hz.addEventListener('mouseenter',()=>toggleSidebar(true));
   document.getElementById('sidebar')?.addEventListener('mouseleave',(e)=>{if(!e.relatedTarget||!e.currentTarget.contains(e.relatedTarget))toggleSidebar(false);});}
   requestNotifPermission();
+  checkWeeklyReview();
   const apiKey=localStorage.getItem('cf_apikey')||'';
   if(apiKey){const el=document.getElementById('apiKeyInput');if(el)el.value='••••'+apiKey.slice(-4);}
   updateMascot();setTimeout(syncAllKoros,200);
@@ -879,7 +881,7 @@ function updatePlanning(){
     const day=new Date(ws);day.setDate(ws.getDate()+i);
     const isT=day.toDateString()===today.toDateString();
     const dayEvs=allEvs.filter(e=>new Date(e.date).toDateString()===day.toDateString()).sort((a,b)=>a.startTime.localeCompare(b.startTime));
-    html+='<div class="day-col'+(isT?' today':'')+'"><div class="day-col-header"><div class="day-col-name">'+dayNames[i]+'</div><div class="day-col-num">'+day.getDate()+'</div></div><div class="day-col-body">';
+    html+='<div class="day-col'+(isT?' today':'')+'" onclick="openDayDetail(new Date('+day.getTime()+'))" style="cursor:pointer"><div class="day-col-header"><div class="day-col-name">'+dayNames[i]+'</div><div class="day-col-num">'+day.getDate()+'</div></div><div class="day-col-body">';
     if(dayEvs.length){html+=dayEvs.map(e=>'<div class="event-card '+(e.tpl?'template-event':e.priority)+'" onclick="'+(e.tpl?'':'showEventDetail(\''+e.id+'\')')+'">'+'<div class="ev-title">'+e.title+'</div><div class="ev-time">'+e.startTime+' – '+e.endTime+'</div></div>').join('');}
     else html+='<div class="hint-row">'+T('free')+'</div>';
     html+='</div></div>';
@@ -927,7 +929,7 @@ function updateCalendar(){
     const date=new Date(target.getFullYear(),target.getMonth(),d);
     const isT=date.toDateString()===today.toDateString();
     const evs=S.events.filter(e=>new Date(e.date).toDateString()===date.toDateString()).slice(0,3);
-    html+='<div class="cal-cell'+(isT?' today':'')+' onclick="showDayDetail(\''+date.toISOString()+'\')">'+'<div class="cal-dn">'+d+'</div>'+(evs.length?'<div>'+evs.map(e=>'<div class="mini-ev '+(e.priority||'')+'">'+e.title+'</div>').join('')+'</div>':'')+'</div>';
+    html+='<div class="cal-cell'+(isT?' today':'')+' onclick="openDayDetail(\''+date.toISOString()+'\')">'+'<div class="cal-dn">'+d+'</div>'+(evs.length?'<div>'+evs.map(e=>'<div class="mini-ev '+(e.priority||'')+'">'+e.title+'</div>').join('')+'</div>':'')+'</div>';
   }
   html+='</div>';
   container.innerHTML=html;
@@ -936,7 +938,7 @@ function updateCalendar(){
   setTimeout(()=>container.classList.remove('slide-right','slide-left'),400);
 }
 function changeMonth(d){S.monthOffset+=d;S.monthDir=d>0?'right':'left';updateCalendar();}
-function showDayDetail(dateStr){
+function openDayDetail(dateStr){
   const date=new Date(dateStr);
   const evs=S.events.filter(e=>new Date(e.date).toDateString()===date.toDateString()).sort((a,b)=>a.startTime.localeCompare(b.startTime));
   const pl={critical:'🔴',high:'🟠',medium:'🟡',low:'🟢'};
@@ -947,54 +949,63 @@ function closeDayDetail(){document.getElementById('dayDetailModal').classList.re
 
 /* ═══ INSIGHTS ═══ */
 function updateInsights(){
-  const container=document.getElementById('insightsGrid');if(!container)return;
-  const total=S.events.length;const totalH=S.events.reduce((s,e)=>s+(e.duration||60)/60,0);
-  const today=new Date();const wks=new Date(today);wks.setDate(today.getDate()-today.getDay()+1);wks.setHours(0,0,0,0);
-  const wke=new Date(wks);wke.setDate(wks.getDate()+7);
-  const wkEvs=S.events.filter(e=>{const d=new Date(e.date);return d>=wks&&d<wke;});
-  const crit=S.events.filter(e=>e.priority==='critical');
-  const rank=getRank(S.level);
-  container.innerHTML=[
-    {title:'📊 Vue d\'ensemble',stat:total,sub:Math.round(totalH)+'h total',bar:Math.min(100,totalH*3),click:'overview'},
-    {title:'📅 Cette semaine',stat:wkEvs.length,sub:Math.round(wkEvs.reduce((s,e)=>s+(e.duration||60)/60,0))+'h',bar:Math.min(100,wkEvs.length*10),click:'week'},
-    {title:'🚨 Critiques',stat:crit.length,sub:'événements urgents',bar:0,click:'critical'},
-    {title:'🔥 Streak',stat:S.streak,sub:'jours consécutifs',bar:Math.min(100,S.streak),click:'streak'},
-    {title:'⚡ Mon niveau',stat:S.level,sub:rank.icon+' '+rank.name,bar:Math.min(100,Math.round((curLvXp()/nextLvXp())*100)),click:'xp'},
-  ].map(c=>'<div class="insight-card" onclick="showInsightDetail(\''+c.click+'\')"><h3>'+c.title+'</h3><div class="big-stat">'+c.stat+'</div><p class="txt2" style="margin-top:.25rem">'+c.sub+'</p><div class="insight-bar"><div class="insight-bar-fill" style="width:'+c.bar+'%"></div></div></div>').join('');
-}
-function showInsightDetail(type){
-  const el=document.getElementById('insightDetailContent');
-  const total=S.events.length;const totalH=S.events.reduce((s,e)=>s+(e.duration||60)/60,0);
-  let html='';
-  if(type==='overview'){html='<h2>📊 Vue d\'ensemble</h2><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin:1.25rem 0">'+[['Événements',total,''],['Heures',Math.round(totalH),'h'],['Niveau',S.level,'']].map(([l,v,u])=>'<div style="text-align:center;padding:1.25rem;background:var(--bg);border-radius:12px"><div style="font-size:2.5rem;font-weight:700;color:var(--primary)">'+v+u+'</div><div class="txt2">'+l+'</div></div>').join('')+'</div>';}
-  else if(type==='week'){const wks=new Date();wks.setDate(wks.getDate()-wks.getDay()+1);wks.setHours(0,0,0,0);const wke=new Date(wks);wke.setDate(wks.getDate()+7);const wkE=S.events.filter(e=>{const d=new Date(e.date);return d>=wks&&d<wke;});html='<h2>📅 Cette semaine</h2><div style="text-align:center;padding:2rem;background:var(--bg);border-radius:12px;margin:1rem 0"><div style="font-size:3rem;font-weight:700;color:var(--primary)">'+wkE.length+'</div><div class="txt2">événements · '+Math.round(wkE.reduce((s,e)=>s+(e.duration||60)/60,0))+'h</div></div><p style="color:var(--primary);font-weight:600">🎯 Planifie une semaine → +'+XP_GAINS.week_planned+' XP</p>';}
-  else if(type==='critical'){const crit=S.events.filter(e=>e.priority==='critical');html='<h2>🚨 Événements critiques</h2>'+(crit.length?'<div style="display:flex;flex-direction:column;gap:.6rem;margin-top:1rem">'+crit.map(e=>'<div class="event-item"><div class="ei-title">'+e.title+'</div><div class="ei-sub">'+new Date(e.date).toLocaleDateString('fr-FR')+' · '+e.startTime+'</div></div>').join('')+'</div>':'<p class="hint-row" style="padding:2rem">Aucun critique. Bravo ! 🎉</p>');}
-  else if(type==='streak'){html='<h2>🔥 Streak</h2><div style="text-align:center;padding:2rem;background:var(--bg);border-radius:16px;margin:1rem 0"><div style="font-size:5rem;font-weight:700;color:var(--primary)">'+S.streak+'</div><div class="txt2">jours consécutifs</div></div>'+[[3,'🔥',XP_GAINS.badge_3day],[7,'✨',XP_GAINS.badge_7day],[14,'💪',XP_GAINS.badge_14day],[30,'🌟',XP_GAINS.badge_30day],[90,'👑',XP_GAINS.badge_90day]].map(([d,em,xp])=>'<div style="display:flex;justify-content:space-between;padding:.5rem;border-radius:8px;background:'+(S.streak>=d?'rgba(255,107,53,.08)':'var(--bg)')+';border:1px solid '+(S.streak>=d?'var(--primary)':'var(--border)')+';margin-bottom:.4rem"><span>'+em+' '+d+' jours</span><span style="color:var(--primary);font-weight:700">'+(S.streak>=d?'✅ ':'')+'+'+xp+' XP</span></div>').join('');}
-  else if(type==='xp'){const rank=getRank(S.level);html='<h2>⚡ Progression</h2><div style="text-align:center;padding:1.5rem;background:var(--bg);border-radius:12px;margin:1rem 0"><div style="font-size:2.5rem;font-weight:700;color:var(--primary)">Niveau '+S.level+'</div><div>'+rank.icon+' '+rank.name+'</div><div class="txt2">'+curLvXp()+' / '+nextLvXp()+' XP</div></div>'+'<div style="display:grid;gap:.5rem">'+Object.entries(XP_GAINS).map(([k,v])=>'<div style="display:flex;justify-content:space-between;padding:.5rem;border-bottom:1px solid var(--border)"><span>'+k.replace(/_/g,' ')+'</span><span style="color:var(--primary);font-weight:700">+'+v+' XP</span></div>').join('')+'</div>';}
-  el.innerHTML=html;document.getElementById('insightDetailModal').classList.add('show');
-}
-function closeInsightDetail(){document.getElementById('insightDetailModal').classList.remove('show');}
+  updateInsightsStats();
+  updateInsightsChart();
 
-/* ═══ EVENT DETAIL ═══ */
-function showEventDetail(id){
-  const ev=S.events.find(e=>String(e.id)===String(id));if(!ev)return;
-  S.currentEventId=id;
-  document.getElementById('eventDetailTitle').textContent=ev.title;
-  const pl={critical:'🔴 Critique',high:'🟠 Haute',medium:'🟡 Moyenne',low:'🟢 Basse'};
-  document.getElementById('eventDetailBody').innerHTML='<p><strong>Date :</strong> '+new Date(ev.date).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})+'</p><p><strong>Horaire :</strong> '+ev.startTime+' – '+ev.endTime+'</p><p><strong>Priorité :</strong> '+pl[ev.priority]+'</p>';
-  document.getElementById('eventDetailModal').classList.add('show');
+  const g=document.getElementById('insightsGrid');if(!g)return;
+  const now=new Date();
+  const todayEvs=S.events.filter(e=>new Date(e.date).toDateString()===now.toDateString());
+  const weekStart=new Date(now);weekStart.setDate(now.getDate()-now.getDay()+1);weekStart.setHours(0,0,0,0);
+  const weekEvs=S.events.filter(e=>{const d=new Date(e.date);return d>=weekStart&&d<=now;});
+  const totalHours=S.events.reduce((s,e)=>s+(e.duration||60)/60,0);
+  const todayHours=todayEvs.reduce((s,e)=>s+(e.duration||60)/60,0);
+  const weekHours=weekEvs.reduce((s,e)=>s+(e.duration||60)/60,0);
+  const studyEvs=S.events.filter(e=>e.type==='study');
+  const studyHours=studyEvs.reduce((s,e)=>s+(e.duration||60)/60,0);
+  const avgSession=studyEvs.length?Math.round(studyHours*60/studyEvs.length):0;
+
+  g.innerHTML=[
+    {title:'📅 Événements total',val:S.events.length,sub:'tous types',pct:Math.min(100,S.events.length*2)},
+    {title:'⏱️ Heures planifiées',val:Math.round(totalHours)+'h',sub:'au total',pct:Math.min(100,totalHours/100*100)},
+    {title:"📚 Sessions d'étude",val:studyEvs.length,sub:'révisions',pct:Math.min(100,studyEvs.length*5)},
+    {title:'⚡ Moy. par session',val:avgSession+'min',sub:'durée moyenne',pct:Math.min(100,avgSession/120*100)},
+    {title:'🔥 Streak actuel',val:S.streak+' j',sub:'jours consécutifs',pct:Math.min(100,S.streak/30*100)},
+    {title:'🏆 Niveau',val:'Niv. '+S.level,sub:getRank(S.level).name,pct:Math.min(100,curLvXp()/nextLvXp()*100)},
+  ].map(c=>`<div class="insight-card"><h3>${c.title}</h3><div class="big-stat">${c.val}</div><small class="txt2">${c.sub}</small><div class="insight-bar"><div class="insight-bar-fill" style="width:${c.pct}%"></div></div></div>`).join('');
 }
-function closeEventDetail(){document.getElementById('eventDetailModal').classList.remove('show');S.currentEventId=null;}
-async function changePriority(p){
-  const ev=S.events.find(e=>String(e.id)===String(S.currentEventId));
-  if(ev){
-    ev.priority=p;
-    updateAllViews();toast('✅ Priorité changée');closeEventDetail();
-    if(S.user?.uid && ev.id && !String(ev.id).startsWith('tpl_')){
-      await window.FB.fbUpdateEvent(S.user.uid, ev.id, {priority:p});
-    }
-  }
+function updateInsightsStats(){
+  const row=document.getElementById('insightsStatsRow');if(!row)return;
+  const now=new Date();
+  const todayEvs=S.events.filter(e=>new Date(e.date).toDateString()===now.toDateString());
+  const weekStart=new Date(now);weekStart.setDate(now.getDate()-now.getDay()+1);weekStart.setHours(0,0,0,0);
+  const monthStart=new Date(now.getFullYear(),now.getMonth(),1);
+  const weekEvs=S.events.filter(e=>{const d=new Date(e.date);return d>=weekStart;});
+  const monthEvs=S.events.filter(e=>{const d=new Date(e.date);return d>=monthStart;});
+  const todayH=Math.round(todayEvs.reduce((s,e)=>s+(e.duration||60)/60,0)*10)/10;
+  const weekH=Math.round(weekEvs.reduce((s,e)=>s+(e.duration||60)/60,0)*10)/10;
+  const monthH=Math.round(monthEvs.reduce((s,e)=>s+(e.duration||60)/60,0)*10)/10;
+  row.innerHTML=`
+    <div class="ins-stat-card"><div class="ins-stat-label">Aujourd'hui</div><div class="ins-stat-val">${todayH}h</div><div class="ins-stat-sub">${todayEvs.length} événements</div><div class="ins-stat-goal"><div class="ins-stat-goal-fill" style="width:${Math.min(100,todayH/6*100)}%"></div></div></div>
+    <div class="ins-stat-card"><div class="ins-stat-label">Cette semaine</div><div class="ins-stat-val">${weekH}h</div><div class="ins-stat-sub">${weekEvs.length} événements</div><div class="ins-stat-goal"><div class="ins-stat-goal-fill" style="width:${Math.min(100,weekH/42*100)}%"></div></div></div>
+    <div class="ins-stat-card"><div class="ins-stat-label">Ce mois</div><div class="ins-stat-val">${monthH}h</div><div class="ins-stat-sub">${monthEvs.length} événements</div><div class="ins-stat-goal"><div class="ins-stat-goal-fill" style="width:${Math.min(100,monthH/180*100)}%"></div></div></div>
+  `;
 }
+function updateInsightsChart(){
+  const chart=document.getElementById('insBarChart');if(!chart)return;
+  const days=[];const now=new Date();
+  for(let i=6;i>=0;i--){const d=new Date(now);d.setDate(now.getDate()-i);days.push(d);}
+  const maxH=6;
+  chart.innerHTML=days.map(day=>{
+    const evs=S.events.filter(e=>new Date(e.date).toDateString()===day.toDateString());
+    const h=evs.reduce((s,e)=>s+(e.duration||60)/60,0);
+    const pct=Math.min(100,h/maxH*100);
+    const names=['D','L','M','M','J','V','S'];
+    const label=names[day.getDay()];
+    const isToday=day.toDateString()===now.toDateString();
+    return `<div class="ins-bar" style="height:${Math.max(4,pct)}%;background:${isToday?'var(--primary)':'rgba(255,107,53,.4)'};border-radius:6px 6px 0 0;min-height:4px" title="${Math.round(h*10)/10}h"><span class="ins-bar-label">${label}</span></div>`;
+  }).join('');
+}
+
 
 /* ═══ TEMPLATES ═══ */
 function updateTemplates(){
@@ -1011,8 +1022,8 @@ function updateTemplates(){
   c.innerHTML=html;
 }
 function switchTemplate(id){S.template=id;saveState();if(S.user?.uid)window.FB.fbSaveUser(S.user.uid,{template:id});updateTemplates();updatePlanning();toast('✅ Template changé');}
-function addTplCourse(){const c=document.getElementById('tplCC');if(!c)return;const row=document.createElement('div');row.className='course-row';row.innerHTML='<div class="cf-select-wrap"><select class="sel">'+['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'].map((d,i)=>'<option value="'+(i+1)+'">'+d+'</option>').join('')+'</select></div><input type="time" class="tinp" value="08:00" step="300"><input type="time" class="tinp" value="10:00" step="300"><input type="text" class="sinp" placeholder="Matière"><button class="btn-remove" onclick="this.parentElement.remove()">✕</button>';c.appendChild(row);}
-function saveTplStudent(){const rows=document.querySelectorAll('#tplCC .course-row');S.templateData.courses=Array.from(rows).map(r=>({day:+r.querySelector('.sel').value,start:r.querySelectorAll('.tinp')[0].value,end:r.querySelectorAll('.tinp')[1].value,subject:r.querySelector('.sinp').value})).filter(c=>c.subject);S.templateData.maxStudy=+(document.getElementById('tplMaxStudy')?.value)||4;S.templateData.maxLeisure=+(document.getElementById('tplMaxLeisure')?.value)||3;S.templateData.breakMin=+(document.getElementById('tplBreak')?.value)||10;saveState();if(S.user?.uid)window.FB.fbSaveUser(S.user.uid,{templateData:S.templateData});updatePlanning();toast('✅ Template sauvegardé !');}
+function addTplCourse(){const c=document.getElementById('tplCC');if(!c)return;const row=document.createElement('div');row.className='tpl-course-row';row.innerHTML='<div class="cf-select-wrap"><select class="sel" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:.4rem .6rem;color:var(--text);font-family:inherit;font-size:.83rem;-webkit-appearance:none;appearance:none;cursor:pointer">'+['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'].map((d,i)=>'<option value="'+(i+1)+'">'+d+'</option>').join('')+'</select></div><input type="time" class="tinp" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:.4rem .6rem;color:var(--text);font-family:inherit;font-size:.83rem" value="08:00" step="300"><input type="time" class="tinp" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:.4rem .6rem;color:var(--text);font-family:inherit;font-size:.83rem" value="10:00" step="300"><input type="text" class="sinp" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:.4rem .6rem;color:var(--text);font-family:inherit;font-size:.83rem" placeholder="Matière"><button class="btn-remove" onclick="this.parentElement.remove()">✕</button>';c.appendChild(row);}
+function saveTplStudent(){const rows=document.querySelectorAll('#tplCC .tpl-course-row');S.templateData.courses=Array.from(rows).map(r=>({day:+r.querySelector('.sel').value,start:r.querySelectorAll('.tinp')[0].value,end:r.querySelectorAll('.tinp')[1].value,subject:r.querySelector('.sinp').value})).filter(c=>c.subject);S.templateData.maxStudy=+(document.getElementById('tplMaxStudy')?.value)||4;S.templateData.maxLeisure=+(document.getElementById('tplMaxLeisure')?.value)||3;S.templateData.breakMin=+(document.getElementById('tplBreak')?.value)||10;saveState();if(S.user?.uid)window.FB.fbSaveUser(S.user.uid,{templateData:S.templateData});updatePlanning();toast('✅ Template sauvegardé !');}
 function saveTplWorker(){S.templateData.workStart=document.getElementById('tplWS')?.value||'09:00';S.templateData.workEnd=document.getElementById('tplWE')?.value||'18:00';S.templateData.maxWork=+(document.getElementById('tplMaxWork')?.value)||8;S.templateData.breakMin=+(document.getElementById('tplBreakW')?.value)||10;saveState();if(S.user?.uid)window.FB.fbSaveUser(S.user.uid,{templateData:S.templateData});toast('✅ Template sauvegardé !');}
 function saveTplCustom(){S.templateData.maxStudy=+(document.getElementById('tplMaxStudyC')?.value)||4;S.templateData.maxLeisure=+(document.getElementById('tplMaxLeisureC')?.value)||3;S.templateData.breakMin=+(document.getElementById('tplBreakC')?.value)||10;saveState();if(S.user?.uid)window.FB.fbSaveUser(S.user.uid,{templateData:S.templateData});toast('✅ Sauvegardé !');}
 
@@ -1123,9 +1134,9 @@ function launchSession(){
   document.getElementById('sessionScreen').style.display='flex';
   document.getElementById('appScreen').style.display='none';
   document.getElementById('arcFill').classList.remove('pause-mode');
-  document.getElementById('arcFill').style.strokeDashoffset='440';
-  document.getElementById('sessPlayPause').textContent='⏸ Pause';
+  document.getElementById('arcFill').style.strokeDashoffset='503';
   updateSessionDisplay(); startSessionTick(); addXp(5);
+  syncAllKoros();
 }
 function startSessionTick(){
   if(S.sessionTimer)clearInterval(S.sessionTimer);
@@ -1188,6 +1199,7 @@ function tryExitSession(){
   const m=document.getElementById('exitSessionModal');
   if(m)m.classList.add('show');
 }
+function stayInSession(){closeModal('exitSessionModal');}
 function confirmExitSession(){closeModal('exitSessionModal');endSession();}
 function endSession(){
   S.sessionActive=false;
@@ -1217,6 +1229,68 @@ function startVoice(){
 }
 function stopVoice(){if(S.recognition)S.recognition.stop();document.getElementById('voiceModal').classList.remove('show');document.getElementById('voiceBtn').classList.remove('recording');}
 function confirmVoice(){if(S.voiceText)document.getElementById('aiInput').value=S.voiceText;stopVoice();toast('✅ Texte ajouté');}
+
+/* ═══ DAY DETAIL ═══ */
+function openDayDetail(date){
+  const d = date instanceof Date ? date : new Date(date);
+  const dayNames=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+  const months=['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+  const evs=S.events.filter(e=>new Date(e.date).toDateString()===d.toDateString()).sort((a,b)=>a.startTime.localeCompare(b.startTime));
+  const tplEvs=getAllEventsForWeek(getWeekStart(d)).filter(e=>e.tpl&&new Date(e.date).toDateString()===d.toDateString());
+  const allEvs=[...tplEvs,...evs];
+  const title=dayNames[d.getDay()]+' '+d.getDate()+' '+months[d.getMonth()];
+  let html='<div class="mf-header"><h3>📅 '+title+'</h3><button class="btn-icon" onclick="closeDayDetail()" style="font-size:1.2rem">✕</button></div>';
+  if(allEvs.length===0){html+='<div class="empty-state"><div class="empty-icon">🌟</div><h3>Journée libre !</h3><p class="txt2">Aucun événement prévu.</p></div>';}
+  else{html+=allEvs.map(e=>`<div class="event-item" onclick="${e.tpl?'':"showEventDetail('"+e.id+"')"}"><div class="ei-title">${e.title}</div><div class="ei-sub">${e.startTime} – ${e.endTime} ${e.priority?'· '+e.priority:''}</div></div>`).join('');}
+  html+='<button class="btn-add-day-event" onclick="closeDayDetail();switchView(\'planning\');setTimeout(()=>{const ta=document.getElementById(\'aiInput\');if(ta){ta.focus();ta.value=\'Ajouter un événement le '+title+'\';}},300)">➕ Ajouter un événement</button>';
+  document.getElementById('dayDetailContent').innerHTML=html;
+  document.getElementById('dayDetailModal').classList.add('show');
+}
+function closeDayDetail(){document.getElementById('dayDetailModal').classList.remove('show');}
+function getWeekStart(d){const ws=new Date(d);ws.setDate(d.getDate()-d.getDay()+1);ws.setHours(0,0,0,0);return ws;}
+
+/* ═══ WEEKLY REVIEW ═══ */
+function checkWeeklyReview(){
+  const now=new Date();
+  // Semaine ISO: lundi = début
+  const weekStart=new Date(now);weekStart.setDate(now.getDate()-now.getDay()+1);weekStart.setHours(0,0,0,0);
+  const weekKey='cf_week_'+weekStart.toISOString().split('T')[0];
+  if(localStorage.getItem(weekKey))return; // déjà vu cette semaine
+  localStorage.setItem(weekKey,'seen');
+  setTimeout(()=>openWeeklyReview(),1500);
+}
+function openWeeklyReview(){
+  const now=new Date();
+  const weekStart=new Date(now);weekStart.setDate(now.getDate()-7);weekStart.setHours(0,0,0,0);
+  const weekEnd=new Date(now);weekEnd.setHours(23,59,59,999);
+  const weekEvs=S.events.filter(e=>{const d=new Date(e.date);return d>=weekStart&&d<=weekEnd;});
+  const weekH=Math.round(weekEvs.reduce((s,e)=>s+(e.duration||60)/60,0)*10)/10;
+  const studyEvs=weekEvs.filter(e=>e.type==='study');
+  const studyH=Math.round(studyEvs.reduce((s,e)=>s+(e.duration||60)/60,0)*10)/10;
+  const daysActive=new Set(weekEvs.map(e=>new Date(e.date).toDateString())).size;
+
+  document.getElementById('wrStatsGrid').innerHTML=`
+    <div class="wr-stat"><span class="wr-stat-val">${weekH}h</span><span class="wr-stat-label">Heures planifiées</span></div>
+    <div class="wr-stat"><span class="wr-stat-val">${studyH}h</span><span class="wr-stat-label">Révision</span></div>
+    <div class="wr-stat"><span class="wr-stat-val">${weekEvs.length}</span><span class="wr-stat-label">Événements</span></div>
+    <div class="wr-stat"><span class="wr-stat-val">${daysActive}/7</span><span class="wr-stat-label">Jours actifs</span></div>
+    <div class="wr-stat"><span class="wr-stat-val">${S.streak}</span><span class="wr-stat-label">Streak 🔥</span></div>
+    <div class="wr-stat"><span class="wr-stat-val">Niv.${S.level}</span><span class="wr-stat-label">Niveau</span></div>
+  `;
+
+  const feedback = weekH>=20 ? '🔥 Excellente semaine ! Tu as planifié '+weekH+'h — tu es dans le top !'
+    : weekH>=10 ? '👍 Bonne semaine avec '+weekH+'h planifiées. Continue sur cette lancée !'
+    : weekH>=5 ? '📈 Semaine modérée avec '+weekH+'h. La semaine prochaine, essaie de viser 10h+ !'
+    : '💡 Semaine légère ('+weekH+'h). Commence doucement — même 30min/jour font une grande différence !';
+  document.getElementById('wrFeedback').textContent=feedback;
+
+  const advice = daysActive>=5 ? "💡 Pour la semaine prochaine : maintiens cette régularité ! Planifie tes sessions à l'avance pour ne pas perdre ton élan."
+    : "💡 Pour la semaine prochaine : essaie de planifier au moins 5 jours actifs. Utilise la génération IA pour créer ton planning en un clic !";
+  document.getElementById('wrAdvice').textContent=advice;
+
+  document.getElementById('weeklyReviewModal').classList.add('show');
+}
+function closeWeeklyReview(){document.getElementById('weeklyReviewModal').classList.remove('show');}
 
 /* ═══ UTILS ═══ */
 function toast(msg){const el=document.getElementById('toast');const me=document.getElementById('toastMsg');if(!el||!me)return;me.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),3500);}

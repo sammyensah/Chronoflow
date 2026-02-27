@@ -242,6 +242,16 @@
       <!-- INSIGHTS -->
       <div class="view" id="viewInsights">
         <div class="view-header"><h2 data-i18n="nav_insights">Insights 📊</h2></div>
+        <button class="weekly-review-btn" id="weeklyReviewBtnInsights" onclick="openWeeklyReview()">
+          <span class="wr-icon">📊</span>
+          <div class="wr-text"><h4>Bilan hebdomadaire</h4><p>Analyse complète de ta semaine par Chronos</p></div>
+          <span style="color:var(--primary);font-size:1.2rem">→</span>
+        </button>
+        <div class="insights-stats-row" id="insightsStatsRow"></div>
+        <div class="ins-chart-card" id="insChartCard">
+          <h3>📅 Activité sur 7 jours</h3>
+          <div class="ins-chart"><div class="ins-bar-row" id="insBarChart"></div></div>
+        </div>
         <div id="insightsGrid" class="insights-grid"></div>
       </div>
 
@@ -378,7 +388,7 @@
 
 <!-- ══════════════ SESSION RÉVISION (fullscreen) ══════════════ -->
 <div id="sessionScreen" class="session-screen" style="display:none">
-  <button class="session-back" onclick="tryExitSession()" title="Quitter">←</button>
+  <button class="session-back" onclick="tryExitSession()" title="Quitter la session">✕ Quitter</button>
   <div class="session-mascot-wrap" id="sessionMascot" onclick="openChronosChat()">
     <div class="koro-wrap" id="sessionKoroWrap">
       <div class="koro-head" id="sessionKoroHead">
@@ -397,19 +407,15 @@
   <div class="session-content">
     <div class="session-time-display" id="sessionTimeDisplay">02:00:00</div>
     <div class="session-arc-wrap">
-      <svg class="session-arc-svg" viewBox="0 0 340 200">
-        <path class="arc-bg" d="M 30 185 A 140 140 0 0 1 310 185" fill="none" stroke-width="18" stroke-linecap="round"/>
-        <path class="arc-fill" id="arcFill" d="M 30 185 A 140 140 0 0 1 310 185" fill="none" stroke-width="18" stroke-linecap="round" stroke-dasharray="440" stroke-dashoffset="440"/>
+      <svg class="session-arc-svg" viewBox="0 0 380 230">
+        <path class="arc-bg" d="M 30 215 A 160 160 0 0 1 350 215" fill="none" stroke-width="20" stroke-linecap="round"/>
+        <path class="arc-fill" id="arcFill" d="M 30 215 A 160 160 0 0 1 350 215" fill="none" stroke-width="20" stroke-linecap="round" stroke-dasharray="503" stroke-dashoffset="503"/>
       </svg>
       <div class="session-status-txt" id="sessionStatusTxt">Travail</div>
     </div>
     <div class="session-info">
       <span id="sessionPhaseLabel">Session 1/1</span>
       <span id="sessionBreakLabel">Pause : 5 min</span>
-    </div>
-    <div class="session-controls">
-      <button class="sess-btn" id="sessPlayPause" onclick="toggleSession()">⏸ Pause</button>
-      <button class="sess-btn sess-skip" onclick="skipPhase()">⏭ Skip</button>
     </div>
   </div>
 </div>
@@ -443,28 +449,30 @@
 </div>
 
 <!-- Chronos Chat -->
-<div class="modal" id="chronosChatModal" onclick="if(event.target===this)closeChronosChat()">
-  <div class="modal-box chat-box">
-    <div class="chat-header">
-      <div class="chat-koro-mini" id="chatKoroMini"></div>
-      <div class="chat-title"><strong>Chronos</strong><span class="txt2" data-i18n="ai_assistant">Assistant IA</span></div>
-      <div class="chat-mode-toggle">
-        <div class="cmt-slider" id="cmtSlider"></div>
-        <button class="cmt-btn active" id="cmtTalk" onclick="setChatMode('talk')" data-i18n="talk">💬 Parler</button>
-        <button class="cmt-btn" id="cmtLocker" onclick="setChatMode('locker')" data-i18n="locker">🎒 Casier</button>
+<div class="chronos-chat-modal" id="chronosChatModal" onclick="if(event.target===this)closeChronosChat()">
+  <div class="chat-modal-box">
+    <div class="chat-modal-header">
+      <div style="display:flex;align-items:center;gap:.6rem">
+        <div style="width:32px;height:32px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ffe680,#ffd000);box-shadow:0 0 12px rgba(255,208,0,.6);flex-shrink:0"></div>
+        <div><strong style="font-size:.95rem">Chronos</strong><br><span class="txt2" style="font-size:.75rem" data-i18n="ai_assistant">Assistant IA</span></div>
       </div>
-      <button class="btn-icon" onclick="closeChronosChat()">✕</button>
+      <div class="chat-modal-tabs">
+        <div class="cmt-slider" id="cmtSlider"></div>
+        <button class="cmt-tab active" id="cmtTalk" onclick="setChatMode('talk')" data-i18n="talk">💬 Parler</button>
+        <button class="cmt-tab" id="cmtLocker" onclick="setChatMode('locker')" data-i18n="locker">🎒 Casier</button>
+      </div>
+      <button class="btn-icon" onclick="closeChronosChat()" style="font-size:1.1rem">✕</button>
     </div>
-    <div id="chatTalkView">
+    <div id="chatTalkView" style="display:flex;flex-direction:column;flex:1;overflow:hidden">
       <div class="chat-messages" id="chatMessages">
         <div class="chat-msg cm-chrono"><div class="chat-bubble" id="chronoInitMsg">Salut ! Comment puis-je t'aider ? 😊</div></div>
       </div>
       <div class="chat-input-row">
-        <input type="text" id="chatInput" placeholder="..." onkeydown="if(event.key==='Enter')sendMsg()">
-        <button class="btn-send" onclick="sendMsg()">➤</button>
+        <input class="chat-inp" type="text" id="chatInput" placeholder="..." onkeydown="if(event.key==='Enter')sendMsg()">
+        <button class="chat-send" onclick="sendMsg()">➤</button>
       </div>
     </div>
-    <div id="chatLockerView" style="display:none">
+    <div id="chatLockerView" class="locker-view" style="display:none">
       <div class="locker-grid" id="lockerGrid"></div>
     </div>
   </div>
@@ -568,6 +576,29 @@
     <div class="modal-btns">
       <button class="btn-secondary" onclick="closeModal('reviseModal')">Annuler</button>
       <button class="btn-primary" id="reviseConfirm" onclick="confirmRevise()">Générer 🚀</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ WEEKLY REVIEW MODAL ══ -->
+<div class="wr-modal-overlay" id="weeklyReviewModal">
+  <div class="wr-modal-box">
+    <div class="wr-header">
+      <div class="wr-koro-mini">⚡</div>
+      <div class="wr-header-text">
+        <h2 id="wrTitle">Bilan de ta semaine 📊</h2>
+        <p id="wrSubtitle">Chronos a analysé ta semaine</p>
+      </div>
+    </div>
+    <div class="wr-stats-grid" id="wrStatsGrid"></div>
+    <div class="wr-section">
+      <h3>💬 Feedback de Chronos</h3>
+      <div class="wr-feedback" id="wrFeedback"></div>
+    </div>
+    <div class="wr-advice" id="wrAdvice"></div>
+    <div class="wr-footer">
+      <button class="btn-secondary" style="flex:1" onclick="closeWeeklyReview()">Plus tard</button>
+      <button class="btn-primary" style="flex:1" onclick="closeWeeklyReview();switchView('planning')">📋 Planifier la semaine →</button>
     </div>
   </div>
 </div>
