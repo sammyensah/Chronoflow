@@ -224,6 +224,19 @@
           <div class="ev-section"><h3 data-i18n="today">📍 Aujourd'hui</h3><div id="todayList"></div></div>
           <div class="ev-section"><h3 data-i18n="upcoming">📅 À venir</h3><div id="upcomingList"></div></div>
         </div>
+
+        <!-- ─── TODO LIST ─── -->
+        <div class="todo-section" id="todoSection">
+          <div class="todo-header">
+            <h3>✅ To-Do List</h3>
+            <span class="todo-count" id="todoCount">0</span>
+          </div>
+          <div class="todo-add-row">
+            <input type="text" id="todoManualInput" class="todo-input" placeholder="Ajouter une tâche..." onkeydown="if(event.key==='Enter')addManualTodo()">
+            <button class="todo-add-btn" onclick="addManualTodo()">+ Ajouter</button>
+          </div>
+          <div id="todoListContainer"></div>
+        </div>
       </div>
 
       <!-- CALENDAR -->
@@ -376,6 +389,7 @@
             <h3>📊 <span data-i18n="data">Données</span></h3>
             <div class="sc-center" style="gap:.75rem">
               <button class="btn-secondary" onclick="exportData()" data-i18n="export">Exporter mes données</button>
+              <button class="btn-secondary" onclick="logout()" style="border-color:rgba(255,107,53,.4);color:var(--primary)">🚪 Se déconnecter</button>
               <button class="btn-danger" onclick="deleteAccount()" data-i18n="delete_account">Supprimer mon compte</button>
             </div>
           </div>
@@ -616,116 +630,13 @@
 <div class="loading" id="loading"><div class="ld-inner"><div class="ld-ring"></div><p id="loadingTxt">Chronos analyse...</p></div></div>
 
 <!-- Firebase + App en un seul module ES -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAnalytics, logEvent } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, addDoc, writeBatch, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyB0O0CQg2iO_x2DqkZvGnf289aJTkubK30",
-  authDomain: "chronoflow-ca394.firebaseapp.com",
-  projectId: "chronoflow-ca394",
-  storageBucket: "chronoflow-ca394.firebasestorage.app",
-  messagingSenderId: "543854921501",
-  appId: "1:543854921501:web:8af97489859f069abe83f4",
-  measurementId: "G-N27PWJDKNM"
-};
-
-let analytics;
-const app  = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db   = getFirestore(app);
-try { analytics = getAnalytics(app); } catch(e) { analytics = null; }
-
-function fbLog(n,p={}) { try { if(analytics) logEvent(analytics,n,p); } catch(e){} }
-
-async function fbRegister(name,email,password) {
-  const cred = await createUserWithEmailAndPassword(auth,email,password);
-  const uid = cred.user.uid;
-  await setDoc(doc(db,"users",uid), {
-    name, email, avatar:"", createdAt:serverTimestamp(), totalEvents:0,
-    xp:0, level:1, totalXpEarned:0, streak:0, lastUsedDate:null,
-    tutorialDone:false, template:"custom", unlockedBadges:[],
-    templateData:{maxStudy:4,maxLeisure:3,breakMin:10,courses:[],workStart:"09:00",workEnd:"18:00",maxWork:8},
-    theme:"dark", lang:localStorage.getItem("cf_lang")||"fr", notifications:true, equippedItem:"default"
-  });
-  fbLog("sign_up",{method:"email"});
-  return uid;
-}
-
-async function fbLogin(email,password) {
-  const cred = await signInWithEmailAndPassword(auth,email,password);
-  fbLog("login",{method:"email"});
-  return cred.user.uid;
-}
-
-async function fbLogout() { await signOut(auth); }
-
-function fbOnAuthChange(cb) { onAuthStateChanged(auth, user => cb(user ? user.uid : null)); }
-
-async function fbChangePassword(currentPassword,newPassword) {
-  const user = auth.currentUser;
-  const credential = EmailAuthProvider.credential(user.email,currentPassword);
-  await reauthenticateWithCredential(user,credential);
-  await updatePassword(user,newPassword);
-}
-
-async function fbGetUser(uid) {
-  const snap = await getDoc(doc(db,"users",uid));
-  if(!snap.exists()) return null;
-  return { uid, ...snap.data() };
-}
-
-async function fbSaveUser(uid,data) {
-  const { events, uid:_uid, ...safeData } = data;
-  await setDoc(doc(db,"users",uid), safeData, {merge:true});
-}
-
-async function fbDeleteAccount(uid) {
-  const evSnap = await getDocs(collection(db,"users",uid,"events"));
-  const batch = writeBatch(db);
-  evSnap.forEach(d => batch.delete(d.ref));
-  await batch.commit();
-  await deleteDoc(doc(db,"users",uid));
-  await auth.currentUser.delete();
-}
-
-async function fbGetEvents(uid) {
-  const snap = await getDocs(collection(db,"users",uid,"events"));
-  return snap.docs.map(d => ({
-    id:d.id, ...d.data(),
-    date: d.data().date?.toDate ? d.data().date.toDate() : new Date(d.data().date)
-  }));
-}
-
-async function fbAddEvent(uid,event) {
-  const { id, ...evData } = event;
-  const ref = await addDoc(collection(db,"users",uid,"events"), {
-    ...evData,
-    date: event.date instanceof Date ? event.date : new Date(event.date)
-  });
-  fbLog("event_created",{type:event.type||"unknown"});
-  return ref.id;
-}
-
-async function fbUpdateEvent(uid,eventId,changes) {
-  await updateDoc(doc(db,"users",uid,"events",eventId),changes);
-}
-
-window.FB = { fbRegister, fbLogin, fbLogout, fbOnAuthChange, fbChangePassword, fbGetUser, fbSaveUser, fbDeleteAccount, fbGetEvents, fbAddEvent, fbUpdateEvent, fbLog, auth, db };
-console.log("✅ Firebase prêt");
-
-// Charger script.js maintenant que Firebase est prêt
-const s = document.createElement('script');
-s.src = 'script.js';
-s.onload = () => {
-  // script.js est chargé — lancer l'app
-  if(typeof initApp === 'function') initApp();
-  else console.error('initApp non trouvée');
-};
-s.onerror = () => console.error('Erreur chargement script.js');
-document.head.appendChild(s);
+<script src="script.js"></script>
+<script>
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded', initApp);
+  } else {
+    initApp();
+  }
 </script>
 </body>
 </html>

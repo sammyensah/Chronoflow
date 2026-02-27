@@ -12,7 +12,8 @@ const S = {
   sessionActive:false, sessionTimer:null, sessionPhase:'work', sessionPhaseIdx:0,
   sessionCurrentPhaseSec:0, sessionPhaseElapsed:0,
   sessionWorkSec:0, sessionBreakSec:0, sessionTotalSec:0, sessionElapsed:0,
-  equippedItem:'default'
+  equippedItem:'default',
+  todos:[]
 };
 let pendingReviseText = '';
 let sessionBeepInterval = null;
@@ -292,7 +293,7 @@ function getRank(l){return RANKS.find(r=>l>=r.minLv&&l<=r.maxLv)||RANKS[0];}
 function addXp(amt){
   const prev=S.level; S.xp+=amt; S.totalXpEarned+=amt;
   while(S.xp>=totalXpForLv(S.level+1))S.level++;
-  if(S.level>prev){const reward=LEVEL_REWARDS[S.level]||null;showLevelUpNotif(S.level,reward);updateMascot();syncAllKoros();setTimeout(updateRankDisplays,300);if(S.notifications)sendNotif('⬆️ ChronoFlow','Niveau '+S.level+' !'+(reward?' Tu débloqueras '+reward:''));if(S.user?.uid)window.FB.fbSaveUser(S.user.uid,{level:S.level,xp:S.xp,totalXpEarned:S.totalXpEarned});}
+  if(S.level>prev){const reward=LEVEL_REWARDS[S.level]||null;showLevelUpNotif(S.level,reward);updateMascot();syncAllKoros();setTimeout(updateRankDisplays,300);if(S.notifications)sendNotif('⬆️ ChronoFlow','Niveau '+S.level+' !'+(reward?' Tu débloqueras '+reward:''));saveState();}
   showXpPop('+'+amt+' XP'); saveState(); updateXpBar();
 }
 function showXpPop(txt){const el=document.getElementById('xpPopup');if(!el)return;el.textContent=txt;el.classList.remove('show');void el.offsetWidth;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2000);}
@@ -349,7 +350,7 @@ function updateLockerGrid(){
       +(eq?'<div class="li-badge">Équipé</div>':(un?'':'🔒'))+'</div>';
   }).join('');
 }
-function equipItem(id){S.equippedItem=id;localStorage.setItem('cf_equipped',id);updateLockerGrid();updateMascot();toast('✅ Équipement changé !');if(S.user?.uid)window.FB.fbSaveUser(S.user.uid,{equippedItem:id});}
+function equipItem(id){S.equippedItem=id;localStorage.setItem('cf_equipped',id);updateLockerGrid();updateMascot();toast('✅ Équipement changé !');saveState();}
 
 /* ═══ BADGES ═══ */
 const ALL_BADGES=[
@@ -365,7 +366,7 @@ const ALL_BADGES=[
 ];
 const unlockedBadges=new Set(); // chargé depuis Firestore via loadBadgesFromUser()
 function checkBadges(){
-  ALL_BADGES.forEach(b=>{if(!unlockedBadges.has(b.id)&&b.cond()){unlockedBadges.add(b.id);if(S.user?.uid)window.FB.fbSaveUser(S.user.uid,{unlockedBadges:[...unlockedBadges]}).catch(()=>{});toast('🏅 Badge : '+b.name+'!');if(b.xp>0)setTimeout(()=>addXp(b.xp),500);}});
+  ALL_BADGES.forEach(b=>{if(!unlockedBadges.has(b.id)&&b.cond()){unlockedBadges.add(b.id);saveState();toast('🏅 Badge : '+b.name+'!');if(b.xp>0)setTimeout(()=>addXp(b.xp),500);}});
 }
 function updateBadgeHint(){
   const el=document.getElementById('chronoBadgeText');if(!el)return;
@@ -405,7 +406,6 @@ function makeParticles(id){
 
 /* ═══ INIT ═══ */
 function initApp(){
-  // Charge la langue depuis localStorage (pas sensible, juste UI)
   S.lang = localStorage.getItem('cf_lang') || 'fr';
   S.equippedItem = localStorage.getItem('cf_equipped') || 'default';
   applyTheme(localStorage.getItem('cf_theme') || 'dark');
@@ -414,49 +414,18 @@ function initApp(){
   document.addEventListener('keydown',e=>{if(e.key==='Escape')handleEsc();});
   document.addEventListener('click',e=>{if(!e.target.closest('#langDDWrap'))closeLangDD();});
 
-  // Firebase écoute si un utilisateur est déjà connecté
-  window.FB.fbOnAuthChange(async (uid) => {
-    if (uid) {
-      // Utilisateur connecté — charge ses données depuis Firestore
-      try {
-        const userData = await window.FB.fbGetUser(uid);
-        if (userData) {
-          S.user         = userData;
-          S.xp           = userData.xp           || 0;
-          S.level        = userData.level         || 1;
-          S.totalXpEarned= userData.totalXpEarned || 0;
-          S.streak       = userData.streak        || 0;
-          S.lastUsedDate = userData.lastUsedDate  || null;
-          S.tutorialDone = userData.tutorialDone  || false;
-          S.template     = userData.template      || 'custom';
-          S.templateData = Object.assign({maxStudy:4,maxLeisure:3,breakMin:10,courses:[],workStart:'09:00',workEnd:'18:00',maxWork:8}, userData.templateData || {});
-          S.theme        = userData.theme         || 'dark';
-          S.lang         = userData.lang          || S.lang;
-          S.notifications= userData.notifications !== undefined ? userData.notifications : true;
-          S.equippedItem = userData.equippedItem  || 'default';
-          // Charger les badges débloqués
-          if(userData.unlockedBadges) userData.unlockedBadges.forEach(id=>unlockedBadges.add(id));
-          // Charge les événements depuis la sous-collection
-          S.events = await window.FB.fbGetEvents(uid);
-          localStorage.setItem('cf_lang', S.lang);
-          localStorage.setItem('cf_equipped', S.equippedItem);
-          localStorage.setItem('cf_theme', S.theme);
-          launchApp();
-        }
-      } catch(e) {
-        console.error('Erreur chargement données:', e);
-        document.getElementById('authScreen').style.display='flex';
-      }
+  // Chargement depuis localStorage
+  const saved = loadState();
+  if(saved){
+    launchApp();
+  } else {
+    const hasLang = localStorage.getItem('cf_lang');
+    if(!hasLang){
+      document.getElementById('langScreen').style.display='flex';
     } else {
-      // Pas connecté — affiche l'écran de langue ou d'auth
-      const hasLang = localStorage.getItem('cf_lang');
-      if (!hasLang) {
-        document.getElementById('langScreen').style.display='flex';
-      } else {
-        document.getElementById('authScreen').style.display='flex';
-      }
+      document.getElementById('authScreen').style.display='flex';
     }
-  });
+  }
 }
 
 function handleEsc(){
@@ -474,7 +443,7 @@ function selectLang(lang){
 function setLang(lang){
   S.lang=lang;localStorage.setItem('cf_lang',lang);
   updateLangDD();closeLangDD();toast(T('lang_changed'));applyI18n();
-  if(S.user?.uid) window.FB.fbSaveUser(S.user.uid, {lang});
+  saveState();
 }
 function updateLangDD(){
   const f=document.getElementById('langDDFlag');if(f)f.innerHTML=FLAG_SVGS[S.lang]||FLAG_SVGS.fr;
@@ -499,44 +468,48 @@ function switchAuthTab(tab){
     lf.style.display='flex';lf.classList.add('active');
   }
 }
-async function handleLogin(){
+function handleLogin(){
   const email=document.getElementById('loginEmail').value.trim();
   const pass=document.getElementById('loginPassword').value;
   if(!email||!pass){toast('⚠️ '+T('error_field'));return;}
-  const btn=document.getElementById('btnLogin');if(btn)btn.disabled=true;
-  try{
-    await window.FB.fbLogin(email, pass);
-    // fbOnAuthChange va se déclencher automatiquement et appeler launchApp()
-  }catch(e){
-    const msg = e.code==='auth/user-not-found'||e.code==='auth/invalid-credential' ? T('error_account')
-              : e.code==='auth/wrong-password' ? T('error_pwd_wrong')
-              : e.code==='auth/invalid-email' ? T('error_email')
-              : e.message;
-    toast('❌ '+msg);
-  }finally{if(btn)btn.disabled=false;}
+  // Cherche le compte en localStorage
+  const accounts=JSON.parse(localStorage.getItem('cf_accounts')||'{}');
+  const account=accounts[email];
+  if(!account){toast('❌ '+T('error_account'));return;}
+  if(account.password!==pass){toast('❌ '+T('error_pwd_wrong'));return;}
+  // Charge les données du compte
+  S.user={uid:email,name:account.name,email,avatar:account.avatar||''};
+  const data=JSON.parse(localStorage.getItem('cf_data_'+email)||'{}');
+  S.xp=data.xp||0;S.level=data.level||1;S.totalXpEarned=data.totalXpEarned||0;
+  S.streak=data.streak||0;S.lastUsedDate=data.lastUsedDate||null;
+  S.tutorialDone=data.tutorialDone||false;
+  S.template=data.template||'custom';
+  S.templateData=Object.assign({maxStudy:4,maxLeisure:3,breakMin:10,courses:[],workStart:'09:00',workEnd:'18:00',maxWork:8},data.templateData||{});
+  S.theme=data.theme||'dark';S.lang=data.lang||S.lang;
+  S.notifications=data.notifications!==undefined?data.notifications:true;
+  S.equippedItem=data.equippedItem||'default';
+  S.events=(data.events||[]).map(e=>({...e,date:new Date(e.date)}));
+  S.todos=data.todos||[];
+  if(data.unlockedBadges)data.unlockedBadges.forEach(id=>unlockedBadges.add(id));
+  localStorage.setItem('cf_lang',S.lang);localStorage.setItem('cf_theme',S.theme);localStorage.setItem('cf_equipped',S.equippedItem);
+  launchApp();
 }
-async function handleRegister(){
+function handleRegister(){
   const name=document.getElementById('regName').value.trim();
   const email=document.getElementById('regEmail').value.trim();
   const pass=document.getElementById('regPassword').value;
   if(!name||!email||!pass){toast('⚠️ '+T('error_field'));return;}
   if(!email.includes('@')){toast('⚠️ '+T('error_email'));return;}
   if(pass.length<6){toast('⚠️ '+T('error_pwd'));return;}
-  const btn=document.getElementById('btnRegister');if(btn)btn.disabled=true;
-  try{
-    const uid = await window.FB.fbRegister(name, email, pass);
-    // Initialise l'état local
-    S.user={uid, name, email, avatar:'', totalEvents:0};
-    S.template='custom';S.events=[];S.streak=0;S.xp=0;S.level=1;
-    document.getElementById('authScreen').style.display='none';
-    document.getElementById('onboardingScreen').style.display='flex';
-  }catch(e){
-    const msg = e.code==='auth/email-already-in-use' ? T('error_email_used')
-              : e.code==='auth/invalid-email' ? T('error_email')
-              : e.code==='auth/weak-password' ? T('error_pwd')
-              : e.message;
-    toast('❌ '+msg);
-  }finally{if(btn)btn.disabled=false;}
+  const accounts=JSON.parse(localStorage.getItem('cf_accounts')||'{}');
+  if(accounts[email]){toast('❌ '+T('error_email_used'));return;}
+  // Crée le compte
+  accounts[email]={name,password:pass,avatar:''};
+  localStorage.setItem('cf_accounts',JSON.stringify(accounts));
+  S.user={uid:email,name,email,avatar:'',totalEvents:0};
+  S.template='custom';S.events=[];S.streak=0;S.xp=0;S.level=1;S.todos=[];
+  document.getElementById('authScreen').style.display='none';
+  document.getElementById('onboardingScreen').style.display='flex';
 }
 
 /* ═══ ONBOARDING ═══ */
@@ -577,16 +550,13 @@ async function finishOnboarding(){
   }
   S.lastUsedDate=new Date().toISOString();
   document.getElementById('onboardingScreen').style.display='none';
-  if(S.user?.uid){
-    await window.FB.fbSaveUser(S.user.uid, {
-      template:S.template, templateData:S.templateData, lastUsedDate:S.lastUsedDate
-    });
-  }
+  saveState();
   launchApp();
 }
 
 /* ═══ LAUNCH APP ═══ */
 function launchApp(){
+  if(S.user?.email)localStorage.setItem('cf_last_user',S.user.email);
   document.getElementById('authScreen').style.display='none';
   document.getElementById('onboardingScreen').style.display='none';
   document.getElementById('appScreen').style.display='flex';
@@ -607,11 +577,13 @@ function launchApp(){
   document.getElementById('sidebar')?.addEventListener('mouseleave',(e)=>{if(!e.relatedTarget||!e.currentTarget.contains(e.relatedTarget))toggleSidebar(false);});}
   requestNotifPermission();
   checkWeeklyReview();
+  updateTodoList();
   const apiKey=localStorage.getItem('cf_apikey')||'';
   if(apiKey){const el=document.getElementById('apiKeyInput');if(el)el.value='••••'+apiKey.slice(-4);}
   updateMascot();setTimeout(syncAllKoros,200);
 }
 function reloadApp(){if(confirm('Revenir à l\'accueil ?'))location.reload();}
+function logout(){localStorage.removeItem('cf_last_user');location.reload();}
 
 /* ═══ SIDEBAR ═══ */
 function toggleSidebar(forceOpen){
@@ -679,10 +651,10 @@ function switchView(v){
 function updateCurrentView(){
   ({planning:updatePlanning,calendar:updateCalendar,insights:updateInsights,templates:updateTemplates,badges:updateBadges,profile:updateProfile,settings:()=>{updateLangDD();initToggles();}})[S.activeView]?.();
 }
-function updateAllViews(){updatePlanning();updateCalendar();updateInsights();updateBadges();updateProfile();}
+function updateAllViews(){updatePlanning();updateCalendar();updateInsights();updateBadges();updateProfile();updateTodoList();}
 
 /* ═══ TUTORIAL ═══ */
-function skipTutorial(){document.getElementById('welcomeModal').classList.remove('show');S.tutorialDone=true;saveState();if(S.user?.uid)window.FB.fbSaveUser(S.user.uid,{tutorialDone:true});}
+function skipTutorial(){document.getElementById('welcomeModal').classList.remove('show');S.tutorialDone=true;saveState();}
 function startTutorial(){document.getElementById('welcomeModal').classList.remove('show');S.tutStep=0;runTutStep();}
 function runTutStep(){
   const step=TUT_STEPS[S.tutStep];if(!step){endTut();return;}
@@ -708,7 +680,7 @@ function tutNext(){S.tutStep++;if(S.tutStep>=TUT_STEPS.length)endTut();else runT
 function endTut(){
   ['tutOverlay','tutPanel','spotlight'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
   document.body.classList.remove('tut-locked');
-  S.tutorialDone=true;saveState();if(S.user?.uid)window.FB.fbSaveUser(S.user.uid,{tutorialDone:true});switchView('planning');toast('🎉 Tutoriel terminé !');
+  S.tutorialDone=true;saveState();switchView('planning');toast('🎉 Tutoriel terminé !');
 }
 
 /* ═══ CHRONOS CHAT ═══ */
@@ -790,18 +762,11 @@ async function doGenerate(text){
   if(key){evs=await generateWithAI(text,key);}else{evs=parseLocal(text);}
   document.getElementById('loading').classList.remove('show');
   if(evs&&evs.length>0){
-    // Sauvegarde chaque événement dans Firestore et récupère son id Firestore
-    if(S.user?.uid){
-      for(const ev of evs){
-        const firestoreId = await window.FB.fbAddEvent(S.user.uid, ev);
-        ev.id = firestoreId; // remplace l'id temporaire par l'id Firestore
-        S.events.push(ev);
-      }
-      S.user.totalEvents=(S.user.totalEvents||0)+evs.length;
-      await window.FB.fbSaveUser(S.user.uid,{totalEvents:S.user.totalEvents});
-    } else {
-      evs.forEach(e=>S.events.push(e));
-    }
+    evs.forEach(e=>S.events.push(e));
+    if(S.user) S.user.totalEvents=(S.user.totalEvents||0)+evs.length;
+    // Ajoute à la todo list
+    evs.forEach(e=>addToTodo(e.title,e.id));
+    saveState();
     updateAllViews();
     document.getElementById('aiInput').value='';
     document.querySelectorAll('.tag.active').forEach(t=>t.classList.remove('active'));
@@ -1021,11 +986,11 @@ function updateTemplates(){
   }
   c.innerHTML=html;
 }
-function switchTemplate(id){S.template=id;saveState();if(S.user?.uid)window.FB.fbSaveUser(S.user.uid,{template:id});updateTemplates();updatePlanning();toast('✅ Template changé');}
+function switchTemplate(id){S.template=id;saveState();updateTemplates();updatePlanning();toast('✅ Template changé');}
 function addTplCourse(){const c=document.getElementById('tplCC');if(!c)return;const row=document.createElement('div');row.className='tpl-course-row';row.innerHTML='<div class="cf-select-wrap"><select class="sel" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:.4rem .6rem;color:var(--text);font-family:inherit;font-size:.83rem;-webkit-appearance:none;appearance:none;cursor:pointer">'+['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'].map((d,i)=>'<option value="'+(i+1)+'">'+d+'</option>').join('')+'</select></div><input type="time" class="tinp" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:.4rem .6rem;color:var(--text);font-family:inherit;font-size:.83rem" value="08:00" step="300"><input type="time" class="tinp" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:.4rem .6rem;color:var(--text);font-family:inherit;font-size:.83rem" value="10:00" step="300"><input type="text" class="sinp" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:.4rem .6rem;color:var(--text);font-family:inherit;font-size:.83rem" placeholder="Matière"><button class="btn-remove" onclick="this.parentElement.remove()">✕</button>';c.appendChild(row);}
-function saveTplStudent(){const rows=document.querySelectorAll('#tplCC .tpl-course-row');S.templateData.courses=Array.from(rows).map(r=>({day:+r.querySelector('.sel').value,start:r.querySelectorAll('.tinp')[0].value,end:r.querySelectorAll('.tinp')[1].value,subject:r.querySelector('.sinp').value})).filter(c=>c.subject);S.templateData.maxStudy=+(document.getElementById('tplMaxStudy')?.value)||4;S.templateData.maxLeisure=+(document.getElementById('tplMaxLeisure')?.value)||3;S.templateData.breakMin=+(document.getElementById('tplBreak')?.value)||10;saveState();if(S.user?.uid)window.FB.fbSaveUser(S.user.uid,{templateData:S.templateData});updatePlanning();toast('✅ Template sauvegardé !');}
-function saveTplWorker(){S.templateData.workStart=document.getElementById('tplWS')?.value||'09:00';S.templateData.workEnd=document.getElementById('tplWE')?.value||'18:00';S.templateData.maxWork=+(document.getElementById('tplMaxWork')?.value)||8;S.templateData.breakMin=+(document.getElementById('tplBreakW')?.value)||10;saveState();if(S.user?.uid)window.FB.fbSaveUser(S.user.uid,{templateData:S.templateData});toast('✅ Template sauvegardé !');}
-function saveTplCustom(){S.templateData.maxStudy=+(document.getElementById('tplMaxStudyC')?.value)||4;S.templateData.maxLeisure=+(document.getElementById('tplMaxLeisureC')?.value)||3;S.templateData.breakMin=+(document.getElementById('tplBreakC')?.value)||10;saveState();if(S.user?.uid)window.FB.fbSaveUser(S.user.uid,{templateData:S.templateData});toast('✅ Sauvegardé !');}
+function saveTplStudent(){const rows=document.querySelectorAll('#tplCC .tpl-course-row');S.templateData.courses=Array.from(rows).map(r=>({day:+r.querySelector('.sel').value,start:r.querySelectorAll('.tinp')[0].value,end:r.querySelectorAll('.tinp')[1].value,subject:r.querySelector('.sinp').value})).filter(c=>c.subject);S.templateData.maxStudy=+(document.getElementById('tplMaxStudy')?.value)||4;S.templateData.maxLeisure=+(document.getElementById('tplMaxLeisure')?.value)||3;S.templateData.breakMin=+(document.getElementById('tplBreak')?.value)||10;saveState();updatePlanning();toast('✅ Template sauvegardé !');}
+function saveTplWorker(){S.templateData.workStart=document.getElementById('tplWS')?.value||'09:00';S.templateData.workEnd=document.getElementById('tplWE')?.value||'18:00';S.templateData.maxWork=+(document.getElementById('tplMaxWork')?.value)||8;S.templateData.breakMin=+(document.getElementById('tplBreakW')?.value)||10;saveState();toast('✅ Template sauvegardé !');}
+function saveTplCustom(){S.templateData.maxStudy=+(document.getElementById('tplMaxStudyC')?.value)||4;S.templateData.maxLeisure=+(document.getElementById('tplMaxLeisureC')?.value)||3;S.templateData.breakMin=+(document.getElementById('tplBreakC')?.value)||10;saveState();toast('✅ Sauvegardé !');}
 
 /* ═══ BADGES VIEW ═══ */
 function updateBadges(){
@@ -1063,7 +1028,7 @@ async function saveProfile(){
   if(!S.user)return;
   S.user.name=document.getElementById('profileNameInput').value;
   updateHeader();updateProfile();toast('✅ Profil sauvegardé');
-  if(S.user?.uid) await window.FB.fbSaveUser(S.user.uid,{name:S.user.name});
+  saveState();
 }
 function handleAvatarChange(inp){
   const f=inp.files[0];if(!f)return;
@@ -1071,7 +1036,7 @@ function handleAvatarChange(inp){
   rd.onload=async e=>{
     S.user.avatar=e.target.result;
     updateHeader();updateProfile();toast('✅ Photo mise à jour');
-    if(S.user?.uid) await window.FB.fbSaveUser(S.user.uid,{avatar:S.user.avatar});
+    saveState();
   };
   rd.readAsDataURL(f);
 }
@@ -1082,18 +1047,17 @@ function requestPasswordChange(){
   document.getElementById('pwdEmail').textContent=S.user.email;
   document.getElementById('passwordModal').classList.add('show');
 }
-async function confirmPasswordChange(){
-  const currentPwd=document.getElementById('pwdCode').value; // champ "Code" réutilisé pour mot de passe actuel
+function confirmPasswordChange(){
+  const currentPwd=document.getElementById('pwdCode').value;
   const np=document.getElementById('pwdNew').value;
   if(!currentPwd||!np){toast('⚠️ '+T('error_field'));return;}
   if(np.length<6){toast('⚠️ '+T('error_pwd'));return;}
-  try{
-    await window.FB.fbChangePassword(currentPwd,np);
-    toast('✅ Mot de passe changé');closeModal('passwordModal');
-  }catch(e){
-    const msg=e.code==='auth/wrong-password'?'Mot de passe actuel incorrect':e.message;
-    toast('❌ '+msg);
-  }
+  const accounts=JSON.parse(localStorage.getItem('cf_accounts')||'{}');
+  const acc=accounts[S.user?.email];
+  if(!acc||acc.password!==currentPwd){toast('❌ Mot de passe actuel incorrect');return;}
+  acc.password=np;
+  localStorage.setItem('cf_accounts',JSON.stringify(accounts));
+  toast('✅ Mot de passe changé');closeModal('passwordModal');
 }
 function exportData(){
   const exportable={
@@ -1105,14 +1069,14 @@ function exportData(){
   a.href=url;a.download='chronoflow_'+new Date().toISOString().split('T')[0]+'.json';
   a.click();toast('✅ Exporté');
 }
-async function deleteAccount(){
+function deleteAccount(){
   if(!confirm('Supprimer définitivement ton compte et toutes tes données ?'))return;
-  try{
-    if(S.user?.uid) await window.FB.fbDeleteAccount(S.user.uid);
-    localStorage.clear();location.reload();
-  }catch(e){
-    toast('❌ '+e.message+' — Reconnecte-toi et réessaie.');
-  }
+  const accounts=JSON.parse(localStorage.getItem('cf_accounts')||'{}');
+  delete accounts[S.user?.email];
+  localStorage.setItem('cf_accounts',JSON.stringify(accounts));
+  localStorage.removeItem('cf_data_'+(S.user?.email||''));
+  localStorage.clear();
+  location.reload();
 }
 
 /* ═══ SESSION DE RÉVISION ═══ */
@@ -1209,7 +1173,7 @@ function endSession(){
   document.getElementById('appScreen').style.display='flex';
   toast('✅ Session terminée ! Bien joué !');
   addXp(20);checkBadges();
-  if(window.FB) window.FB.fbLog('session_completed',{duration:S.sessionTotalSec,phases:S.sessionPhaseIdx});
+
 }
 
 /* ═══ VOICE ═══ */
@@ -1292,42 +1256,116 @@ function openWeeklyReview(){
 }
 function closeWeeklyReview(){document.getElementById('weeklyReviewModal').classList.remove('show');}
 
+
+/* ═══ TODO LIST ═══ */
+function addToTodo(title, eventId){
+  const id = eventId || ('todo_'+Date.now()+Math.random());
+  // Évite les doublons
+  if(S.todos.find(t=>t.id===id)) return;
+  S.todos.push({id:String(id), title, done:false, createdAt:new Date().toISOString()});
+  saveState();
+  updateTodoList();
+}
+function toggleTodo(id){
+  const t=S.todos.find(t=>t.id===String(id));
+  if(!t)return;
+  t.done=!t.done;
+  saveState();
+  updateTodoList();
+  if(t.done){
+    toast('✅ '+t.title+' — Bien joué !');
+    addXp(5);
+  }
+}
+function removeTodo(id){
+  S.todos=S.todos.filter(t=>t.id!==String(id));
+  saveState();
+  updateTodoList();
+}
+function addManualTodo(){
+  const inp=document.getElementById('todoManualInput');
+  if(!inp)return;
+  const val=inp.value.trim();
+  if(!val){toast('⚠️ Écris quelque chose !');return;}
+  addToTodo(val);
+  inp.value='';
+  inp.focus();
+  toast('✅ Ajouté à la to-do list !');
+}
+function updateTodoList(){
+  const container=document.getElementById('todoListContainer');
+  if(!container)return;
+  const countEl=document.getElementById('todoCount');
+  if(countEl){const pending=S.todos.filter(t=>!t.done).length;countEl.textContent=pending;countEl.style.background=pending>0?'var(--primary)':'var(--low)';}
+  const pending=S.todos.filter(t=>!t.done);
+  const done=S.todos.filter(t=>t.done);
+  const all=[...pending,...done];
+  if(all.length===0){
+    container.innerHTML='<div class="todo-empty"><span>🎉</span><p>Tout est fait !</p></div>';
+    return;
+  }
+  container.innerHTML=all.map(t=>`
+    <div class="todo-item${t.done?' todo-done':''}" id="todo_${t.id}" onclick="toggleTodo('${t.id}')">
+      <div class="todo-check${t.done?' checked':''}">
+        ${t.done?'<svg viewBox="0 0 12 10" fill="none"><path d="M1 5l3 4L11 1" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>':''}
+      </div>
+      <span class="todo-title">${t.title}</span>
+      <button class="todo-del" onclick="event.stopPropagation();removeTodo('${t.id}')" title="Supprimer">✕</button>
+    </div>
+  `).join('');
+}
+
 /* ═══ UTILS ═══ */
 function toast(msg){const el=document.getElementById('toast');const me=document.getElementById('toastMsg');if(!el||!me)return;me.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),3500);}
 function closeModal(id){document.getElementById(id)?.classList.remove('show');}
 
-/* ═══ STORAGE ═══ */
-// saveState : sauvegarde les données de l'utilisateur dans Firestore (si connecté)
-// Les données non-sensibles de l'UI (lang, theme) restent aussi dans localStorage
+/* ═══ STORAGE (localStorage only) ═══ */
 function saveState(){
-  // Sauvegarde UI locale
   localStorage.setItem('cf_lang', S.lang);
   localStorage.setItem('cf_theme', S.theme);
   localStorage.setItem('cf_equipped', S.equippedItem);
-  // Sauvegarde Firestore (asynchrone, non-bloquant)
-  if(S.user?.uid && window.FB){
-    window.FB.fbSaveUser(S.user.uid, {
-      xp:           S.xp,
-      level:        S.level,
-      totalXpEarned:S.totalXpEarned,
-      streak:       S.streak,
-      lastUsedDate: S.lastUsedDate,
-      tutorialDone: S.tutorialDone,
-      template:     S.template,
-      templateData: S.templateData,
-      theme:        S.theme,
-      lang:         S.lang,
-      notifications:S.notifications,
-      equippedItem: S.equippedItem,
-      totalEvents:  S.user.totalEvents || 0,
-      name:         S.user.name || '',
-      email:        S.user.email || '',
-      avatar:       S.user.avatar || ''
-    }).catch(e=>console.error('saveState Firestore error:',e));
+  if(!S.user?.email) return;
+  const data = {
+    xp:S.xp, level:S.level, totalXpEarned:S.totalXpEarned,
+    streak:S.streak, lastUsedDate:S.lastUsedDate, tutorialDone:S.tutorialDone,
+    template:S.template, templateData:S.templateData, theme:S.theme, lang:S.lang,
+    notifications:S.notifications, equippedItem:S.equippedItem,
+    totalEvents:S.user.totalEvents||0, name:S.user.name||'',
+    email:S.user.email||'', avatar:S.user.avatar||'',
+    unlockedBadges:[...unlockedBadges],
+    events:S.events.map(e=>({...e,date:e.date instanceof Date?e.date.toISOString():e.date})),
+    todos:S.todos
+  };
+  localStorage.setItem('cf_data_'+S.user.email, JSON.stringify(data));
+  // Met à jour aussi le nom/avatar dans les comptes
+  const accounts=JSON.parse(localStorage.getItem('cf_accounts')||'{}');
+  if(accounts[S.user.email]){
+    accounts[S.user.email].name=S.user.name||accounts[S.user.email].name;
+    accounts[S.user.email].avatar=S.user.avatar||'';
+    localStorage.setItem('cf_accounts',JSON.stringify(accounts));
   }
 }
-// loadState n'est plus utilisé — le chargement se fait via fbOnAuthChange dans DOMContentLoaded
-function loadState(){ /* remplacé par fbOnAuthChange */ }
+function loadState(){
+  // Cherche un utilisateur déjà connecté
+  const lastUser=localStorage.getItem('cf_last_user');
+  if(!lastUser) return false;
+  const data=JSON.parse(localStorage.getItem('cf_data_'+lastUser)||'null');
+  if(!data) return false;
+  S.user={uid:lastUser,name:data.name||'',email:lastUser,avatar:data.avatar||'',totalEvents:data.totalEvents||0};
+  S.xp=data.xp||0;S.level=data.level||1;S.totalXpEarned=data.totalXpEarned||0;
+  S.streak=data.streak||0;S.lastUsedDate=data.lastUsedDate||null;
+  S.tutorialDone=data.tutorialDone||false;
+  S.template=data.template||'custom';
+  S.templateData=Object.assign({maxStudy:4,maxLeisure:3,breakMin:10,courses:[],workStart:'09:00',workEnd:'18:00',maxWork:8},data.templateData||{});
+  S.theme=data.theme||'dark';S.lang=data.lang||S.lang;
+  S.notifications=data.notifications!==undefined?data.notifications:true;
+  S.equippedItem=data.equippedItem||'default';
+  S.events=(data.events||[]).map(e=>({...e,date:new Date(e.date)}));
+  S.todos=data.todos||[];
+  if(data.unlockedBadges)data.unlockedBadges.forEach(id=>unlockedBadges.add(id));
+  localStorage.setItem('cf_lang',S.lang);localStorage.setItem('cf_theme',S.theme);localStorage.setItem('cf_equipped',S.equippedItem);
+  return true;
+}
 
 window.CF={S,saveState,toast,T};
 
