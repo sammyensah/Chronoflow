@@ -414,22 +414,55 @@ function initApp(){
   document.addEventListener('keydown',e=>{if(e.key==='Escape')handleEsc();});
   document.addEventListener('click',e=>{if(!e.target.closest('#langDDWrap'))closeLangDD();});
 
-  // Chargement depuis localStorage
-  const saved = loadState();
-  if(saved){
-    launchApp();
-  } else {
-    const hasLang = localStorage.getItem('cf_lang');
-    if(!hasLang){
-      document.getElementById('langScreen').style.display='flex';
+  window.FB.fbOnAuthChange(async (uid) => {
+    if(uid){
+      try{
+        const userData = await window.FB.fbGetUser(uid);
+        if(userData){
+          S.user          = userData;
+          S.xp            = userData.xp            || 0;
+          S.level         = userData.level          || 1;
+          S.totalXpEarned = userData.totalXpEarned  || 0;
+          S.streak        = userData.streak         || 0;
+          S.lastUsedDate  = userData.lastUsedDate   || null;
+          S.tutorialDone  = userData.tutorialDone   || false;
+          S.template      = userData.template       || 'custom';
+          S.templateData  = Object.assign({maxStudy:4,maxLeisure:3,breakMin:10,courses:[],workStart:'09:00',workEnd:'18:00',maxWork:8}, userData.templateData||{});
+          S.theme         = userData.theme          || 'dark';
+          S.lang          = userData.lang           || S.lang;
+          S.notifications = userData.notifications !== undefined ? userData.notifications : true;
+          S.equippedItem  = userData.equippedItem   || 'default';
+          S.todos         = userData.todos          || [];
+          if(userData.unlockedBadges) userData.unlockedBadges.forEach(id=>unlockedBadges.add(id));
+          S.events = await window.FB.fbGetEvents(uid);
+          localStorage.setItem('cf_lang', S.lang);
+          localStorage.setItem('cf_equipped', S.equippedItem);
+          localStorage.setItem('cf_theme', S.theme);
+          launchApp();
+        }
+      }catch(e){
+        console.error('Erreur chargement données:', e);
+        document.getElementById('authScreen').style.display='flex';
+      }
     } else {
-      document.getElementById('authScreen').style.display='flex';
+      const hasLang = localStorage.getItem('cf_lang');
+      if(!hasLang){ document.getElementById('langScreen').style.display='flex'; }
+      else { document.getElementById('authScreen').style.display='flex'; }
     }
-  }
+  });
 }
 
 function handleEsc(){
-  if(S.sessionActive){tryExitSession();return;}
+  if(S.sessionActive){
+    const exitModal=document.getElementById('exitSessionModal');
+    if(exitModal&&exitModal.classList.contains('show')){
+      // Escape sur la modal de confirmation = rester
+      exitModal.classList.remove('show');
+    } else {
+      tryExitSession();
+    }
+    return;
+  }
   document.querySelectorAll('.modal.show,.modal-full.show').forEach(m=>m.classList.remove('show'));
 }
 
@@ -468,48 +501,43 @@ function switchAuthTab(tab){
     lf.style.display='flex';lf.classList.add('active');
   }
 }
-function handleLogin(){
+async function handleLogin(){
   const email=document.getElementById('loginEmail').value.trim();
   const pass=document.getElementById('loginPassword').value;
   if(!email||!pass){toast('⚠️ '+T('error_field'));return;}
-  // Cherche le compte en localStorage
-  const accounts=JSON.parse(localStorage.getItem('cf_accounts')||'{}');
-  const account=accounts[email];
-  if(!account){toast('❌ '+T('error_account'));return;}
-  if(account.password!==pass){toast('❌ '+T('error_pwd_wrong'));return;}
-  // Charge les données du compte
-  S.user={uid:email,name:account.name,email,avatar:account.avatar||''};
-  const data=JSON.parse(localStorage.getItem('cf_data_'+email)||'{}');
-  S.xp=data.xp||0;S.level=data.level||1;S.totalXpEarned=data.totalXpEarned||0;
-  S.streak=data.streak||0;S.lastUsedDate=data.lastUsedDate||null;
-  S.tutorialDone=data.tutorialDone||false;
-  S.template=data.template||'custom';
-  S.templateData=Object.assign({maxStudy:4,maxLeisure:3,breakMin:10,courses:[],workStart:'09:00',workEnd:'18:00',maxWork:8},data.templateData||{});
-  S.theme=data.theme||'dark';S.lang=data.lang||S.lang;
-  S.notifications=data.notifications!==undefined?data.notifications:true;
-  S.equippedItem=data.equippedItem||'default';
-  S.events=(data.events||[]).map(e=>({...e,date:new Date(e.date)}));
-  S.todos=data.todos||[];
-  if(data.unlockedBadges)data.unlockedBadges.forEach(id=>unlockedBadges.add(id));
-  localStorage.setItem('cf_lang',S.lang);localStorage.setItem('cf_theme',S.theme);localStorage.setItem('cf_equipped',S.equippedItem);
-  launchApp();
+  const btn=document.getElementById('btnLogin');if(btn)btn.disabled=true;
+  try{
+    await window.FB.fbLogin(email,pass);
+    // fbOnAuthChange déclenche launchApp automatiquement
+  }catch(e){
+    const msg=e.code==='auth/user-not-found'||e.code==='auth/invalid-credential'?T('error_account')
+      :e.code==='auth/wrong-password'?T('error_pwd_wrong')
+      :e.code==='auth/invalid-email'?T('error_email')
+      :e.message;
+    toast('❌ '+msg);
+  }finally{if(btn)btn.disabled=false;}
 }
-function handleRegister(){
+async function handleRegister(){
   const name=document.getElementById('regName').value.trim();
   const email=document.getElementById('regEmail').value.trim();
   const pass=document.getElementById('regPassword').value;
   if(!name||!email||!pass){toast('⚠️ '+T('error_field'));return;}
   if(!email.includes('@')){toast('⚠️ '+T('error_email'));return;}
   if(pass.length<6){toast('⚠️ '+T('error_pwd'));return;}
-  const accounts=JSON.parse(localStorage.getItem('cf_accounts')||'{}');
-  if(accounts[email]){toast('❌ '+T('error_email_used'));return;}
-  // Crée le compte
-  accounts[email]={name,password:pass,avatar:''};
-  localStorage.setItem('cf_accounts',JSON.stringify(accounts));
-  S.user={uid:email,name,email,avatar:'',totalEvents:0};
-  S.template='custom';S.events=[];S.streak=0;S.xp=0;S.level=1;S.todos=[];
-  document.getElementById('authScreen').style.display='none';
-  document.getElementById('onboardingScreen').style.display='flex';
+  const btn=document.getElementById('btnRegister');if(btn)btn.disabled=true;
+  try{
+    const uid=await window.FB.fbRegister(name,email,pass);
+    S.user={uid,name,email,avatar:'',totalEvents:0};
+    S.template='custom';S.events=[];S.streak=0;S.xp=0;S.level=1;S.todos=[];
+    document.getElementById('authScreen').style.display='none';
+    document.getElementById('onboardingScreen').style.display='flex';
+  }catch(e){
+    const msg=e.code==='auth/email-already-in-use'?T('error_email_used')
+      :e.code==='auth/invalid-email'?T('error_email')
+      :e.code==='auth/weak-password'?T('error_pwd')
+      :e.message;
+    toast('❌ '+msg);
+  }finally{if(btn)btn.disabled=false;}
 }
 
 /* ═══ ONBOARDING ═══ */
@@ -550,13 +578,14 @@ async function finishOnboarding(){
   }
   S.lastUsedDate=new Date().toISOString();
   document.getElementById('onboardingScreen').style.display='none';
-  saveState();
+  if(S.user?.uid){
+    await window.FB.fbSaveUser(S.user.uid,{template:S.template,templateData:S.templateData,lastUsedDate:S.lastUsedDate});
+  }
   launchApp();
 }
 
 /* ═══ LAUNCH APP ═══ */
 function launchApp(){
-  if(S.user?.email)localStorage.setItem('cf_last_user',S.user.email);
   document.getElementById('authScreen').style.display='none';
   document.getElementById('onboardingScreen').style.display='none';
   document.getElementById('appScreen').style.display='flex';
@@ -583,7 +612,7 @@ function launchApp(){
   updateMascot();setTimeout(syncAllKoros,200);
 }
 function reloadApp(){if(confirm('Revenir à l\'accueil ?'))location.reload();}
-function logout(){localStorage.removeItem('cf_last_user');location.reload();}
+async function logout(){try{await window.FB.fbLogout();}catch(e){}localStorage.removeItem('cf_last_user');location.reload();}
 
 /* ═══ SIDEBAR ═══ */
 function toggleSidebar(forceOpen){
@@ -762,9 +791,17 @@ async function doGenerate(text){
   if(key){evs=await generateWithAI(text,key);}else{evs=parseLocal(text);}
   document.getElementById('loading').classList.remove('show');
   if(evs&&evs.length>0){
-    evs.forEach(e=>S.events.push(e));
-    if(S.user) S.user.totalEvents=(S.user.totalEvents||0)+evs.length;
-    // Ajoute à la todo list
+    if(S.user?.uid){
+      for(const ev of evs){
+        const fid=await window.FB.fbAddEvent(S.user.uid,ev);
+        ev.id=fid;
+        S.events.push(ev);
+      }
+      S.user.totalEvents=(S.user.totalEvents||0)+evs.length;
+      await window.FB.fbSaveUser(S.user.uid,{totalEvents:S.user.totalEvents});
+    } else {
+      evs.forEach(e=>S.events.push(e));
+    }
     evs.forEach(e=>addToTodo(e.title,e.id));
     saveState();
     updateAllViews();
@@ -1029,6 +1066,7 @@ async function saveProfile(){
   S.user.name=document.getElementById('profileNameInput').value;
   updateHeader();updateProfile();toast('✅ Profil sauvegardé');
   saveState();
+  if(S.user?.uid)window.FB.fbSaveUser(S.user.uid,{name:S.user.name});
 }
 function handleAvatarChange(inp){
   const f=inp.files[0];if(!f)return;
@@ -1037,6 +1075,7 @@ function handleAvatarChange(inp){
     S.user.avatar=e.target.result;
     updateHeader();updateProfile();toast('✅ Photo mise à jour');
     saveState();
+    if(S.user?.uid)window.FB.fbSaveUser(S.user.uid,{avatar:S.user.avatar});
   };
   rd.readAsDataURL(f);
 }
@@ -1047,17 +1086,18 @@ function requestPasswordChange(){
   document.getElementById('pwdEmail').textContent=S.user.email;
   document.getElementById('passwordModal').classList.add('show');
 }
-function confirmPasswordChange(){
+async function confirmPasswordChange(){
   const currentPwd=document.getElementById('pwdCode').value;
   const np=document.getElementById('pwdNew').value;
   if(!currentPwd||!np){toast('⚠️ '+T('error_field'));return;}
   if(np.length<6){toast('⚠️ '+T('error_pwd'));return;}
-  const accounts=JSON.parse(localStorage.getItem('cf_accounts')||'{}');
-  const acc=accounts[S.user?.email];
-  if(!acc||acc.password!==currentPwd){toast('❌ Mot de passe actuel incorrect');return;}
-  acc.password=np;
-  localStorage.setItem('cf_accounts',JSON.stringify(accounts));
-  toast('✅ Mot de passe changé');closeModal('passwordModal');
+  try{
+    await window.FB.fbChangePassword(currentPwd,np);
+    toast('✅ Mot de passe changé');closeModal('passwordModal');
+  }catch(e){
+    const msg=e.code==='auth/wrong-password'?'Mot de passe actuel incorrect':e.message;
+    toast('❌ '+msg);
+  }
 }
 function exportData(){
   const exportable={
@@ -1069,14 +1109,12 @@ function exportData(){
   a.href=url;a.download='chronoflow_'+new Date().toISOString().split('T')[0]+'.json';
   a.click();toast('✅ Exporté');
 }
-function deleteAccount(){
+async function deleteAccount(){
   if(!confirm('Supprimer définitivement ton compte et toutes tes données ?'))return;
-  const accounts=JSON.parse(localStorage.getItem('cf_accounts')||'{}');
-  delete accounts[S.user?.email];
-  localStorage.setItem('cf_accounts',JSON.stringify(accounts));
-  localStorage.removeItem('cf_data_'+(S.user?.email||''));
-  localStorage.clear();
-  location.reload();
+  try{
+    if(S.user?.uid) await window.FB.fbDeleteAccount(S.user.uid);
+    localStorage.clear();location.reload();
+  }catch(e){toast('❌ '+e.message+' — Reconnecte-toi et réessaie.');}
 }
 
 /* ═══ SESSION DE RÉVISION ═══ */
@@ -1319,53 +1357,24 @@ function updateTodoList(){
 function toast(msg){const el=document.getElementById('toast');const me=document.getElementById('toastMsg');if(!el||!me)return;me.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),3500);}
 function closeModal(id){document.getElementById(id)?.classList.remove('show');}
 
-/* ═══ STORAGE (localStorage only) ═══ */
+/* ═══ STORAGE ═══ */
 function saveState(){
   localStorage.setItem('cf_lang', S.lang);
   localStorage.setItem('cf_theme', S.theme);
   localStorage.setItem('cf_equipped', S.equippedItem);
-  if(!S.user?.email) return;
-  const data = {
-    xp:S.xp, level:S.level, totalXpEarned:S.totalXpEarned,
-    streak:S.streak, lastUsedDate:S.lastUsedDate, tutorialDone:S.tutorialDone,
-    template:S.template, templateData:S.templateData, theme:S.theme, lang:S.lang,
-    notifications:S.notifications, equippedItem:S.equippedItem,
-    totalEvents:S.user.totalEvents||0, name:S.user.name||'',
-    email:S.user.email||'', avatar:S.user.avatar||'',
-    unlockedBadges:[...unlockedBadges],
-    events:S.events.map(e=>({...e,date:e.date instanceof Date?e.date.toISOString():e.date})),
-    todos:S.todos
-  };
-  localStorage.setItem('cf_data_'+S.user.email, JSON.stringify(data));
-  // Met à jour aussi le nom/avatar dans les comptes
-  const accounts=JSON.parse(localStorage.getItem('cf_accounts')||'{}');
-  if(accounts[S.user.email]){
-    accounts[S.user.email].name=S.user.name||accounts[S.user.email].name;
-    accounts[S.user.email].avatar=S.user.avatar||'';
-    localStorage.setItem('cf_accounts',JSON.stringify(accounts));
+  if(S.user?.uid && window.FB){
+    window.FB.fbSaveUser(S.user.uid,{
+      xp:S.xp, level:S.level, totalXpEarned:S.totalXpEarned,
+      streak:S.streak, lastUsedDate:S.lastUsedDate, tutorialDone:S.tutorialDone,
+      template:S.template, templateData:S.templateData, theme:S.theme, lang:S.lang,
+      notifications:S.notifications, equippedItem:S.equippedItem,
+      totalEvents:S.user?.totalEvents||0, name:S.user?.name||'',
+      avatar:S.user?.avatar||'', unlockedBadges:[...unlockedBadges],
+      todos:S.todos
+    }).catch(e=>console.error('saveState error:',e));
   }
 }
-function loadState(){
-  // Cherche un utilisateur déjà connecté
-  const lastUser=localStorage.getItem('cf_last_user');
-  if(!lastUser) return false;
-  const data=JSON.parse(localStorage.getItem('cf_data_'+lastUser)||'null');
-  if(!data) return false;
-  S.user={uid:lastUser,name:data.name||'',email:lastUser,avatar:data.avatar||'',totalEvents:data.totalEvents||0};
-  S.xp=data.xp||0;S.level=data.level||1;S.totalXpEarned=data.totalXpEarned||0;
-  S.streak=data.streak||0;S.lastUsedDate=data.lastUsedDate||null;
-  S.tutorialDone=data.tutorialDone||false;
-  S.template=data.template||'custom';
-  S.templateData=Object.assign({maxStudy:4,maxLeisure:3,breakMin:10,courses:[],workStart:'09:00',workEnd:'18:00',maxWork:8},data.templateData||{});
-  S.theme=data.theme||'dark';S.lang=data.lang||S.lang;
-  S.notifications=data.notifications!==undefined?data.notifications:true;
-  S.equippedItem=data.equippedItem||'default';
-  S.events=(data.events||[]).map(e=>({...e,date:new Date(e.date)}));
-  S.todos=data.todos||[];
-  if(data.unlockedBadges)data.unlockedBadges.forEach(id=>unlockedBadges.add(id));
-  localStorage.setItem('cf_lang',S.lang);localStorage.setItem('cf_theme',S.theme);localStorage.setItem('cf_equipped',S.equippedItem);
-  return true;
-}
+function loadState(){ return false; }
 
 window.CF={S,saveState,toast,T};
 
