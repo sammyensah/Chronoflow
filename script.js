@@ -335,11 +335,23 @@ const LEVEL_REWARDS={2:'costume Sombre 🌑',3:'Cravate Dorée ✨',5:'costume �
 
 function updateMascot(){
   const rank=getRank(S.level);
-  const koro=document.getElementById('mascotKoro');if(koro)koro.className='koro-wrap koro-rank-'+rank.cls.replace('rank-','');
+  const rankKey=rank.cls.replace('rank-',''); // e.g. 'gold'
+  // Apply rank class to ALL chronos-figure elements
+  document.querySelectorAll('.chronos-figure').forEach(el=>{
+    el.className=el.className.replace(/ch-rank-\S+/g,'').trim();
+    el.classList.add('ch-rank-'+rankKey);
+  });
+  // Apply equipped item to gown color
   const item=CHRONOS_ITEMS.find(i=>i.id===S.equippedItem)||CHRONOS_ITEMS[0];
-  const suit=document.getElementById('koroSuit');if(suit)suit.style.background=item.type==='suit'&&item.bg?item.bg:'';
-  const tie=document.getElementById('koroTie');if(tie)tie.style.background=S.equippedItem==='gold_tie'?'linear-gradient(180deg,#FFD700,#c4a800)':rank.color;
-  const acc=document.getElementById('koroAcc');if(acc){if(item.type==='acc'){acc.textContent=item.icon;acc.style.opacity='1';}else acc.style.opacity='0';}
+  document.querySelectorAll('.ch-gown').forEach(el=>{
+    el.style.background=item.type==='suit'&&item.bg?item.bg:'';
+  });
+  document.querySelectorAll('.ch-tie').forEach(el=>{
+    el.style.background=S.equippedItem==='gold_tie'?'linear-gradient(180deg,#FFD700,#c4a800)':'';
+  });
+  // Profile avatar border = rank color
+  const av=document.querySelector('.profile-av');
+  if(av){av.style.borderColor=rank.color;av.style.boxShadow='0 0 0 3px '+rank.color+'33';}
 }
 function updateLockerGrid(){
   const g=document.getElementById('lockerGrid');if(!g)return;
@@ -586,6 +598,10 @@ async function finishOnboarding(){
 
 /* ═══ LAUNCH APP ═══ */
 function launchApp(){
+  setTimeout(()=>{
+    const c=document.getElementById('mainContent');
+    if(c)c.addEventListener('scroll',()=>{const m=document.getElementById('mascot');if(m){m.classList.add('spy-mode');clearTimeout(m._st);m._st=setTimeout(()=>m.classList.remove('spy-mode'),1800);}});
+  },500);
   document.getElementById('authScreen').style.display='none';
   document.getElementById('onboardingScreen').style.display='none';
   document.getElementById('appScreen').style.display='flex';
@@ -713,8 +729,10 @@ function endTut(){
 }
 
 /* ═══ CHRONOS CHAT ═══ */
-function openChronosChat(){document.getElementById('chronosChatModal').classList.add('show');}
-function closeChronosChat(){document.getElementById('chronosChatModal').classList.remove('show');}
+function openChronosChat(){
+  animateChronosClick();document.getElementById('chronosChatModal').classList.add('show');}
+function closeChronosChat(){
+  setTimeout(chronosSad, 200);document.getElementById('chronosChatModal').classList.remove('show');}
 function setChatMode(mode){
   chatMode=mode;
   const sl=document.getElementById('cmtSlider');const tv=document.getElementById('chatTalkView');const lv=document.getElementById('chatLockerView');
@@ -1401,23 +1419,463 @@ function showLevelUpNotif(level,reward){
 
 /* ═══ SYNC SESSION & WC KORO WITH MAIN MASCOT ═══ */
 function syncAllKoros(){
-  const rank=getRank(S.level);
-  const item=CHRONOS_ITEMS.find(i=>i.id===S.equippedItem)||CHRONOS_ITEMS[0];
-  // Update all koro heads and suits
-  ['wcKoroHead','sessionKoroHead'].forEach(id=>{
-    const el=document.getElementById(id);if(!el)return;
-    const wrap=el.closest('.koro-wrap');if(wrap){wrap.className='koro-wrap koro-rank-'+rank.cls.replace('rank-','');}
+  updateMascot();
+}
+
+
+/* ── Password visibility toggle ── */
+function togglePw(inputId, btn){
+  const inp = document.getElementById(inputId);
+  if(!inp) return;
+  if(inp.type === 'password'){
+    inp.type = 'text';
+    btn.textContent = '🙈';
+  } else {
+    inp.type = 'password';
+    btn.textContent = '👁';
+  }
+}
+
+/* ── Chronos spy mode on scroll ── */
+(function(){
+  let spyTimeout;
+  const content = document.getElementById('mainContent');
+  if(content){
+    content.addEventListener('scroll', function(){
+      const mascot = document.getElementById('mascot');
+      if(!mascot) return;
+      mascot.classList.add('spy-mode');
+      clearTimeout(spyTimeout);
+      spyTimeout = setTimeout(()=>mascot.classList.remove('spy-mode'), 1800);
+    });
+  }
+  window.addEventListener('scroll', function(){
+    const mascot = document.getElementById('mascot');
+    if(!mascot) return;
+    mascot.classList.add('spy-mode');
+    clearTimeout(spyTimeout);
+    spyTimeout = setTimeout(()=>mascot.classList.remove('spy-mode'), 1800);
   });
-  ['wcKoroSuit','sessionKoroSuit'].forEach(id=>{
-    const el=document.getElementById(id);if(!el)return;
-    if(item.type==='suit'&&item.bg)el.style.background=item.bg;
+})();
+
+/* ── Chronos click animation ── */
+function animateChronosClick(){
+  const mascot = document.getElementById('mascot');
+  if(!mascot) return;
+  mascot.classList.add('clicked');
+  setTimeout(()=>mascot.classList.remove('clicked'), 600);
+}
+
+/* ── Chronos sad 5s after chat closes ── */
+function chronosSad(){
+  const mascot = document.getElementById('mascot');
+  if(!mascot) return;
+  mascot.classList.remove('clicked');
+  mascot.classList.add('sad');
+  setTimeout(()=>mascot.classList.remove('sad'), 5000);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CHRONOFLOW V2 — Insights Islands + Chronos Immersif
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── HEATMAP (GitHub-style, 52 semaines) ── */
+function buildHeatmap(){
+  const wrap = document.getElementById('v2HeatmapWrap'); if(!wrap) return;
+  const now = new Date();
+  const cells = [];
+  // On remonte 52 semaines en arrière depuis dimanche de la semaine courante
+  const end = new Date(now); end.setDate(end.getDate() + (6 - end.getDay()));
+  const start = new Date(end); start.setDate(end.getDate() - 364);
+
+  // Compter les heures par jour
+  const dayMap = {};
+  S.events.forEach(ev => {
+    if(!ev.date) return;
+    const k = new Date(ev.date).toDateString();
+    dayMap[k] = (dayMap[k]||0) + (ev.duration||60)/60;
   });
-  ['wcKoroTie','sessionKoroTie'].forEach(id=>{
-    const el=document.getElementById(id);if(!el)return;
-    el.style.background=S.equippedItem==='gold_tie'?'linear-gradient(180deg,#FFD700,#c4a800)':rank.color;
+
+  // Labels des mois
+  const monthNames = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+  let monthHtml = '';
+  let prevMonth = -1;
+  let weekCount = 0;
+
+  // Générer les 53 colonnes (semaines)
+  let cellsHtml = '';
+  let cur = new Date(start);
+  // Avancer au premier dimanche
+  while(cur.getDay() !== 0) cur.setDate(cur.getDate()+1);
+
+  const weekCols = [];
+  while(cur <= end) {
+    const weekCells = [];
+    for(let d=0; d<7; d++) {
+      const k = cur.toDateString();
+      const h = dayMap[k]||0;
+      const lv = h===0?0:h<1?1:h<3?2:h<5?3:4;
+      const dateStr = cur.toLocaleDateString('fr',{day:'numeric',month:'short',year:'numeric'});
+      weekCells.push(`<div class="hm-cell lv${lv}" title="${dateStr} — ${Math.round(h*10)/10}h"></div>`);
+      // Track month labels
+      if(cur.getDate()<=7 && cur.getMonth()!==prevMonth){
+        prevMonth = cur.getMonth();
+      }
+      cur.setDate(cur.getDate()+1);
+    }
+    weekCols.push(weekCells.join(''));
+  }
+
+  wrap.innerHTML = `
+    <div class="heatmap-section">
+      <div class="heatmap-title">📅 Activité sur 52 semaines</div>
+      <div class="heatmap-grid">${weekCols.join('')}</div>
+      <div class="hm-legend">
+        <span>Moins</span>
+        <div class="hm-legend-cell lv0" style="background:var(--border);opacity:.5"></div>
+        <div class="hm-legend-cell lv1" style="background:rgba(255,107,53,.3)"></div>
+        <div class="hm-legend-cell lv2" style="background:rgba(255,107,53,.55)"></div>
+        <div class="hm-legend-cell lv3" style="background:rgba(255,107,53,.78)"></div>
+        <div class="hm-legend-cell lv4" style="background:#FF6B35"></div>
+        <span>Plus</span>
+      </div>
+    </div>`;
+}
+
+/* ── XP 30-day progression graph (SVG polyline) ── */
+function buildXpGraph(){
+  const wrap = document.getElementById('v2XpGraphWrap'); if(!wrap) return;
+  const now = new Date();
+  const days = [];
+  for(let i=29;i>=0;i--){ const d=new Date(now); d.setDate(now.getDate()-i); days.push(d); }
+
+  // XP accumulé fictif depuis le total actuel (retracing 30 jours)
+  // On calcule les heures planifiées par jour comme proxy
+  const vals = days.map(d => {
+    const evs = S.events.filter(e => e.date && new Date(e.date).toDateString()===d.toDateString());
+    return evs.reduce((s,e)=>s+(e.duration||60)/60,0)*10; // ~10 XP par heure
   });
-  ['wcKoroAcc','sessionKoroAcc'].forEach(id=>{
-    const el=document.getElementById(id);if(!el)return;
-    if(item.type==='acc'){el.textContent=item.icon;el.style.opacity='1';}else el.style.opacity='0';
+  const maxV = Math.max(...vals, 1);
+  const W=400, H=120;
+  const pts = vals.map((v,i) => {
+    const x = (i/(vals.length-1))*W;
+    const y = H - (v/maxV)*H*0.85 - 8;
+    return `${x},${y}`;
+  }).join(' ');
+  const areaClose = ` ${W},${H} 0,${H}`;
+
+  const totalXp30 = Math.round(vals.reduce((a,b)=>a+b,0));
+  const labels = [days[0],days[14],days[29]].map(d=>d.toLocaleDateString('fr',{day:'numeric',month:'short'}));
+
+  wrap.innerHTML = `
+    <div class="xp-graph-section">
+      <div class="xp-graph-header">
+        <div class="xp-graph-title">⚡ Progression XP — 30 jours</div>
+        <div class="xp-graph-total">+${totalXp30} XP</div>
+      </div>
+      <div class="xp-graph-canvas-wrap">
+        <svg class="xp-graph-svg" viewBox="0 0 400 120" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="xpGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#FF6B35" stop-opacity="0.5"/>
+              <stop offset="100%" stop-color="#FF6B35" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <polyline class="xp-area" points="${pts} ${areaClose}"/>
+          <polyline class="xp-line" points="${pts}"/>
+          ${vals.map((v,i)=>{const x=(i/(vals.length-1))*W;const y=H-(v/maxV)*H*.85-8;return`<circle class="xp-dot" cx="${x}" cy="${y}"><title>${Math.round(v)} XP</title></circle>`;}).join('')}
+        </svg>
+      </div>
+      <div class="xp-axis-labels">
+        <span>${labels[0]}</span><span>${labels[1]}</span><span>${labels[2]}</span>
+      </div>
+    </div>`;
+}
+
+/* ── Donut chart (répartition par type) ── */
+function buildDonutChart(){
+  const wrap = document.getElementById('v2DonutWrap'); if(!wrap) return;
+  const types = {study:'📚 Études',work:'💼 Travail',sport:'🏃 Sport',social:'👥 Social',leisure:'🎮 Loisirs',other:'✨ Autre'};
+  const colors = ['#FF6B35','#6366f1','#10B981','#F59E0B','#EC4899','#8B5CF6'];
+  const counts = {};
+  S.events.forEach(e=>{ const t=e.type||'other'; counts[t]=(counts[t]||0)+(e.duration||60)/60; });
+  const total = Math.max(Object.values(counts).reduce((a,b)=>a+b,0),1);
+
+  const entries = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  if(!entries.length){ wrap.innerHTML=''; return; }
+
+  // SVG donut
+  const R=52, r=32, cx=65, cy=65;
+  let offset=0;
+  const circumference = 2*Math.PI*R;
+  let segHtml = '';
+  entries.forEach(([type,val],i)=>{
+    const pct = val/total;
+    const dash = pct*circumference;
+    const gap  = circumference - dash;
+    segHtml += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="none"
+      stroke="${colors[i%colors.length]}" stroke-width="22"
+      stroke-dasharray="${dash} ${gap}"
+      stroke-dashoffset="${-offset*circumference}"
+      style="transition:stroke-dashoffset .6s ease ${i*.08}s"
+    />`; 
+    offset += pct;
   });
+
+  const legendHtml = entries.map(([type,val],i)=>`
+    <div class="donut-item">
+      <div class="donut-dot" style="background:${colors[i%colors.length]}"></div>
+      <span class="donut-item-name">${types[type]||type}</span>
+      <span class="donut-item-pct">${Math.round(val/total*100)}%</span>
+    </div>`).join('');
+
+  wrap.innerHTML = `
+    <div class="donut-section">
+      <div class="donut-header">🎯 Répartition du temps</div>
+      <div class="donut-layout">
+        <div class="donut-svg-wrap">
+          <svg class="donut-svg" viewBox="0 0 130 130">${segHtml}</svg>
+          <div class="donut-center">
+            <span class="donut-center-val">${Math.round(total)}h</span>
+            <span class="donut-center-lbl">total</span>
+          </div>
+        </div>
+        <div class="donut-legend">${legendHtml}</div>
+      </div>
+    </div>`;
+}
+
+/* ── Week-over-week comparison ── */
+function buildWowSection(){
+  const wrap = document.getElementById('v2WowWrap'); if(!wrap) return;
+  const now = new Date();
+  const thisWeekStart = new Date(now); thisWeekStart.setDate(now.getDate()-now.getDay()+1); thisWeekStart.setHours(0,0,0,0);
+  const prevWeekStart = new Date(thisWeekStart); prevWeekStart.setDate(thisWeekStart.getDate()-7);
+  const prevWeekEnd   = new Date(thisWeekStart); prevWeekEnd.setSeconds(-1);
+
+  const thisW = S.events.filter(e=>{const d=new Date(e.date);return d>=thisWeekStart&&d<=now;});
+  const prevW = S.events.filter(e=>{const d=new Date(e.date);return d>=prevWeekStart&&d<=prevWeekEnd;});
+
+  const metric=(evs)=>({
+    h: Math.round(evs.reduce((s,e)=>s+(e.duration||60)/60,0)*10)/10,
+    n: evs.length,
+    study: evs.filter(e=>e.type==='study').length,
+  });
+  const a=metric(thisW), b=metric(prevW);
+  const delta=(cur,prev)=>{
+    if(!prev) return {cls:'same',ico:'→',txt:'–'};
+    const d=cur-prev; const pct=Math.round(d/prev*100);
+    return d>0?{cls:'up',ico:'↑',txt:'+'+pct+'%'}:d<0?{cls:'down',ico:'↓',txt:pct+'%'}:{cls:'same',ico:'→',txt:'='}
+  };
+  const dH=delta(a.h,b.h), dN=delta(a.n,b.n);
+
+  wrap.innerHTML=`
+    <div class="wow-section">
+      <div class="wow-title">📊 Semaine courante vs précédente</div>
+      <div class="wow-grid">
+        <div class="wow-card">
+          <div class="wow-label">Heures</div>
+          <div class="wow-val">${a.h}h</div>
+          <div class="wow-delta ${dH.cls}">${dH.ico} ${dH.txt}</div>
+        </div>
+        <div class="wow-card">
+          <div class="wow-label">Événements</div>
+          <div class="wow-val">${a.n}</div>
+          <div class="wow-delta ${dN.cls}">${dN.ico} ${dN.txt}</div>
+        </div>
+        <div class="wow-card">
+          <div class="wow-label">Sessions étude</div>
+          <div class="wow-val">${a.study}</div>
+          <div class="wow-delta ${delta(a.study,b.study).cls}">${delta(a.study,b.study).ico} ${delta(a.study,b.study).txt}</div>
+        </div>
+        <div class="wow-card">
+          <div class="wow-label">Streak</div>
+          <div class="wow-val">${S.streak}j</div>
+          <div class="wow-delta up">🔥 continu</div>
+        </div>
+      </div>
+    </div>`;
+}
+
+/* ── Chronos Insight Bubble (analyse IA) ── */
+async function buildChronosInsightBubble(){
+  const wrap = document.getElementById('v2ChronosInsightWrap'); if(!wrap) return;
+  const key = localStorage.getItem('cf_apikey');
+  const now = new Date();
+  const weekEvs = S.events.filter(e=>{const d=new Date(e.date);const ws=new Date(now);ws.setDate(now.getDate()-7);return d>=ws;});
+  const h = Math.round(weekEvs.reduce((s,e)=>s+(e.duration||60)/60,0));
+
+  let msg = `Cette semaine, ${h}h planifiées. Streak de ${S.streak} jours — continue ! 💪`;
+
+  wrap.innerHTML=`
+    <div class="chronos-insight-bubble">
+      <div class="cib-chronos">
+        <div style="width:48px;height:48px;border-radius:50%;background:radial-gradient(circle at 38% 30%,#fffbc0,#FFD700 55%,#c49000);border:2.5px solid #8a6200;box-shadow:0 0 18px rgba(255,208,0,.6)"></div>
+      </div>
+      <div class="cib-text">
+        <h4>Chronos analyse ta semaine</h4>
+        <p id="v2InsightMsg" class="cib-typing">${msg}</p>
+      </div>
+    </div>`;
+
+  if(key && weekEvs.length>0){
+    const langName = LANG_NAMES[S.lang]||'Français';
+    try{
+      const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
+        headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01'},
+        body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:120,
+          system:'Tu es Chronos, assistant planning IA. Réponds en '+langName+'. 1 phrase percutante, max 25 mots, ton encourageant.',
+          messages:[{role:'user',content:`Streak:${S.streak}j, Niveau:${S.level}, Heures planifiées cette semaine:${h}h. Donne un conseil ou encouragement court.`}]})});
+      const d=await r.json();
+      const el=document.getElementById('v2InsightMsg');
+      if(el&&d.content?.[0]?.text){
+        el.classList.remove('cib-typing');
+        typeInsight(el, d.content[0].text);
+      }
+    }catch(e){}
+  } else {
+    const el=document.getElementById('v2InsightMsg');
+    if(el) el.classList.remove('cib-typing');
+  }
+}
+function typeInsight(el,txt){let i=0;el.textContent='';el.classList.add('cib-typing');const iv=setInterval(()=>{if(i<txt.length){el.textContent+=txt[i++];}else{clearInterval(iv);el.classList.remove('cib-typing');}},22);}
+
+/* ── Rebuild updateInsights pour inclure les sections V2 ── */
+const _origUpdateInsights = updateInsights;
+function updateInsights(){
+  _origUpdateInsights();
+  // Inject V2 containers into insights view if not already present
+  injectInsightsV2Containers();
+  buildHeatmap();
+  buildXpGraph();
+  buildDonutChart();
+  buildWowSection();
+  buildChronosInsightBubble();
+}
+function injectInsightsV2Containers(){
+  const view = document.getElementById('insightsView'); if(!view) return;
+  if(document.getElementById('v2HeatmapWrap')) return; // already injected
+  const divs = ['v2ChronosInsightWrap','v2HeatmapWrap','v2XpGraphWrap','v2DonutWrap','v2WowWrap'];
+  divs.forEach(id=>{
+    const d=document.createElement('div'); d.id=id;
+    view.appendChild(d);
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CHRONOS IMMERSIF V2 — Réactions contextuelles
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Speech bubble spontanée ── */
+let speechTimeout=null;
+function chronosSpeak(msg, duration=4000){
+  let bubble = document.getElementById('chronosSpeechBubble');
+  if(!bubble){
+    bubble = document.createElement('div');
+    bubble.id = 'chronosSpeechBubble';
+    bubble.className = 'chronos-speech';
+    document.body.appendChild(bubble);
+  }
+  bubble.textContent = msg;
+  bubble.classList.add('show');
+  clearTimeout(speechTimeout);
+  speechTimeout = setTimeout(()=>bubble.classList.remove('show'), duration);
+}
+
+/* ── Messages contextuels par heure ── */
+function chronosTimeGreeting(){
+  const h = new Date().getHours();
+  if(h>=5&&h<12)  chronosSpeak('☀️ Bonne matinée ! Prêt à planifier ?', 5000);
+  else if(h>=12&&h<14) chronosSpeak('🍽️ Pause déjeuner bien méritée !', 4000);
+  else if(h>=14&&h<18) chronosSpeak('⚡ L\'après-midi, c\'est pour les productifs !', 4000);
+  else if(h>=18&&h<22) chronosSpeak('🌙 Soirée de révision ? Je suis là !', 4000);
+  else chronosSpeak('🌟 Tu travailles tard ! Courage !', 4000);
+}
+
+/* ── Réaction badge unlock ── */
+function chronosCelebrateBadge(badgeName){
+  const mascot = document.getElementById('mascot'); if(!mascot) return;
+  mascot.classList.add('celebrate');
+  setTimeout(()=>mascot.classList.remove('celebrate'), 1200);
+  chronosSpeak('🏅 Badge débloqué : '+badgeName+' ! Bravo !', 5000);
+  spawnConfetti();
+}
+
+/* ── Réaction XP gain ── */
+function chronosXpReact(xpGained){
+  const mascot = document.getElementById('mascot'); if(!mascot) return;
+  mascot.classList.add('xp-react');
+  setTimeout(()=>mascot.classList.remove('xp-react'), 700);
+  if(xpGained>=50) chronosSpeak('⚡ +'+xpGained+' XP ! Excellent !', 3000);
+}
+
+/* ── Réaction streak ── */
+function chronosStreakReact(streak){
+  const mascot = document.getElementById('mascot'); if(!mascot) return;
+  if(streak>0&&streak%7===0){
+    mascot.classList.add('streak-glow');
+    setTimeout(()=>mascot.classList.remove('streak-glow'), 4000);
+    chronosSpeak('🔥 '+streak+' jours de streak ! Légendaire !', 5000);
+  }
+}
+
+/* ── Confetti ── */
+function spawnConfetti(){
+  const wrap = document.createElement('div');
+  wrap.className = 'confetti-wrap';
+  document.body.appendChild(wrap);
+  const colors = ['#FF6B35','#FFD700','#6366f1','#10B981','#F59E0B','#EC4899'];
+  for(let i=0;i<60;i++){
+    const p = document.createElement('div');
+    p.className = 'confetti-p';
+    p.style.cssText = `
+      left:${Math.random()*100}%;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      animation-duration:${1.5+Math.random()*2}s;
+      animation-delay:${Math.random()*.5}s;
+      width:${6+Math.random()*8}px;height:${6+Math.random()*8}px;
+      border-radius:${Math.random()>.5?'50%':'3px'};
+    `;
+    wrap.appendChild(p);
+  }
+  setTimeout(()=>wrap.remove(), 4000);
+}
+
+/* ── Patch checkBadges pour Chronos reaction ── */
+const _origCheckBadges = checkBadges;
+function checkBadges(){
+  const before = new Set(unlockedBadges);
+  _origCheckBadges();
+  ALL_BADGES.forEach(b=>{
+    if(!before.has(b.id) && unlockedBadges.has(b.id)){
+      setTimeout(()=>chronosCelebrateBadge(b.name), 400);
+    }
+  });
+}
+
+/* ── Patch addXp pour Chronos reaction ── */
+const _origAddXp = addXp;
+function addXp(n){
+  _origAddXp(n);
+  chronosXpReact(n);
+}
+
+/* ── Init V2 on launchApp ── */
+const _origLaunchApp = launchApp;
+function launchApp(){
+  _origLaunchApp();
+  // Greet after 2s
+  setTimeout(chronosTimeGreeting, 2200);
+  // Random tips toutes les 8min
+  const TIPS = [
+    '💡 Conseil : planifie tes révisions en blocs de 25min !',
+    '🎯 Objectif de la semaine : battre ton streak !',
+    '📚 Tu as des événements non révisés cette semaine ?',
+    '⚡ Une session de 20min maintenant vaut 1h demain !',
+    '🌟 Niveau '+( (typeof S!=='undefined'?S.level:1) )+' — tu es presque au prochain !',
+  ];
+  setInterval(()=>{
+    const tip = TIPS[Math.floor(Math.random()*TIPS.length)];
+    chronosSpeak(tip, 5000);
+  }, 8*60*1000);
 }
