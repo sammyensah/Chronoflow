@@ -378,7 +378,7 @@ const ALL_BADGES=[
 ];
 const unlockedBadges=new Set(); // chargé depuis Firestore via loadBadgesFromUser()
 function checkBadges(){
-  ALL_BADGES.forEach(b=>{if(!unlockedBadges.has(b.id)&&b.cond()){unlockedBadges.add(b.id);saveState();toast('🏅 Badge : '+b.name+'!');if(b.xp>0)setTimeout(()=>addXpV2(b.xp),500);}});
+  ALL_BADGES.forEach(b=>{if(!unlockedBadges.has(b.id)&&b.cond()){unlockedBadges.add(b.id);saveState();toast('🏅 Badge : '+b.name+'!');if(b.xp>0)setTimeout(()=>addXp(b.xp),500);}});
 }
 function updateBadgeHint(){
   const el=document.getElementById('chronoBadgeText');if(!el)return;
@@ -613,7 +613,7 @@ function launchApp(){
   const lastLogin=localStorage.getItem('cf_last_login');
   if(lastLogin!==today){
     localStorage.setItem('cf_last_login',today);
-    setTimeout(()=>addXpV2(XP_GAINS.daily_login),800);
+    setTimeout(()=>addXp(XP_GAINS.daily_login),800);
   }
   if(!S.tutorialDone)setTimeout(()=>document.getElementById('welcomeModal').classList.add('show'),700);
   // Sidebar hover zone
@@ -626,7 +626,6 @@ function launchApp(){
   const apiKey=localStorage.getItem('cf_apikey')||'';
   if(apiKey){const el=document.getElementById('apiKeyInput');if(el)el.value='••••'+apiKey.slice(-4);}
   updateMascot();setTimeout(syncAllKoros,200);
-  launchAppV2();
 }
 function reloadApp(){if(confirm('Revenir à l\'accueil ?'))location.reload();}
 async function logout(){try{await window.FB.fbLogout();}catch(e){}localStorage.removeItem('cf_last_user');location.reload();}
@@ -695,7 +694,7 @@ function switchView(v){
   updateCurrentView();
 }
 function updateCurrentView(){
-  ({planning:updatePlanning,calendar:updateCalendar,insights:()=>{updateInsights();updateInsightsV2();},templates:updateTemplates,badges:updateBadges,profile:updateProfile,settings:()=>{updateLangDD();initToggles();}})[S.activeView]?.();
+  ({planning:updatePlanning,calendar:updateCalendar,insights:updateInsights,templates:updateTemplates,badges:updateBadges,profile:updateProfile,settings:()=>{updateLangDD();initToggles();}})[S.activeView]?.();
 }
 function updateAllViews(){updatePlanning();updateCalendar();updateInsights();updateBadges();updateProfile();updateTodoList();}
 
@@ -827,7 +826,7 @@ async function doGenerate(text){
     document.getElementById('aiInput').value='';
     document.querySelectorAll('.tag.active').forEach(t=>t.classList.remove('active'));
     toast('✨ '+evs.length+' événement(s) créé(s) !');
-    setTimeout(()=>addXpV2(XP_GAINS.event_created*evs.length),200);checkBadgesV2();
+    setTimeout(()=>addXp(XP_GAINS.event_created*evs.length),200);checkBadges();
   }else toast('⚠️ Reformule ta demande');
 }
 async function generateWithAI(text,key){
@@ -1050,7 +1049,7 @@ function saveTplCustom(){S.templateData.maxStudy=+(document.getElementById('tplM
 
 /* ═══ BADGES VIEW ═══ */
 function updateBadges(){
-  checkBadgesV2();updateXpBar();
+  checkBadges();updateXpBar();
   const g=document.getElementById('badgeGrid');if(!g)return;
   g.innerHTML=ALL_BADGES.map(b=>{const u=b.cond();return'<div class="badge-card '+(u?'unlocked':'locked')+'"><span class="badge-emoji">'+b.emoji+'</span><div class="badge-name">'+b.name+'</div><div class="badge-desc">'+b.desc+'</div><span class="badge-xp">+'+b.xp+' XP</span>'+(u?'<span class="badge-msg">"'+b.msg+'"</span>':'')+'</div>';}).join('');
 }
@@ -1156,7 +1155,7 @@ function launchSession(){
   document.getElementById('appScreen').style.display='none';
   document.getElementById('arcFill').classList.remove('pause-mode');
   document.getElementById('arcFill').style.strokeDashoffset='503';
-  updateSessionDisplay(); startSessionTick(); addXpV2(5);
+  updateSessionDisplay(); startSessionTick(); addXp(5);
   syncAllKoros();
 }
 function startSessionTick(){
@@ -1229,7 +1228,7 @@ function endSession(){
   document.getElementById('sessionScreen').style.display='none';
   document.getElementById('appScreen').style.display='flex';
   toast('✅ Session terminée ! Bien joué !');
-  addXpV2(20);checkBadgesV2();
+  addXp(20);checkBadges();
 
 }
 
@@ -1331,7 +1330,7 @@ function toggleTodo(id){
   updateTodoList();
   if(t.done){
     toast('✅ '+t.title+' — Bien joué !');
-    addXpV2(5);
+    addXp(5);
   }
 }
 function removeTodo(id){
@@ -1741,8 +1740,11 @@ async function buildChronosInsightBubble(){
 }
 function typeInsight(el,txt){let i=0;el.textContent='';el.classList.add('cib-typing');const iv=setInterval(()=>{if(i<txt.length){el.textContent+=txt[i++];}else{clearInterval(iv);el.classList.remove('cib-typing');}},22);}
 
-/* ── updateInsightsV2 appelée depuis switchView ── */
-function updateInsightsV2(){
+/* ── Rebuild updateInsights pour inclure les sections V2 ── */
+const _origUpdateInsights = updateInsights;
+function updateInsights(){
+  _origUpdateInsights();
+  // Inject V2 containers into insights view if not already present
   injectInsightsV2Containers();
   buildHeatmap();
   buildXpGraph();
@@ -1839,10 +1841,11 @@ function spawnConfetti(){
   setTimeout(()=>wrap.remove(), 4000);
 }
 
-/* ── checkBadgesV2 : wraps checkBadges + Chronos reaction ── */
-function checkBadgesV2(){
+/* ── Patch checkBadges pour Chronos reaction ── */
+const _origCheckBadges = checkBadges;
+function checkBadges(){
   const before = new Set(unlockedBadges);
-  checkBadges();
+  _origCheckBadges();
   ALL_BADGES.forEach(b=>{
     if(!before.has(b.id) && unlockedBadges.has(b.id)){
       setTimeout(()=>chronosCelebrateBadge(b.name), 400);
@@ -1850,21 +1853,26 @@ function checkBadgesV2(){
   });
 }
 
-/* ── addXpV2 : wraps addXp + Chronos reaction ── */
-function addXpV2(n){
-  addXp(n);
+/* ── Patch addXp pour Chronos reaction ── */
+const _origAddXp = addXp;
+function addXp(n){
+  _origAddXp(n);
   chronosXpReact(n);
 }
 
-/* ── launchAppV2 : init Chronos immersif ── */
-function launchAppV2(){
+/* ── Init V2 on launchApp ── */
+const _origLaunchApp = launchApp;
+function launchApp(){
+  _origLaunchApp();
+  // Greet after 2s
   setTimeout(chronosTimeGreeting, 2200);
+  // Random tips toutes les 8min
   const TIPS = [
     '💡 Conseil : planifie tes révisions en blocs de 25min !',
     '🎯 Objectif de la semaine : battre ton streak !',
     '📚 Tu as des événements non révisés cette semaine ?',
     '⚡ Une session de 20min maintenant vaut 1h demain !',
-    '🌟 Niveau '+(S.level||1)+' — tu es presque au prochain !',
+    '🌟 Niveau '+( (typeof S!=='undefined'?S.level:1) )+' — tu es presque au prochain !',
   ];
   setInterval(()=>{
     const tip = TIPS[Math.floor(Math.random()*TIPS.length)];
