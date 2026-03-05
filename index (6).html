@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ChronoFlow V5</title>
+<link rel="stylesheet" href="style.css">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- ══════════════ LANG SCREEN ══════════════ -->
+<div id="langScreen" class="fullscreen" style="display:none">
+  <div class="fs-bg"><div id="particlesLang" class="particles-wrap"></div></div>
+  <div class="fs-content">
+    <div class="logo-big">⚡ <span>ChronoFlow</span></div>
+    <p class="sub-title">Choisis ta langue / Choose your language</p>
+    <div class="lang-grid">
+      <div class="lang-card" onclick="selectLang('fr')"><div class="lang-flag"><svg viewBox="0 0 60 40"><rect width="20" height="40" fill="#002395"/><rect x="20" width="20" height="40" fill="#fff"/><rect x="40" width="20" height="40" fill="#ED2939"/></svg></div><div class="lang-name">Français</div></div>
+      <div class="lang-card" onclick="selectLang('en')"><div class="lang-flag"><svg viewBox="0 0 60 40"><rect width="60" height="40" fill="#012169"/><path d="M0,0 L60,40 M60,0 L0,40" stroke="#fff" stroke-width="7"/><path d="M0,0 L60,40 M60,0 L0,40" stroke="#C8102E" stroke-width="4"/><path d="M30,0 V40 M0,20 H60" stroke="#fff" stroke-width="11"/><path d="M30,0 V40 M0,20 H60" stroke="#C8102E" stroke-width="6"/></svg></div><div class="lang-name">English</div></div>
+      <div class="lang-card" onclick="selectLang('de')"><div class="lang-flag"><svg viewBox="0 0 60 40"><rect width="60" height="13.3" fill="#000"/><rect y="13.3" width="60" height="13.3" fill="#DD0000"/><rect y="26.6" width="60" height="13.4" fill="#FFCE00"/></svg></div><div class="lang-name">Deutsch</div></div>
+      <div class="lang-card" onclick="selectLang('es')"><div class="lang-flag"><svg viewBox="0 0 60 40"><rect width="60" height="8" fill="#c60b1e"/><rect y="8" width="60" height="24" fill="#ffc400"/><rect y="32" width="60" height="8" fill="#c60b1e"/></svg></div><div class="lang-name">Español</div></div>
+      <div class="lang-card" onclick="selectLang('it')"><div class="lang-flag"><svg viewBox="0 0 60 40"><rect width="20" height="40" fill="#009246"/><rect x="20" width="20" height="40" fill="#fff"/><rect x="40" width="20" height="40" fill="#CE2B37"/></svg></div><div class="lang-name">Italiano</div></div>
+      <div class="lang-card" onclick="selectLang('ar')"><div class="lang-flag"><svg viewBox="0 0 60 40"><rect width="60" height="40" fill="#006C35"/><rect width="20" height="40" fill="#fff"/><circle cx="32" cy="20" r="7" fill="#006C35" stroke="#fff" stroke-width="2"/></svg></div><div class="lang-name">العربية</div></div>
+      <div class="lang-card lang-center" onclick="selectLang('pt')"><div class="lang-flag"><svg viewBox="0 0 60 40"><rect width="60" height="40" fill="#E21C1C"/><rect width="24" height="40" fill="#006600"/><circle cx="24" cy="20" r="8" fill="#FFFF00" stroke="#006600" stroke-width="1.5"/></svg></div><div class="lang-name">Português</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ AUTH SCREEN ══════════════ -->
+<div id="authScreen" class="fullscreen" style="display:none">
+  <div class="fs-bg"><div id="particles" class="particles-wrap"></div></div>
+  <div class="fs-content auth-content">
+    <div class="auth-logo">⚡ ChronoFlow</div>
+    <p class="auth-tagline" id="authTagline">Ton assistant planning intelligent</p>
+    <div class="auth-tabs">
+      <div class="auth-tab-slider" id="authTabSlider"></div>
+      <button class="auth-tab active" id="tabLogin" onclick="switchAuthTab('login')" id="tabLoginLabel">Se connecter</button>
+      <button class="auth-tab" id="tabRegister" onclick="switchAuthTab('register')" id="tabRegisterLabel">S'inscrire</button>
+    </div>
+    <div class="auth-forms-outer">
+      <div class="auth-form active" id="loginForm">
+        <div class="form-group"><label id="lblEmail">Email</label><input type="email" id="loginEmail" class="auth-input" placeholder="toi@exemple.com"></div>
+        <div class="form-group"><label id="lblPassword">Mot de passe</label>
+          <div class="pw-wrap">
+            <input type="password" id="loginPassword" class="auth-input" placeholder="••••••••" onkeydown="if(event.key==='Enter')handleLogin()">
+            <button class="pw-toggle" type="button" onclick="togglePw('loginPassword',this)" aria-label="Voir mot de passe">👁</button>
+          </div></div>
+        <button class="btn-auth" onclick="handleLogin()" id="btnLogin" onkeydown="if(event.key==='Enter')handleLogin()">Se connecter →</button>
+      </div>
+      <div class="auth-form" id="registerForm" style="display:none">
+        <div class="form-group"><label id="lblName">Prénom</label><input type="text" id="regName" class="auth-input" placeholder="Marie"></div>
+        <div class="form-group"><label id="lblEmailR">Email</label><input type="email" id="regEmail" class="auth-input" placeholder="toi@exemple.com"></div>
+        <div class="form-group"><label id="lblPasswordR">Mot de passe</label>
+          <div class="pw-wrap">
+            <input type="password" id="regPassword" class="auth-input" placeholder="••••••••" onkeydown="if(event.key==='Enter')handleRegister()">
+            <button class="pw-toggle" type="button" onclick="togglePw('regPassword',this)" aria-label="Voir mot de passe">👁</button>
+          </div></div>
+        <button class="btn-auth" onclick="handleRegister()" id="btnRegister">Créer mon compte →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ ONBOARDING ══════════════ -->
+<div id="onboardingScreen" class="fullscreen" style="display:none">
+  <div class="fs-bg"><div id="particles2" class="particles-wrap"></div></div>
+  <div class="fs-content ob-content">
+    <div class="ob-step active" id="obStep1">
+      <div class="logo-big">⚡ <span>ChronoFlow</span></div>
+      <p class="sub-title" id="obChooseProfile">Choisis ton profil pour commencer</p>
+      <div class="profile-cards">
+        <div class="profile-card" onclick="selectProfile('student')"><div class="pc-icon">🎓</div><h3 id="pcStudent">Étudiant</h3><p id="pcStudentDesc">Cours, révisions, examens</p></div>
+        <div class="profile-card" onclick="selectProfile('worker')"><div class="pc-icon">💼</div><h3 id="pcWorker">Travailleur</h3><p id="pcWorkerDesc">Projets, réunions, deadlines</p></div>
+        <div class="profile-card" onclick="selectProfile('custom')"><div class="pc-icon">✨</div><h3 id="pcCustom">Personnalisé</h3><p id="pcCustomDesc">Je configure moi-même</p></div>
+      </div>
+    </div>
+    <div class="ob-step" id="obStep2">
+      <h2 class="ob-title" id="obStudentTitle">🎓 Configuration Étudiant</h2>
+      <div class="ob-limits">
+        <div class="form-group"><label id="lblMaxStudy">Max révision / jour (h)</label><div class="cf-num-wrap"><input type="number" id="obMaxStudy" value="4" min="1" max="12"><div class="cf-num-arrows"><div class="cf-num-up" onclick="cfNum('obMaxStudy',1,1,12)"><svg viewBox="0 0 10 6"><path d="M1 5l4-4 4 4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="cf-num-down" onclick="cfNum('obMaxStudy',-1,1,12)"><svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div></div></div></div>
+        <div class="form-group"><label id="lblMaxLeisure">Max loisirs / jour (h)</label><div class="cf-num-wrap"><input type="number" id="obMaxLeisure" value="3" min="0" max="12"><div class="cf-num-arrows"><div class="cf-num-up" onclick="cfNum('obMaxLeisure',1,0,12)"><svg viewBox="0 0 10 6"><path d="M1 5l4-4 4 4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="cf-num-down" onclick="cfNum('obMaxLeisure',-1,0,12)"><svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div></div></div></div>
+        <div class="form-group"><label id="lblBreakBetween">Pause entre événements (min)</label><div class="cf-num-wrap"><input type="number" id="obBreakBetween" value="10" min="5" max="60" step="5"><div class="cf-num-arrows"><div class="cf-num-up" onclick="cfNum('obBreakBetween',5,5,60)"><svg viewBox="0 0 10 6"><path d="M1 5l4-4 4 4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="cf-num-down" onclick="cfNum('obBreakBetween',-5,5,60)"><svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div></div></div></div>
+      </div>
+      <div id="coursesContainer" class="courses-list"></div>
+      <button class="btn-secondary" onclick="addCourse()">+ <span id="btnAddCourse">Ajouter un cours</span></button>
+      <div class="ob-btns">
+        <button class="btn-secondary" onclick="goObStep(1)">← <span id="btnBack">Retour</span></button>
+        <button class="btn-primary" onclick="finishOnboarding()"><span id="btnFinish">Terminer</span> 🚀</button>
+      </div>
+    </div>
+    <div class="ob-step" id="obStep2w">
+      <h2 class="ob-title" id="obWorkerTitle">💼 Configuration Travailleur</h2>
+      <div class="ob-limits">
+        <div class="form-group"><label id="lblWorkStart">Début journée</label><input type="time" id="workStart" value="09:00" step="300"></div>
+        <div class="form-group"><label id="lblWorkEnd">Fin journée</label><input type="time" id="workEnd" value="18:00" step="300"></div>
+        <div class="form-group"><label id="lblMaxWork">Max travail / jour (h)</label><div class="cf-num-wrap"><input type="number" id="obMaxWork" value="8" min="1" max="16"><div class="cf-num-arrows"><div class="cf-num-up" onclick="cfNum('obMaxWork',1,1,16)"><svg viewBox="0 0 10 6"><path d="M1 5l4-4 4 4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="cf-num-down" onclick="cfNum('obMaxWork',-1,1,16)"><svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div></div></div></div>
+        <div class="form-group"><label id="lblBreakW">Pause entre tâches (min)</label><div class="cf-num-wrap"><input type="number" id="obBreakWork" value="10" min="5" max="60" step="5"><div class="cf-num-arrows"><div class="cf-num-up" onclick="cfNum('obBreakWork',5,5,60)"><svg viewBox="0 0 10 6"><path d="M1 5l4-4 4 4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="cf-num-down" onclick="cfNum('obBreakWork',-5,5,60)"><svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div></div></div></div>
+      </div>
+      <div class="ob-btns">
+        <button class="btn-secondary" onclick="goObStep(1)">← <span>Retour</span></button>
+        <button class="btn-primary" onclick="finishOnboarding()">Terminer 🚀</button>
+      </div>
+    </div>
+    <div class="ob-step" id="obStep2c">
+      <h2 class="ob-title" id="obCustomTitle">✨ Configuration Personnalisée</h2>
+      <div class="ob-limits">
+        <div class="form-group"><label id="lblMaxStudyC">Max révision / jour (h)</label><div class="cf-num-wrap"><input type="number" id="obMaxStudyC" value="4" min="0" max="16"><div class="cf-num-arrows"><div class="cf-num-up" onclick="cfNum('obMaxStudyC',1,0,16)"><svg viewBox="0 0 10 6"><path d="M1 5l4-4 4 4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="cf-num-down" onclick="cfNum('obMaxStudyC',-1,0,16)"><svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div></div></div></div>
+        <div class="form-group"><label id="lblMaxLeisureC">Max loisirs / jour (h)</label><div class="cf-num-wrap"><input type="number" id="obMaxLeisureC" value="3" min="0" max="16"><div class="cf-num-arrows"><div class="cf-num-up" onclick="cfNum('obMaxLeisureC',1,0,16)"><svg viewBox="0 0 10 6"><path d="M1 5l4-4 4 4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="cf-num-down" onclick="cfNum('obMaxLeisureC',-1,0,16)"><svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div></div></div></div>
+        <div class="form-group"><label id="lblBreakC">Pause entre événements (min)</label><div class="cf-num-wrap"><input type="number" id="obBreakCustom" value="10" min="5" max="60" step="5"><div class="cf-num-arrows"><div class="cf-num-up" onclick="cfNum('obBreakCustom',5,5,60)"><svg viewBox="0 0 10 6"><path d="M1 5l4-4 4 4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="cf-num-down" onclick="cfNum('obBreakCustom',-5,5,60)"><svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div></div></div></div>
+      </div>
+      <div class="ob-btns">
+        <button class="btn-secondary" onclick="goObStep(1)">← Retour</button>
+        <button class="btn-primary" onclick="finishOnboarding()">Terminer 🚀</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ APP ══════════════ -->
+<div id="appScreen" class="app-screen" style="display:none">
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-left">
+      <button class="hamburger" id="hamburgerBtn" onclick="toggleSidebar()">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+    <div class="header-center" onclick="reloadApp()" style="cursor:pointer">
+      <span class="logo-icon">⚡</span>
+      <span class="logo-text">ChronoFlow</span>
+    </div>
+    <div class="header-right">
+      <div class="streak-pill" onclick="switchView('badges')" title="Streak">🔥 <span id="headerStreak">0</span></div>
+      <div class="header-theme-toggle">
+        <div class="htt-slider" id="httSlider"></div>
+        <button class="htt-btn" id="httLight" onclick="setTheme('light')">☀️</button>
+        <button class="htt-btn" id="httDark" onclick="setTheme('dark')">🌙</button>
+      </div>
+      <button class="avatar-btn" id="headerAvatarBtn" onclick="switchView('profile')">
+        <span id="headerAvatarEmoji">👤</span>
+        <img id="headerAvatarImg" src="" alt="" style="display:none">
+      </button>
+    </div>
+  </header>
+
+  <div class="app-body">
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <nav class="sidebar-nav">
+        <button class="nav-btn active" data-view="planning" onclick="switchView('planning')"><span class="nav-icon">📋</span><span class="nav-label" data-i18n="nav_planning">Planning</span></button>
+        <button class="nav-btn" data-view="calendar" onclick="switchView('calendar')"><span class="nav-icon">📅</span><span class="nav-label" data-i18n="nav_calendar">Calendrier</span></button>
+        <button class="nav-btn" data-view="insights" onclick="switchView('insights')"><span class="nav-icon">📊</span><span class="nav-label" data-i18n="nav_insights">Insights</span></button>
+        <button class="nav-btn" data-view="templates" onclick="switchView('templates')"><span class="nav-icon">📁</span><span class="nav-label" data-i18n="nav_templates">Templates</span></button>
+        <button class="nav-btn" data-view="badges" onclick="switchView('badges')"><span class="nav-icon">🏆</span><span class="nav-label" data-i18n="nav_badges">Badges</span></button>
+        <button class="nav-btn" data-view="settings" onclick="switchView('settings')"><span class="nav-icon">⚙️</span><span class="nav-label" data-i18n="nav_settings">Paramètres</span></button>
+      </nav>
+    </aside>
+    <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()"></div>
+    <div class="sidebar-hover-zone" id="sidebarHoverZone" onmouseenter="toggleSidebar()"></div>
+
+    <!-- MAIN CONTENT -->
+    <main class="content" id="mainContent">
+
+      <!-- CHRONOS MASCOT -->
+      <div class="mascot" id="mascot" onclick="openChronosChat()">
+        <div class="chronos-figure" id="mascotKoro">
+          <!-- Halo lumineux -->
+          <div class="ch-halo"></div>
+          <!-- Mortier (graduation hat) -->
+          <div class="ch-hat">
+            <div class="ch-hat-top"></div>
+            <div class="ch-hat-board"></div>
+            <div class="ch-hat-tassel"></div>
+          </div>
+          <!-- Tête jaune dorée -->
+          <div class="ch-head" id="koroHead">
+            <div class="ch-brows"><div class="ch-brow"></div><div class="ch-brow"></div></div>
+            <div class="ch-eyes">
+              <div class="ch-eye"></div>
+              <div class="ch-eye"></div>
+            </div>
+            <div class="ch-mouth" id="koroMouth"></div>
+          </div>
+          <!-- Corps : toge + épaulettes + médaillon -->
+          <div class="ch-body">
+            <div class="ch-collar"></div>
+            <div class="ch-gown-wrap">
+              <div class="ch-shoulder-l"></div>
+              <div class="ch-shoulder-r"></div>
+              <div class="ch-gown" id="koroSuit">
+                <div class="ch-tie" id="koroTie"></div>
+              </div>
+              <!-- Bras -->
+              <div class="ch-arms">
+                <div class="ch-arm l"><div class="ch-hand"></div></div>
+                <div class="ch-arm r"><div class="ch-hand"></div></div>
+              </div>
+            </div>
+            <!-- Jambes -->
+            <div class="ch-legs">
+              <div class="ch-leg"><div class="ch-shoe"></div></div>
+              <div class="ch-leg"><div class="ch-shoe"></div></div>
+            </div>
+          </div>
+          <!-- Nuage mystique aux pieds -->
+          <div class="ch-cloud"></div>
+        </div>
+        <div class="mascot-label">Chronos</div>
+      </div>
+
+      <!-- TUTORIAL OVERLAY -->
+      <div class="tut-overlay" id="tutOverlay" style="display:none"></div>
+      <div class="tut-panel" id="tutPanel" style="display:none">
+        <div class="tut-koro">
+          <div class="chronos-figure" style="transform:scale(.85);transform-origin:top center">
+            <div class="ch-hat"><div class="ch-hat-top"></div><div class="ch-hat-board"></div><div class="ch-hat-tassel"></div></div>
+            <div class="ch-head"><div class="ch-eyes"><div class="ch-eye"></div><div class="ch-eye"></div></div><div class="ch-mouth"></div></div>
+            <div class="ch-body">
+              <div class="ch-collar"></div>
+              <div class="ch-gown-wrap">
+                <div class="ch-shoulder-l"></div><div class="ch-shoulder-r"></div>
+                <div class="ch-gown"><div class="ch-tie"></div></div>
+                <div class="ch-arms"><div class="ch-arm l"><div class="ch-hand"></div></div><div class="ch-arm r"><div class="ch-hand"></div></div></div>
+              </div>
+              <div class="ch-legs"><div class="ch-leg"><div class="ch-shoe"></div></div><div class="ch-leg"><div class="ch-shoe"></div></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="tut-bubble">
+          <div class="tut-text" id="tutText"></div>
+          <button class="btn-tut-next" id="tutNextBtn" onclick="tutNext()" style="display:none">Suivant →</button>
+        </div>
+      </div>
+      <div class="spotlight" id="spotlight" style="display:none"></div>
+
+      <!-- AI PANEL -->
+      <div class="ai-panel" id="aiPanel">
+        <div class="ai-inner">
+          <textarea id="aiInput" class="ai-textarea" placeholder="Dis-moi ce que tu veux planifier...&#10;Ex : J'ai un exam de maths dans 3 jours, aide-moi à réviser" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();generate();}"></textarea>
+          <div class="ai-actions">
+            <div class="quick-tags">
+              <button class="tag" data-txt="Je suis fatigué cette semaine" onclick="addTag(this)">😴 Fatigué</button>
+              <button class="tag" data-txt="Examen important à préparer" onclick="addTag(this)">📚 Examen</button>
+              <button class="tag" data-txt="Voir mes amis ce weekend" onclick="addTag(this)">👥 Amis</button>
+              <button class="tag" data-txt="Sport 3 fois cette semaine" onclick="addTag(this)">🏃 Sport</button>
+              <button class="tag" data-txt="Rendez-vous médical" onclick="addTag(this)">🏥 RDV</button>
+            </div>
+            <div class="ai-right">
+              <button class="btn-voice" onclick="startVoice()" id="voiceBtn">🎤</button>
+              <button class="btn-generate" onclick="generate()">✨ <span data-i18n="btn_generate">Générer</span></button>
+            </div>
+          </div>
+        </div>
+        <!-- Session Révision CTA -->
+        <div class="session-cta" id="sessionCta" onclick="openSessionLauncher()">
+          <span>⏱️</span> <span data-i18n="start_session">Lancer une session de révision</span>
+        </div>
+      </div>
+
+      <!-- ═══ VIEWS ═══ -->
+
+      <!-- PLANNING -->
+      <div class="view active" id="viewPlanning">
+        <div class="view-header">
+          <h2 data-i18n="nav_planning">Planning</h2>
+          <div class="week-nav">
+            <button class="nav-arrow" onclick="changeWeek(-1)">←</button>
+            <span id="weekLabel">Cette semaine</span>
+            <button class="nav-arrow" onclick="changeWeek(1)">→</button>
+          </div>
+        </div>
+        <div id="planningGrid" class="planning-grid"></div>
+        <div class="event-sections">
+          <div class="ev-section"><h3 data-i18n="today">📍 Aujourd'hui</h3><div id="todayList"></div></div>
+          <div class="ev-section"><h3 data-i18n="upcoming">📅 À venir</h3><div id="upcomingList"></div></div>
+        </div>
+
+        <!-- ─── TODO LIST ─── -->
+        <div class="todo-section" id="todoSection">
+          <div class="todo-header">
+            <h3>✅ To-Do List</h3>
+            <span class="todo-count" id="todoCount">0</span>
+          </div>
+          <div class="todo-add-row">
+            <input type="text" id="todoManualInput" class="todo-input" placeholder="Ajouter une tâche..." onkeydown="if(event.key==='Enter')addManualTodo()">
+            <button class="todo-add-btn" onclick="addManualTodo()">+ Ajouter</button>
+          </div>
+          <div id="todoListContainer"></div>
+        </div>
+      </div>
+
+      <!-- CALENDAR -->
+      <div class="view" id="viewCalendar">
+        <div class="view-header">
+          <h2 data-i18n="nav_calendar">Calendrier</h2>
+          <div class="week-nav">
+            <button class="nav-arrow" onclick="changeMonth(-1)">←</button>
+            <span id="monthLabel"></span>
+            <button class="nav-arrow" onclick="changeMonth(1)">→</button>
+          </div>
+        </div>
+        <div class="month-cal-wrap"><div id="monthCal" class="month-cal"></div></div>
+      </div>
+
+      <!-- INSIGHTS -->
+      <div class="view" id="viewInsights">
+        <div class="view-header"><h2 data-i18n="nav_insights">Insights 📊</h2></div>
+        <!-- Weekly review CTA -->
+        <button class="weekly-review-btn" id="weeklyReviewBtnInsights" onclick="openWeeklyReview()">
+          <span class="wr-icon">📊</span>
+          <div class="wr-text"><h4>Bilan hebdomadaire</h4><p>Analyse complète de ta semaine par Chronos</p></div>
+          <span style="color:var(--primary);font-size:1.2rem">→</span>
+        </button>
+        <!-- V1 stats row (top 3 cards) -->
+        <div class="insights-stats-row" id="insightsStatsRow"></div>
+        <!-- V1 bar chart (7 jours) -->
+        <div class="ins-chart-card" id="insChartCard">
+          <h3>📅 Activité sur 7 jours</h3>
+          <div class="ins-chart"><div class="ins-bar-row" id="insBarChart"></div></div>
+        </div>
+        <!-- V2 Islands: Chronos insight bubble -->
+        <div id="v2ChronosInsightWrap"></div>
+        <!-- V2 Islands: 52-week heatmap -->
+        <div id="v2HeatmapWrap"></div>
+        <!-- V2 Islands: XP 30-day graph -->
+        <div id="v2XpGraphWrap"></div>
+        <!-- V2 Islands: Side-by-side donut + WoW -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+          <div id="v2DonutWrap"></div>
+          <div id="v2WowWrap"></div>
+        </div>
+        <!-- V1 insight cards grid (bottom) -->
+        <div id="insightsGrid" class="insights-grid" style="margin-top:1rem"></div>
+      </div>
+
+      <!-- TEMPLATES -->
+      <div class="view" id="viewTemplates">
+        <div class="view-header" style="justify-content:center"><h2 data-i18n="nav_templates">Templates</h2></div>
+        <div id="templatesContent"></div>
+      </div>
+
+      <!-- BADGES -->
+      <div class="view" id="viewBadges">
+        <div class="view-header"><h2 class="badges-epic-title" data-i18n="nav_badges">Badges 🏆</h2></div>
+        <div class="xp-block" id="xpSection">
+          <div class="xp-level-txt" id="xpLevelLabel">Niveau 1</div>
+          <div class="xp-bar-row">
+            <div class="xp-track"><div class="xp-fill" id="xpBarFill"></div></div>
+            <span class="xp-txt" id="xpBarText">0 / 100 XP</span>
+          </div>
+          <div class="xp-rank-pill" id="xpRankPill" onclick="openRankModal()">🥉 Bronze ▼</div>
+        </div>
+        <div class="chrono-badge-hint" id="chronoBadgeHint">
+          <div class="cbh-koro">
+            <div class="chronos-figure" style="transform:scale(.7);transform-origin:top center">
+              <div class="ch-hat"><div class="ch-hat-top"></div><div class="ch-hat-board"></div><div class="ch-hat-tassel"></div></div>
+              <div class="ch-head"><div class="ch-eyes"><div class="ch-eye"></div><div class="ch-eye"></div></div><div class="ch-mouth"></div></div>
+              <div class="ch-body">
+                <div class="ch-collar"></div>
+                <div class="ch-gown-wrap">
+                  <div class="ch-shoulder-l"></div><div class="ch-shoulder-r"></div>
+                  <div class="ch-gown"><div class="ch-tie"></div></div>
+                  <div class="ch-arms"><div class="ch-arm l"><div class="ch-hand"></div></div><div class="ch-arm r"><div class="ch-hand"></div></div></div>
+                </div>
+                <div class="ch-legs"><div class="ch-leg"><div class="ch-shoe"></div></div><div class="ch-leg"><div class="ch-shoe"></div></div></div>
+              </div>
+            </div>
+          </div>
+          <div class="cbh-text" id="chronoBadgeText">...</div>
+        </div>
+        <div id="badgeGrid" class="badge-grid"></div>
+      </div>
+
+      <!-- PROFILE -->
+      <div class="view" id="viewProfile">
+        <div class="view-header"><h2 data-i18n="profile">Profil</h2></div>
+        <div class="profile-layout">
+          <div class="profile-left">
+            <div class="profile-av-wrap">
+              <div class="profile-av" id="profileAv">
+                <span id="profileAvEmoji">👤</span>
+                <img id="profileAvImg" src="" alt="" style="display:none">
+                <div class="av-camera" onclick="document.getElementById('avFile').click()">📷</div>
+              </div>
+              <input type="file" id="avFile" accept="image/*" style="display:none" onchange="handleAvatarChange(this)">
+            </div>
+            <h3 id="profileName"></h3>
+            <p id="profileEmail" class="txt2"></p>
+            <div id="profileRankBadge"></div>
+          </div>
+          <div class="profile-right">
+            <div class="stats-grid">
+              <div class="stat-card"><span class="sv" id="statEvents">0</span><span class="sl" data-i18n="events">Événements</span></div>
+              <div class="stat-card"><span class="sv" id="statStreak">0</span><span class="sl" data-i18n="streak">Streak</span></div>
+              <div class="stat-card"><span class="sv" id="statHours">0</span><span class="sl" data-i18n="hours">Heures</span></div>
+              <div class="stat-card"><span class="sv" id="statBadges">0</span><span class="sl" data-i18n="badges">Badges</span></div>
+            </div>
+            <div class="profile-form">
+              <h3 data-i18n="info">Informations</h3>
+              <div class="form-group"><label data-i18n="firstname">Prénom</label><input type="text" id="profileNameInput"></div>
+              <div class="form-group"><label>Email</label><input type="email" id="profileEmailInput" disabled></div>
+              <button class="btn-primary" onclick="saveProfile()" data-i18n="save">Sauvegarder</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div class="view" id="viewSettings">
+        <div class="view-header"><h2 data-i18n="nav_settings">Paramètres ⚙️</h2></div>
+        <div class="settings-content">
+          <div class="setting-card">
+            <h3>🌐 <span data-i18n="language">Langue</span></h3>
+            <div class="sc-center">
+              <div class="lang-dd-wrap" id="langDDWrap">
+                <button class="lang-dd-btn" id="langDDBtn" onclick="toggleLangDD()">
+                  <span class="lang-dd-flag" id="langDDFlag"></span>
+                  <span id="langDDName">Français</span>
+                  <span>▼</span>
+                </button>
+                <div class="lang-dd-menu" id="langDDMenu">
+                  <div class="lang-dd-item" onclick="setLang('fr')"><svg class="flag-xs" viewBox="0 0 60 40"><rect width="20" height="40" fill="#002395"/><rect x="20" width="20" height="40" fill="#fff"/><rect x="40" width="20" height="40" fill="#ED2939"/></svg> Français</div>
+                  <div class="lang-dd-item" onclick="setLang('en')"><svg class="flag-xs" viewBox="0 0 60 40"><rect width="60" height="40" fill="#012169"/><path d="M0,0 L60,40 M60,0 L0,40" stroke="#fff" stroke-width="7"/><path d="M0,0 L60,40 M60,0 L0,40" stroke="#C8102E" stroke-width="4"/><path d="M30,0 V40 M0,20 H60" stroke="#fff" stroke-width="11"/><path d="M30,0 V40 M0,20 H60" stroke="#C8102E" stroke-width="6"/></svg> English</div>
+                  <div class="lang-dd-item" onclick="setLang('de')"><svg class="flag-xs" viewBox="0 0 60 40"><rect width="60" height="13.3" fill="#000"/><rect y="13.3" width="60" height="13.3" fill="#DD0000"/><rect y="26.6" width="60" height="13.4" fill="#FFCE00"/></svg> Deutsch</div>
+                  <div class="lang-dd-item" onclick="setLang('es')"><svg class="flag-xs" viewBox="0 0 60 40"><rect width="60" height="8" fill="#c60b1e"/><rect y="8" width="60" height="24" fill="#ffc400"/><rect y="32" width="60" height="8" fill="#c60b1e"/></svg> Español</div>
+                  <div class="lang-dd-item" onclick="setLang('it')"><svg class="flag-xs" viewBox="0 0 60 40"><rect width="20" height="40" fill="#009246"/><rect x="20" width="20" height="40" fill="#fff"/><rect x="40" width="20" height="40" fill="#CE2B37"/></svg> Italiano</div>
+                  <div class="lang-dd-item" onclick="setLang('ar')"><svg class="flag-xs" viewBox="0 0 60 40"><rect width="60" height="40" fill="#006C35"/><rect width="20" height="40" fill="#fff"/></svg> العربية</div>
+                  <div class="lang-dd-item" onclick="setLang('pt')"><svg class="flag-xs" viewBox="0 0 60 40"><rect width="60" height="40" fill="#E21C1C"/><rect width="24" height="40" fill="#006600"/></svg> Português</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="setting-card">
+            <h3>🔔 <span data-i18n="notifications">Notifications</span></h3>
+            <div class="sc-center">
+              <div class="yn-toggle"><div class="yn-slider" id="notifSlider"></div>
+                <button class="yn-btn" id="notifYes" onclick="setNotif(true)" data-i18n="yes">Oui</button>
+                <button class="yn-btn" id="notifNo" onclick="setNotif(false)" data-i18n="no">Non</button>
+              </div>
+            </div>
+          </div>
+          <div class="setting-card">
+            <h3>🎨 <span data-i18n="theme">Thème</span></h3>
+            <div class="sc-center">
+              <div class="yn-toggle"><div class="yn-slider" id="themeSlider"></div>
+                <button class="yn-btn" id="themeLight" onclick="setTheme('light')">☀️ Clair</button>
+                <button class="yn-btn" id="themeDark" onclick="setTheme('dark')">🌙 Sombre</button>
+              </div>
+            </div>
+          </div>
+          <div class="setting-card">
+            <h3>🔑 <span data-i18n="api_key">Clé API Anthropic</span></h3>
+            <div class="sc-center">
+              <div class="api-key-row">
+                <input type="password" id="apiKeyInput" placeholder="sk-ant-..." class="api-key-inp">
+                <button class="btn-primary" onclick="saveApiKey()" data-i18n="save">Enregistrer</button>
+              </div>
+              <p class="hint-txt" data-i18n="api_hint">Clé stockée localement. Nécessaire pour Chronos IA et la génération.</p>
+            </div>
+          </div>
+          <div class="setting-card">
+            <h3>🔒 <span data-i18n="privacy">Confidentialité</span></h3>
+            <div class="sc-center">
+              <button class="btn-secondary" onclick="requestPasswordChange()" data-i18n="change_pwd">Changer le mot de passe</button>
+            </div>
+          </div>
+          <div class="setting-card">
+            <h3>📊 <span data-i18n="data">Données</span></h3>
+            <div class="sc-center" style="gap:.75rem">
+              <button class="btn-secondary" onclick="exportData()" data-i18n="export">Exporter mes données</button>
+              <button class="btn-secondary" onclick="logout()" style="border-color:rgba(255,107,53,.4);color:var(--primary)">🚪 Se déconnecter</button>
+              <button class="btn-danger" onclick="deleteAccount()" data-i18n="delete_account">Supprimer mon compte</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- ══════════════ SESSION RÉVISION (fullscreen) ══════════════ -->
+<div id="sessionScreen" class="session-screen" style="display:none">
+  <button class="session-back" onclick="tryExitSession()" title="Quitter la session">✕ Quitter</button>
+  <div class="session-mascot-wrap" id="sessionMascot" onclick="openChronosChat()">
+  <div class="chronos-figure" id="sessionKoroWrap">
+    <div class="ch-halo"></div>
+    <div class="ch-hat">
+      <div class="ch-hat-top"></div>
+      <div class="ch-hat-board"></div>
+      <div class="ch-hat-tassel"></div>
+    </div>
+    <div class="ch-head" id="sessionKoroHead">
+      <div class="ch-brows"><div class="ch-brow"></div><div class="ch-brow"></div></div>
+      <div class="ch-eyes"><div class="ch-eye"></div><div class="ch-eye"></div></div>
+      <div class="ch-mouth"></div>
+    </div>
+    <div class="ch-body">
+      <div class="ch-collar"></div>
+      <div class="ch-gown-wrap">
+        <div class="ch-shoulder-l"></div><div class="ch-shoulder-r"></div>
+        <div class="ch-gown" id="sessionKoroSuit"><div class="ch-tie" id="sessionKoroTie"></div></div>
+        <div class="ch-arms"><div class="ch-arm l"><div class="ch-hand"></div></div><div class="ch-arm r"><div class="ch-hand"></div></div></div>
+      </div>
+      <div class="ch-legs"><div class="ch-leg"><div class="ch-shoe"></div></div><div class="ch-leg"><div class="ch-shoe"></div></div></div>
+    </div>
+    <div class="ch-cloud"></div>
+  </div>
+  <div class="sess-chronos-label">Chronos</div>
+</div>
+  <div class="session-content">
+    <div class="session-time-display" id="sessionTimeDisplay">02:00:00</div>
+    <div class="session-arc-wrap">
+      <svg class="session-arc-svg" viewBox="0 0 380 230">
+        <path class="arc-bg" d="M 30 215 A 160 160 0 0 1 350 215" fill="none" stroke-width="20" stroke-linecap="round"/>
+        <path class="arc-fill" id="arcFill" d="M 30 215 A 160 160 0 0 1 350 215" fill="none" stroke-width="20" stroke-linecap="round" stroke-dasharray="503" stroke-dashoffset="503"/>
+      </svg>
+      <div class="session-status-txt" id="sessionStatusTxt">Travail</div>
+    </div>
+    <div class="session-info">
+      <span id="sessionPhaseLabel">Session 1/1</span>
+      <span id="sessionBreakLabel">Pause : 5 min</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ MODALS ══════════════ -->
+
+<!-- Welcome Chronos -->
+<div class="modal" id="welcomeModal">
+  <div class="modal-box wc-box">
+<div class="wc-koro">
+  <div class="chronos-figure" id="wcKoroWrap" style="transform:scale(1.5);margin-bottom:1.2rem;transform-origin:top center">
+    <div class="ch-halo"></div>
+    <div class="ch-hat"><div class="ch-hat-top"></div><div class="ch-hat-board"></div><div class="ch-hat-tassel"></div></div>
+    <div class="ch-head" id="wcKoroHead">
+      <div class="ch-brows"><div class="ch-brow"></div><div class="ch-brow"></div></div>
+      <div class="ch-eyes"><div class="ch-eye"></div><div class="ch-eye"></div></div>
+      <div class="ch-mouth" id="wcMouth"></div>
+    </div>
+    <div class="ch-body">
+      <div class="ch-collar"></div>
+      <div class="ch-gown-wrap">
+        <div class="ch-shoulder-l"></div><div class="ch-shoulder-r"></div>
+        <div class="ch-gown" id="wcKoroSuit"><div class="ch-tie" id="wcKoroTie"></div></div>
+        <div class="ch-arms"><div class="ch-arm l"><div class="ch-hand"></div></div><div class="ch-arm r"><div class="ch-hand"></div></div></div>
+      </div>
+      <div class="ch-legs"><div class="ch-leg"><div class="ch-shoe"></div></div><div class="ch-leg"><div class="ch-shoe"></div></div></div>
+    </div>
+    <div class="ch-cloud"></div>
+  </div>
+</div>
+    <h3 id="wcTitle">Bonjour ! Je suis <span style="color:var(--primary)">Chronos</span> !</h3>
+    <p id="wcDesc" class="txt2">Ton assistant IA pour organiser ta vie. Veux-tu un tutoriel ?</p>
+    <div class="modal-btns">
+      <button class="btn-secondary" id="wcSkip" onclick="skipTutorial()">Non merci</button>
+      <button class="btn-primary" id="wcStart" onclick="startTutorial()">Oui ✨</button>
+    </div>
+  </div>
+</div>
+
+<!-- Chronos Chat -->
+<div class="chronos-chat-modal" id="chronosChatModal" onclick="if(event.target===this)closeChronosChat()">
+  <div class="chat-modal-box">
+    <div class="chat-modal-header">
+      <div style="display:flex;align-items:center;gap:.6rem">
+        <div style="width:34px;height:34px;border-radius:50%;background:radial-gradient(circle at 38% 30%,#fffbc0,#FFD700 55%,#c49000);box-shadow:0 0 14px rgba(255,208,0,.8);flex-shrink:0;border:2px solid #8a6200"></div>
+        <div><strong style="font-size:.95rem">Chronos</strong><br><span class="txt2" style="font-size:.75rem" data-i18n="ai_assistant">Assistant IA</span></div>
+      </div>
+      <div class="chat-modal-tabs">
+        <div class="cmt-slider" id="cmtSlider"></div>
+        <button class="cmt-tab active" id="cmtTalk" onclick="setChatMode('talk')" data-i18n="talk">💬 Parler</button>
+        <button class="cmt-tab" id="cmtLocker" onclick="setChatMode('locker')" data-i18n="locker">🎒 Casier</button>
+      </div>
+      <button class="btn-icon" onclick="closeChronosChat()" style="font-size:1.1rem">✕</button>
+    </div>
+    <div id="chatTalkView" style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+      <div class="chat-messages" id="chatMessages">
+        <div class="chat-msg cm-chrono"><div class="chat-bubble" id="chronoInitMsg">Salut ! Comment puis-je t'aider ? 😊</div></div>
+      </div>
+      <div class="chat-input-row">
+        <input class="chat-inp" type="text" id="chatInput" placeholder="..." onkeydown="if(event.key==='Enter')sendMsg()">
+        <button class="chat-send" onclick="sendMsg()">➤</button>
+      </div>
+    </div>
+    <div id="chatLockerView" class="locker-view" style="display:none">
+      <div class="locker-grid" id="lockerGrid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Session Launcher -->
+<div class="modal" id="sessionModal" onclick="if(event.target===this)closeModal('sessionModal')">
+  <div class="modal-box">
+    <h3 data-i18n="start_session">⏱️ Lancer une session</h3>
+    <div class="form-group"><label data-i18n="session_duration">Durée totale (h)</label><div class="cf-num-wrap"><input type="number" id="sessHours" value="2" min="0" max="12" step="0.5"><div class="cf-num-arrows"><div class="cf-num-up" onclick="cfNum('sessHours',0.5,0,12)"><svg viewBox="0 0 10 6"><path d="M1 5l4-4 4 4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="cf-num-down" onclick="cfNum('sessHours',-0.5,0,12)"><svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div></div></div></div>
+    <div class="form-group"><label data-i18n="work_block">Bloc travail (min)</label><div class="cf-num-wrap"><input type="number" id="sessWorkMin" value="55" min="10" max="120" step="5"><div class="cf-num-arrows"><div class="cf-num-up" onclick="cfNum('sessWorkMin',5,10,120)"><svg viewBox="0 0 10 6"><path d="M1 5l4-4 4 4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="cf-num-down" onclick="cfNum('sessWorkMin',-5,10,120)"><svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div></div></div></div>
+    <div class="form-group"><label data-i18n="break_block">Pause (min)</label><div class="cf-num-wrap"><input type="number" id="sessBreakMin" value="5" min="1" max="30" step="1"><div class="cf-num-arrows"><div class="cf-num-up" onclick="cfNum('sessBreakMin',1,1,30)"><svg viewBox="0 0 10 6"><path d="M1 5l4-4 4 4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="cf-num-down" onclick="cfNum('sessBreakMin',-1,1,30)"><svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div></div></div></div>
+    <div class="modal-btns">
+      <button class="btn-secondary" onclick="closeModal('sessionModal')" data-i18n="cancel">Annuler</button>
+      <button class="btn-primary" onclick="launchSession()">🚀 <span data-i18n="start">Démarrer</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- Exit Session Confirm -->
+<div class="modal" id="exitSessionModal">
+  <div class="modal-box">
+    <h3 data-i18n="exit_session_title">Quitter la session ?</h3>
+    <p class="txt2" data-i18n="exit_session_desc">Ta progression sera perdue.</p>
+    <div class="modal-btns">
+      <button class="btn-secondary" onclick="closeModal('exitSessionModal')" data-i18n="no_stay">Rester</button>
+      <button class="btn-primary" onclick="confirmExitSession()" data-i18n="yes_quit">Quitter</button>
+    </div>
+  </div>
+</div>
+
+<!-- Day Detail -->
+<div class="modal-full" id="dayDetailModal" onclick="if(event.target===this)closeDayDetail()">
+  <div class="mf-content"><button class="mf-close" onclick="closeDayDetail()">✕</button><div id="dayDetailContent"></div></div>
+</div>
+
+<!-- Insight Detail -->
+<div class="modal-full" id="insightDetailModal" onclick="if(event.target===this)closeInsightDetail()">
+  <div class="mf-content"><button class="mf-close" onclick="closeInsightDetail()">✕</button><div id="insightDetailContent"></div></div>
+</div>
+
+<!-- Event Detail -->
+<div class="modal" id="eventDetailModal">
+  <div class="modal-box">
+    <h3 id="eventDetailTitle"></h3>
+    <div id="eventDetailBody"></div>
+    <div class="priority-selector">
+      <label data-i18n="change_priority">Priorité :</label>
+      <button class="prio-btn critical" onclick="changePriority('critical')">🔴 Critique</button>
+      <button class="prio-btn high" onclick="changePriority('high')">🟠 Haute</button>
+      <button class="prio-btn medium" onclick="changePriority('medium')">🟡 Moyenne</button>
+      <button class="prio-btn low" onclick="changePriority('low')">🟢 Basse</button>
+    </div>
+    <div class="modal-btns"><button class="btn-secondary" onclick="closeEventDetail()" data-i18n="close">Fermer</button></div>
+  </div>
+</div>
+
+<!-- Rank Modal -->
+<div class="modal" id="rankModal" onclick="if(event.target===this)closeRankModal()">
+  <div class="modal-box" style="max-width:420px">
+    <h3 data-i18n="all_ranks">🏆 Tous les Rangs</h3>
+    <div id="rankModalContent"></div>
+    <div class="modal-btns"><button class="btn-secondary" onclick="closeRankModal()" data-i18n="close">Fermer</button></div>
+  </div>
+</div>
+
+<!-- Password -->
+<div class="modal" id="passwordModal">
+  <div class="modal-box">
+    <h3>🔒 Changer le mot de passe</h3>
+    <p class="txt2">Code envoyé à <strong id="pwdEmail"></strong></p>
+    <div class="form-group"><label>Code</label><input type="text" id="pwdCode" placeholder="123456"></div>
+    <div class="form-group"><label>Nouveau mot de passe</label><input type="password" id="pwdNew" placeholder="••••••••"></div>
+    <div class="modal-btns">
+      <button class="btn-secondary" onclick="closeModal('passwordModal')">Annuler</button>
+      <button class="btn-primary" onclick="confirmPasswordChange()">Confirmer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Voice -->
+<div class="modal" id="voiceModal">
+  <div class="modal-box">
+    <h3>🎤 Enregistrement vocal</h3>
+    <div class="voice-rings"><div class="vring"></div><div class="vring d1"></div><div class="vring d2"></div><span>🎤</span></div>
+    <p id="voiceStatus">Parle...</p>
+    <p id="voiceTranscript" class="voice-transcript"></p>
+    <div class="modal-btns">
+      <button class="btn-secondary" onclick="stopVoice()">Annuler</button>
+      <button class="btn-primary" id="voiceConfirm" onclick="confirmVoice()" style="display:none">Utiliser</button>
+    </div>
+  </div>
+</div>
+
+<!-- What to revise? -->
+<div class="modal" id="reviseModal" onclick="if(event.target===this)closeModal('reviseModal')">
+  <div class="modal-box">
+    <h3 id="reviseTitle">📚 Que veux-tu réviser ?</h3>
+    <div class="form-group"><label id="reviseSubjectLabel">Matière</label><input type="text" id="reviseSubject" placeholder="Maths, Physique, Histoire..."></div>
+    <div class="form-group"><label id="reviseDateLabel">Pour quand ?</label><input type="text" id="reviseDate" placeholder="Ex : dans 3 jours, vendredi..."></div>
+    <div class="modal-btns">
+      <button class="btn-secondary" onclick="closeModal('reviseModal')">Annuler</button>
+      <button class="btn-primary" id="reviseConfirm" onclick="confirmRevise()">Générer 🚀</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ WEEKLY REVIEW MODAL ══ -->
+<div class="wr-modal-overlay" id="weeklyReviewModal">
+  <div class="wr-modal-box">
+    <div class="wr-header">
+      <div class="wr-koro-mini">⚡</div>
+      <div class="wr-header-text">
+        <h2 id="wrTitle">Bilan de ta semaine 📊</h2>
+        <p id="wrSubtitle">Chronos a analysé ta semaine</p>
+      </div>
+    </div>
+    <div class="wr-stats-grid" id="wrStatsGrid"></div>
+    <div class="wr-section">
+      <h3>💬 Feedback de Chronos</h3>
+      <div class="wr-feedback" id="wrFeedback"></div>
+    </div>
+    <div class="wr-advice" id="wrAdvice"></div>
+    <div class="wr-footer">
+      <button class="btn-secondary" style="flex:1" onclick="closeWeeklyReview()">Plus tard</button>
+      <button class="btn-primary" style="flex:1" onclick="closeWeeklyReview();switchView('planning')">📋 Planifier la semaine →</button>
+    </div>
+  </div>
+</div>
+
+<!-- XP Level Up Notification -->
+<div class="lvlup-notif" id="lvlupNotif" style="display:none">
+  <div class="lvlup-koro" id="lvlupKoro"></div>
+  <div class="lvlup-text"><div class="lvlup-title" id="lvlupTitle">⬆️ Niveau !</div><div class="lvlup-sub" id="lvlupSub"></div></div>
+</div>
+<!-- XP Popup -->
+<div class="xp-popup" id="xpPopup"></div>
+<!-- Toast -->
+<div class="toast" id="toast"><span>✨</span><span id="toastMsg"></span></div>
+<!-- Loading -->
+<div class="loading" id="loading"><div class="ld-inner"><div class="ld-ring"></div><p id="loadingTxt">Chronos analyse...</p></div></div>
+
+<!-- Firebase + App en un seul module ES -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAnalytics, logEvent } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, addDoc, writeBatch, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBVp6BXVzfoRqq1gH4dFWVx6HrS97VXU18",
+  authDomain: "chronoflow-8a492.firebaseapp.com",
+  projectId: "chronoflow-8a492",
+  storageBucket: "chronoflow-8a492.firebasestorage.app",
+  messagingSenderId: "623485360625",
+  appId: "1:623485360625:web:97e2f0063f9b277800cc50",
+  measurementId: "G-DXCWEZT0GJ"
+};
+
+let analytics;
+const app  = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getFirestore(app);
+try { analytics = getAnalytics(app); } catch(e) { analytics = null; }
+
+function fbLog(n,p={}) { try { if(analytics) logEvent(analytics,n,p); } catch(e){} }
+
+async function fbRegister(name,email,password) {
+  const cred = await createUserWithEmailAndPassword(auth,email,password);
+  const uid = cred.user.uid;
+  await setDoc(doc(db,"users",uid), {
+    name, email, avatar:"", createdAt:serverTimestamp(), totalEvents:0,
+    xp:0, level:1, totalXpEarned:0, streak:0, lastUsedDate:null,
+    tutorialDone:false, template:"custom", unlockedBadges:[],
+    templateData:{maxStudy:4,maxLeisure:3,breakMin:10,courses:[],workStart:"09:00",workEnd:"18:00",maxWork:8},
+    theme:"dark", lang:localStorage.getItem("cf_lang")||"fr", notifications:true, equippedItem:"default", todos:[]
+  });
+  fbLog("sign_up",{method:"email"});
+  return uid;
+}
+
+async function fbLogin(email,password) {
+  const cred = await signInWithEmailAndPassword(auth,email,password);
+  fbLog("login",{method:"email"});
+  return cred.user.uid;
+}
+
+async function fbLogout() { await signOut(auth); }
+
+function fbOnAuthChange(cb) { onAuthStateChanged(auth, user => cb(user ? user.uid : null)); }
+
+async function fbChangePassword(currentPassword,newPassword) {
+  const user = auth.currentUser;
+  const credential = EmailAuthProvider.credential(user.email,currentPassword);
+  await reauthenticateWithCredential(user,credential);
+  await updatePassword(user,newPassword);
+}
+
+async function fbGetUser(uid) {
+  const snap = await getDoc(doc(db,"users",uid));
+  if(!snap.exists()) return null;
+  return { uid, ...snap.data() };
+}
+
+async function fbSaveUser(uid,data) {
+  const { events, uid:_uid, ...safeData } = data;
+  await setDoc(doc(db,"users",uid), safeData, {merge:true});
+}
+
+async function fbDeleteAccount(uid) {
+  const evSnap = await getDocs(collection(db,"users",uid,"events"));
+  const batch = writeBatch(db);
+  evSnap.forEach(d => batch.delete(d.ref));
+  await batch.commit();
+  await deleteDoc(doc(db,"users",uid));
+  await auth.currentUser.delete();
+}
+
+async function fbGetEvents(uid) {
+  const snap = await getDocs(collection(db,"users",uid,"events"));
+  return snap.docs.map(d => ({
+    id:d.id, ...d.data(),
+    date: d.data().date?.toDate ? d.data().date.toDate() : new Date(d.data().date)
+  }));
+}
+
+async function fbAddEvent(uid,event) {
+  const { id, ...evData } = event;
+  const ref = await addDoc(collection(db,"users",uid,"events"), {
+    ...evData,
+    date: event.date instanceof Date ? event.date : new Date(event.date)
+  });
+  fbLog("event_created",{type:event.type||"unknown"});
+  return ref.id;
+}
+
+async function fbUpdateEvent(uid,eventId,changes) {
+  await updateDoc(doc(db,"users",uid,"events",eventId),changes);
+}
+
+async function fbGetTodos(uid) {
+  const snap = await getDoc(doc(db,"users",uid));
+  if(!snap.exists()) return [];
+  return snap.data().todos || [];
+}
+
+window.FB = { fbRegister, fbLogin, fbLogout, fbOnAuthChange, fbChangePassword, fbGetUser, fbSaveUser, fbDeleteAccount, fbGetEvents, fbAddEvent, fbUpdateEvent, fbGetTodos, fbLog, auth, db };
+// Disable reCAPTCHA Enterprise enforcement
+try {
+  auth.tenantId = null;
+  // Force email/password to not require reCAPTCHA
+  if (auth._getRecaptchaConfig) {
+    Object.defineProperty(auth, '_recaptchaConfig', {
+      get: () => ({ emailPasswordEnabled: false }),
+      configurable: true
+    });
+  }
+} catch(e) {}
+console.log("✅ Firebase prêt");
+
+const s = document.createElement('script');
+s.src = 'script.js';
+s.onload = () => {
+  if(typeof initApp === 'function') initApp();
+  else console.error('initApp non trouvée');
+};
+s.onerror = () => console.error('Erreur chargement script.js');
+document.head.appendChild(s);
+</script>
+</body>
+</html>
