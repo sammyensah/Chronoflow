@@ -833,6 +833,17 @@ async function fbGetTodos(uid) {
 }
 
 window.FB = { fbRegister, fbLogin, fbLogout, fbOnAuthChange, fbChangePassword, fbGetUser, fbSaveUser, fbDeleteAccount, fbGetEvents, fbAddEvent, fbUpdateEvent, fbGetTodos, fbLog, auth, db };
+// Disable reCAPTCHA Enterprise enforcement
+try {
+  auth.tenantId = null;
+  // Force email/password to not require reCAPTCHA
+  if (auth._getRecaptchaConfig) {
+    Object.defineProperty(auth, '_recaptchaConfig', {
+      get: () => ({ emailPasswordEnabled: false }),
+      configurable: true
+    });
+  }
+} catch(e) {}
 console.log("✅ Firebase prêt");
 
 const s = document.createElement('script');
