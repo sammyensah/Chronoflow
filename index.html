@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>ChronoFlow</title>
+<title>ChronoFlow V5</title>
 <link rel="stylesheet" href="style.css">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
@@ -78,9 +78,9 @@
     <div class="ob-step" id="obStep2">
       <h2 class="ob-title" id="obStudentTitle">🎓 Configuration Étudiant</h2>
       <div class="ob-limits">
-        <div class="form-group"><label id="lblMaxStudy">Max révision / jour (h)</label><div class="cf-num-wrap"><input type="number" id="obMaxStudy" value="4" min="1" max="12"><div class="cf-num-arrows"><div class="cf-num-up" onclick="cfNum('obMaxStudy',1,1,12)"><svg viewBox="0 0 10 6"><path d="M1 5l4-4 4 4" stroke="var(--orange)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="cf-num-down" onclick="cfNum('obMaxStudy',-1,1,12)"><svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="var(--orange)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div></div></div></div>
-        <div class="form-group"><label id="lblMaxLeisure">Max loisirs / jour (h)</label><div class="cf-num-wrap"><input type="number" id="obMaxLeisure" value="3" min="0" max="12"><div class="cf-num-arrows"><div class="cf-num-up" onclick="cfNum('obMaxLeisure',1,0,12)"><svg viewBox="0 0 10 6"><path d="M1 5l4-4 4 4" stroke="var(--orange)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="cf-num-down" onclick="cfNum('obMaxLeisure',-1,0,12)"><svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="var(--orange)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div></div></div></div>
-        <div class="form-group"><label id="lblBreakBetween">Pause entre événements (min)</label><div class="cf-num-wrap"><input type="number" id="obBreakBetween" value="10" min="5" max="60" step="5"><div class="cf-num-arrows"><div class="cf-num-up" onclick="cfNum('obBreakBetween',5,5,60)"><svg viewBox="0 0 10 6"><path d="M1 5l4-4 4 4" stroke="var(--orange)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="cf-num-down" onclick="cfNum('obBreakBetween',-5,5,60)"><svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="var(--orange)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div></div></div></div>
+        <div class="form-group"><label id="lblMaxStudy">Max révision / jour (h)</label><div class="cf-num-wrap"><input type="number" id="obMaxStudy" value="4" min="1" max="12"><div class="cf-num-arrows"><div class="cf-num-up" onclick="cfNum('obMaxStudy',1,1,12)"><svg viewBox="0 0 10 6"><path d="M1 5l4-4 4 4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="cf-num-down" onclick="cfNum('obMaxStudy',-1,1,12)"><svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div></div></div></div>
+        <div class="form-group"><label id="lblMaxLeisure">Max loisirs / jour (h)</label><div class="cf-num-wrap"><input type="number" id="obMaxLeisure" value="3" min="0" max="12"><div class="cf-num-arrows"><div class="cf-num-up" onclick="cfNum('obMaxLeisure',1,0,12)"><svg viewBox="0 0 10 6"><path d="M1 5l4-4 4 4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="cf-num-down" onclick="cfNum('obMaxLeisure',-1,0,12)"><svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div></div></div></div>
+        <div class="form-group"><label id="lblBreakBetween">Pause entre événements (min)</label><div class="cf-num-wrap"><input type="number" id="obBreakBetween" value="10" min="5" max="60" step="5"><div class="cf-num-arrows"><div class="cf-num-up" onclick="cfNum('obBreakBetween',5,5,60)"><svg viewBox="0 0 10 6"><path d="M1 5l4-4 4 4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="cf-num-down" onclick="cfNum('obBreakBetween',-5,5,60)"><svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div></div></div></div>
       </div>
       <div id="coursesContainer" class="courses-list"></div>
       <button class="btn-secondary" onclick="addCourse()">+ <span id="btnAddCourse">Ajouter un cours</span></button>
@@ -94,8 +94,8 @@
       <div class="ob-limits">
         <div class="form-group"><label id="lblWorkStart">Début journée</label><input type="time" id="workStart" value="09:00" step="300"></div>
         <div class="form-group"><label id="lblWorkEnd">Fin journée</label><input type="time" id="workEnd" value="18:00" step="300"></div>
-        <div class="form-group"><label id="lblMaxWork">Max travail / jour (h)</label><div class="cf-num-wrap"><input type="number" id="obMaxWork" value="8" min="1" max="16"><div class="cf-num-arrows"><div class="cf-num-up" onclick="cfNum('obMaxWork',1,1,16)"><svg viewBox="0 0 10 6"><path d="M1 5l4-4 4 4" stroke="var(--orange)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="cf-num-down" onclick="cfNum('obMaxWork',-1,1,16)"><svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="var(--orange)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div></div></div></div>
-        <div class="form-group"><label id="lblBreakW">Pause entre tâches (min)</label><div class="cf-num-wrap"><input type="number" id="obBreakWork" value="10" min="5" max="60" step="5"><div class="cf-num-arrows"><div class="cf-num-up" onclick="cfNum('obBreakWork',5,5,60)"><svg viewBox="0 0 10 6"><path d="M1 5l4-4 4 4" stroke="var(--orange)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="cf-num-down" onclick="cfNum('obBreakWork',-5,5,60)"><svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="var(--orange)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div></div></div></div>
+        <div class="form-group"><label id="lblMaxWork">Max travail / jour (h)</label><div class="cf-num-wrap"><input type="number" id="obMaxWork" value="8" min="1" max="16"><div class="cf-num-arrows"><div class="cf-num-up" onclick="cfNum('obMaxWork',1,1,16)"><svg viewBox="0 0 10 6"><path d="M1 5l4-4 4 4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="cf-num-down" onclick="cfNum('obMaxWork',-1,1,16)"><svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div></div></div></div>
+        <div class="form-group"><label id="lblBreakW">Pause entre tâches (min)</label><div class="cf-num-wrap"><input type="number" id="obBreakWork" value="10" min="5" max="60" step="5"><div class="cf-num-arrows"><div class="cf-num-up" onclick="cfNum('obBreakWork',5,5,60)"><svg viewBox="0 0 10 6"><path d="M1 5l4-4 4 4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="cf-num-down" onclick="cfNum('obBreakWork',-5,5,60)"><svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div></div></div></div>
       </div>
       <div class="ob-btns">
         <button class="btn-secondary" onclick="goObStep(1)">← <span>Retour</span></button>
@@ -105,9 +105,9 @@
     <div class="ob-step" id="obStep2c">
       <h2 class="ob-title" id="obCustomTitle">✨ Configuration Personnalisée</h2>
       <div class="ob-limits">
-        <div class="form-group"><label id="lblMaxStudyC">Max révision / jour (h)</label><div class="cf-num-wrap"><input type="number" id="obMaxStudyC" value="4" min="0" max="16"><div class="cf-num-arrows"><div class="cf-num-up" onclick="cfNum('obMaxStudyC',1,0,16)"><svg viewBox="0 0 10 6"><path d="M1 5l4-4 4 4" stroke="var(--orange)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="cf-num-down" onclick="cfNum('obMaxStudyC',-1,0,16)"><svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="var(--orange)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div></div></div></div>
-        <div class="form-group"><label id="lblMaxLeisureC">Max loisirs / jour (h)</label><div class="cf-num-wrap"><input type="number" id="obMaxLeisureC" value="3" min="0" max="16"><div class="cf-num-arrows"><div class="cf-num-up" onclick="cfNum('obMaxLeisureC',1,0,16)"><svg viewBox="0 0 10 6"><path d="M1 5l4-4 4 4" stroke="var(--orange)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="cf-num-down" onclick="cfNum('obMaxLeisureC',-1,0,16)"><svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="var(--orange)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div></div></div></div>
-        <div class="form-group"><label id="lblBreakC">Pause entre événements (min)</label><div class="cf-num-wrap"><input type="number" id="obBreakCustom" value="10" min="5" max="60" step="5"><div class="cf-num-arrows"><div class="cf-num-up" onclick="cfNum('obBreakCustom',5,5,60)"><svg viewBox="0 0 10 6"><path d="M1 5l4-4 4 4" stroke="var(--orange)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="cf-num-down" onclick="cfNum('obBreakCustom',-5,5,60)"><svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="var(--orange)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div></div></div></div>
+        <div class="form-group"><label id="lblMaxStudyC">Max révision / jour (h)</label><div class="cf-num-wrap"><input type="number" id="obMaxStudyC" value="4" min="0" max="16"><div class="cf-num-arrows"><div class="cf-num-up" onclick="cfNum('obMaxStudyC',1,0,16)"><svg viewBox="0 0 10 6"><path d="M1 5l4-4 4 4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="cf-num-down" onclick="cfNum('obMaxStudyC',-1,0,16)"><svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div></div></div></div>
+        <div class="form-group"><label id="lblMaxLeisureC">Max loisirs / jour (h)</label><div class="cf-num-wrap"><input type="number" id="obMaxLeisureC" value="3" min="0" max="16"><div class="cf-num-arrows"><div class="cf-num-up" onclick="cfNum('obMaxLeisureC',1,0,16)"><svg viewBox="0 0 10 6"><path d="M1 5l4-4 4 4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="cf-num-down" onclick="cfNum('obMaxLeisureC',-1,0,16)"><svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div></div></div></div>
+        <div class="form-group"><label id="lblBreakC">Pause entre événements (min)</label><div class="cf-num-wrap"><input type="number" id="obBreakCustom" value="10" min="5" max="60" step="5"><div class="cf-num-arrows"><div class="cf-num-up" onclick="cfNum('obBreakCustom',5,5,60)"><svg viewBox="0 0 10 6"><path d="M1 5l4-4 4 4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="cf-num-down" onclick="cfNum('obBreakCustom',-5,5,60)"><svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div></div></div></div>
       </div>
       <div class="ob-btns">
         <button class="btn-secondary" onclick="goObStep(1)">← Retour</button>
@@ -304,34 +304,35 @@
         <div class="month-cal-wrap"><div id="monthCal" class="month-cal"></div></div>
       </div>
 
-      <!-- INSIGHTS — Islands style -->
+      <!-- INSIGHTS -->
       <div class="view" id="viewInsights">
-        <div class="view-header">
-          <h2 data-i18n="nav_insights">Insights</h2>
-        </div>
+        <div class="view-header"><h2 data-i18n="nav_insights">Insights 📊</h2></div>
         <!-- Weekly review CTA -->
         <button class="weekly-review-btn" id="weeklyReviewBtnInsights" onclick="openWeeklyReview()">
           <span class="wr-icon">📊</span>
           <div class="wr-text"><h4>Bilan hebdomadaire</h4><p>Analyse complète de ta semaine par Chronos</p></div>
-          <span style="color:var(--orange);font-size:1.2rem">→</span>
+          <span style="color:var(--primary);font-size:1.2rem">→</span>
         </button>
-        <!-- Stats grid injected by JS -->
-        <div class="ins-stats-grid" id="insightsStatsIslands"></div>
-        <!-- Chronos insight bubble -->
-        <div id="v2ChronosInsightWrap"></div>
-        <!-- 52-week heatmap -->
-        <div id="v2HeatmapWrap"></div>
-        <!-- Charts row: XP graph + Donut / WoW -->
-        <div class="ins-charts-row" id="insChartsRowWrap">
-          <div id="v2XpGraphWrap" class="xp-graph-card"></div>
-          <div id="v2DonutWrap" class="donut-card"></div>
+        <!-- V1 stats row (top 3 cards) -->
+        <div class="insights-stats-row" id="insightsStatsRow"></div>
+        <!-- V1 bar chart (7 jours) -->
+        <div class="ins-chart-card" id="insChartCard">
+          <h3>📅 Activité sur 7 jours</h3>
+          <div class="ins-chart"><div class="ins-bar-row" id="insBarChart"></div></div>
         </div>
-        <div id="v2WowWrap" class="wow-card" style="margin-bottom:1.25rem"></div>
-        <!-- Mini insight cards -->
-        <div id="insightsGrid" class="insights-grid"></div>
-        <!-- Hidden V1 compat -->
-        <div id="insightsStatsRow" style="display:none"></div>
-        <div id="insChartCard" style="display:none"><div id="insBarChart"></div></div>
+        <!-- V2 Islands: Chronos insight bubble -->
+        <div id="v2ChronosInsightWrap"></div>
+        <!-- V2 Islands: 52-week heatmap -->
+        <div id="v2HeatmapWrap"></div>
+        <!-- V2 Islands: XP 30-day graph -->
+        <div id="v2XpGraphWrap"></div>
+        <!-- V2 Islands: Side-by-side donut + WoW -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+          <div id="v2DonutWrap"></div>
+          <div id="v2WowWrap"></div>
+        </div>
+        <!-- V1 insight cards grid (bottom) -->
+        <div id="insightsGrid" class="insights-grid" style="margin-top:1rem"></div>
       </div>
 
       <!-- TEMPLATES -->
@@ -469,7 +470,7 @@
             <h3>📊 <span data-i18n="data">Données</span></h3>
             <div class="sc-center" style="gap:.75rem">
               <button class="btn-secondary" onclick="exportData()" data-i18n="export">Exporter mes données</button>
-              <button class="btn-secondary" onclick="logout()" style="border-color:rgba(255,107,53,.4);color:var(--orange)">🚪 Se déconnecter</button>
+              <button class="btn-secondary" onclick="logout()" style="border-color:rgba(255,107,53,.4);color:var(--primary)">🚪 Se déconnecter</button>
               <button class="btn-danger" onclick="deleteAccount()" data-i18n="delete_account">Supprimer mon compte</button>
             </div>
           </div>
@@ -551,7 +552,7 @@
     <div class="ch-cloud"></div>
   </div>
 </div>
-    <h3 id="wcTitle">Bonjour ! Je suis <span style="color:var(--orange)">Chronos</span> !</h3>
+    <h3 id="wcTitle">Bonjour ! Je suis <span style="color:var(--primary)">Chronos</span> !</h3>
     <p id="wcDesc" class="txt2">Ton assistant IA pour organiser ta vie. Veux-tu un tutoriel ?</p>
     <div class="modal-btns">
       <button class="btn-secondary" id="wcSkip" onclick="skipTutorial()">Non merci</button>
@@ -594,9 +595,9 @@
 <div class="modal" id="sessionModal" onclick="if(event.target===this)closeModal('sessionModal')">
   <div class="modal-box">
     <h3 data-i18n="start_session">⏱️ Lancer une session</h3>
-    <div class="form-group"><label data-i18n="session_duration">Durée totale (h)</label><div class="cf-num-wrap"><input type="number" id="sessHours" value="2" min="0" max="12" step="0.5"><div class="cf-num-arrows"><div class="cf-num-up" onclick="cfNum('sessHours',0.5,0,12)"><svg viewBox="0 0 10 6"><path d="M1 5l4-4 4 4" stroke="var(--orange)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="cf-num-down" onclick="cfNum('sessHours',-0.5,0,12)"><svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="var(--orange)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div></div></div></div>
-    <div class="form-group"><label data-i18n="work_block">Bloc travail (min)</label><div class="cf-num-wrap"><input type="number" id="sessWorkMin" value="55" min="10" max="120" step="5"><div class="cf-num-arrows"><div class="cf-num-up" onclick="cfNum('sessWorkMin',5,10,120)"><svg viewBox="0 0 10 6"><path d="M1 5l4-4 4 4" stroke="var(--orange)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="cf-num-down" onclick="cfNum('sessWorkMin',-5,10,120)"><svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="var(--orange)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div></div></div></div>
-    <div class="form-group"><label data-i18n="break_block">Pause (min)</label><div class="cf-num-wrap"><input type="number" id="sessBreakMin" value="5" min="1" max="30" step="1"><div class="cf-num-arrows"><div class="cf-num-up" onclick="cfNum('sessBreakMin',1,1,30)"><svg viewBox="0 0 10 6"><path d="M1 5l4-4 4 4" stroke="var(--orange)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="cf-num-down" onclick="cfNum('sessBreakMin',-1,1,30)"><svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="var(--orange)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div></div></div></div>
+    <div class="form-group"><label data-i18n="session_duration">Durée totale (h)</label><div class="cf-num-wrap"><input type="number" id="sessHours" value="2" min="0" max="12" step="0.5"><div class="cf-num-arrows"><div class="cf-num-up" onclick="cfNum('sessHours',0.5,0,12)"><svg viewBox="0 0 10 6"><path d="M1 5l4-4 4 4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="cf-num-down" onclick="cfNum('sessHours',-0.5,0,12)"><svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div></div></div></div>
+    <div class="form-group"><label data-i18n="work_block">Bloc travail (min)</label><div class="cf-num-wrap"><input type="number" id="sessWorkMin" value="55" min="10" max="120" step="5"><div class="cf-num-arrows"><div class="cf-num-up" onclick="cfNum('sessWorkMin',5,10,120)"><svg viewBox="0 0 10 6"><path d="M1 5l4-4 4 4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="cf-num-down" onclick="cfNum('sessWorkMin',-5,10,120)"><svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div></div></div></div>
+    <div class="form-group"><label data-i18n="break_block">Pause (min)</label><div class="cf-num-wrap"><input type="number" id="sessBreakMin" value="5" min="1" max="30" step="1"><div class="cf-num-arrows"><div class="cf-num-up" onclick="cfNum('sessBreakMin',1,1,30)"><svg viewBox="0 0 10 6"><path d="M1 5l4-4 4 4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="cf-num-down" onclick="cfNum('sessBreakMin',-1,1,30)"><svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div></div></div></div>
     <div class="modal-btns">
       <button class="btn-secondary" onclick="closeModal('sessionModal')" data-i18n="cancel">Annuler</button>
       <button class="btn-primary" onclick="launchSession()">🚀 <span data-i18n="start">Démarrer</span></button>

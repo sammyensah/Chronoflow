@@ -679,26 +679,10 @@ function sendNotif(title,body){if(!S.notifications)return;if('Notification' in w
 
 /* ═══ HEADER ═══ */
 function updateHeader(){
-  const sn=document.getElementById('sidebarName');
-  const sr=document.getElementById('sidebarRank');
-  const sf=document.getElementById('sidebarXpFill');
-  const sv=document.getElementById('sidebarXpVal');
-  const sl=document.getElementById('sidebarXpLabel');
-  const sav=document.getElementById('sidebarAvEmoji');
-  const savImg=document.getElementById('sidebarAvImg');
-  if(sn&&S.user) sn.textContent=S.user.name||'—';
-  if(sr) sr.textContent=getRank(S.level||1).name;
-  if(sf){ const pct=Math.min(100,curLvXp()/nextLvXp()*100); sf.style.width=pct+'%'; }
-  if(sv) sv.textContent=(S.xp||0)+' XP';
-  if(sl) sl.textContent='Niveau '+(S.level||1);
-  if(sav&&S.user?.name) sav.textContent=S.user.name[0]?.toUpperCase()||'👤';
-  if(savImg&&S.user?.avatar&&S.user.avatar){savImg.src=S.user.avatar;savImg.style.display='block';if(sav)sav.style.display='none';}
-  
   const el=document.getElementById('headerStreak');if(el)el.textContent=S.streak;
   const img=document.getElementById('headerAvatarImg');const em=document.getElementById('headerAvatarEmoji');
   if(S.user?.avatar){img.src=S.user.avatar;img.style.display='block';em.style.display='none';}
   else{img.style.display='none';em.style.display='block';}
-
 }
 
 /* ═══ VIEWS ═══ */
@@ -986,308 +970,51 @@ function closeDayDetail(){document.getElementById('dayDetailModal').classList.re
 
 /* ═══ INSIGHTS ═══ */
 function updateInsights(){
-  // Hide old V1 elements (already hidden via CSS)
-  // Build Islands-style insights
-  buildInsightsIslands();
-}
+  updateInsightsStats();
+  updateInsightsChart();
 
-function buildInsightsIslands(){
-  const now = new Date();
-
-  // ── Compute stats ──
-  const todayEvs  = S.events.filter(e => new Date(e.date).toDateString() === now.toDateString());
-  const weekStart = new Date(now); weekStart.setDate(now.getDate() - now.getDay() + 1); weekStart.setHours(0,0,0,0);
-  const prevStart = new Date(weekStart); prevStart.setDate(weekStart.getDate() - 7);
-  const weekEvs   = S.events.filter(e => { const d=new Date(e.date); return d>=weekStart && d<=now; });
-  const prevEvs   = S.events.filter(e => { const d=new Date(e.date); return d>=prevStart && d<weekStart; });
-  const totalH    = Math.round(S.events.reduce((s,e)=>s+(e.duration||60)/60,0)*10)/10;
-  const weekH     = Math.round(weekEvs.reduce((s,e)=>s+(e.duration||60)/60,0)*10)/10;
-  const prevH     = Math.round(prevEvs.reduce((s,e)=>s+(e.duration||60)/60,0)*10)/10;
-  const todayH    = Math.round(todayEvs.reduce((s,e)=>s+(e.duration||60)/60,0)*10)/10;
-  const studyEvs  = S.events.filter(e => e.type==='study');
-  const studyH    = Math.round(studyEvs.reduce((s,e)=>s+(e.duration||60)/60,0)*10)/10;
-
-  // ── 1. Stats grid (4 cards) ──
-  const statsWrap = document.getElementById('insightsStatsIslands') || createEl('div','insightsStatsIslands');
-  statsWrap.className = 'ins-stats-grid';
-  const dH = delta(weekH, prevH);
-  statsWrap.innerHTML = `
-    <div class="ins-stat-card" style="--accent:#FF6B35">
-      <div class="ins-stat-icon">⏱️</div>
-      <div class="ins-stat-val">${weekH}h</div>
-      <div class="ins-stat-label">Cette semaine</div>
-      <div class="ins-stat-delta ${dH.cls}">${dH.ico} vs semaine passée</div>
-    </div>
-    <div class="ins-stat-card" style="--accent:#3B82F6">
-      <div class="ins-stat-icon">📚</div>
-      <div class="ins-stat-val">${studyEvs.length}</div>
-      <div class="ins-stat-label">Sessions d'étude</div>
-      <div class="ins-stat-delta same">${studyH}h au total</div>
-    </div>
-    <div class="ins-stat-card" style="--accent:#22C55E">
-      <div class="ins-stat-icon">🔥</div>
-      <div class="ins-stat-val">${S.streak}</div>
-      <div class="ins-stat-label">Jours de streak</div>
-      <div class="ins-stat-delta ${S.streak>0?'up':'same'}">${S.streak>0?'🟢 Actif':'Commence !'}</div>
-    </div>
-    <div class="ins-stat-card" style="--accent:#A855F7">
-      <div class="ins-stat-icon">⚡</div>
-      <div class="ins-stat-val">${S.xp||0}</div>
-      <div class="ins-stat-label">XP total</div>
-      <div class="ins-stat-delta same">Niv. ${S.level||1}</div>
-    </div>`;
-
-  // ── 2. Chronos insight card ──
-  const cicWrap = document.getElementById('v2ChronosInsightWrap') || createEl('div','v2ChronosInsightWrap');
-  const h = weekH;
-  cicWrap.innerHTML = `
-    <div class="chronos-insight-card" id="cicCard">
-      <div class="cic-avatar">🧙</div>
-      <div class="cic-content">
-        <div class="cic-name">Chronos · Analyse de ta semaine</div>
-        <div class="cic-msg" id="cicMsg">${h>0?`${h}h planifiées cette semaine. Streak de ${S.streak} jours — continue ! 💪`:'Commence à planifier pour voir tes stats ici !'}</div>
-      </div>
-    </div>`;
-  buildChronosInsightBubble();
-
-  // ── 3. Heatmap ──
-  buildHeatmap();
-
-  // ── 4. XP graph + Donut ──
-  buildInsightsChartsRow();
-
-  // ── 5. Insights mini-cards grid ──
-  const grid = document.getElementById('insightsGrid'); if(grid){
-    const avgSession = studyEvs.length ? Math.round(studyH*60/studyEvs.length) : 0;
-    grid.innerHTML=[
-      {icon:'📅',label:'Total événements',val:S.events.length},
-      {icon:'⏱️',label:'Heures totales',val:totalH+'h'},
-      {icon:'📚',label:'Sessions étude',val:studyEvs.length},
-      {icon:'⚡',label:'Moy. session',val:avgSession+'min'},
-      {icon:'🔥',label:'Streak',val:S.streak+' jours'},
-      {icon:'🏆',label:'Niveau',val:'Niv. '+(S.level||1)},
-    ].map(c=>`<div class="insight-card"><div class="insight-icon">${c.icon}</div><div class="insight-label">${c.label}</div><div class="insight-val">${c.val}</div></div>`).join('');
-  }
-
-  // Mount all to view
-  const view = document.getElementById('viewInsights'); if(!view) return;
-  const wrb = document.getElementById('weeklyReviewBtnInsights');
-  if(wrb && !statsWrap.parentElement) view.insertBefore(statsWrap, wrb.nextSibling);
-}
-
-function createEl(tag, id){
-  let el = document.getElementById(id);
-  if(!el){ el=document.createElement(tag); el.id=id; }
-  return el;
-}
-
-function delta(a, b){
-  if(b===0) return {cls:'same',ico:'—',txt:'0%'};
-  const pct = Math.round((a-b)/b*100);
-  if(pct>0)  return {cls:'up',  ico:'↑', txt:'+'+pct+'%'};
-  if(pct<0)  return {cls:'down',ico:'↓', txt:pct+'%'};
-  return {cls:'same',ico:'—',txt:'0%'};
-}
-
-function buildInsightsChartsRow(){
-  const wrap = document.getElementById('insChartsRowWrap') || createEl('div','insChartsRowWrap');
-  wrap.className = 'ins-charts-row';
-  const heatmap = document.getElementById('v2HeatmapWrap');
-  if(heatmap && heatmap.parentElement && !wrap.parentElement){
-    heatmap.parentElement.insertBefore(wrap, heatmap.nextSibling);
-  }
-
-  // XP Graph
-  const xpDiv = document.getElementById('v2XpGraphWrap') || createEl('div','v2XpGraphWrap');
-  xpDiv.className = 'xp-graph-card';
-  if(!xpDiv.parentElement) wrap.appendChild(xpDiv);
-
-  // Donut
-  const donutDiv = document.getElementById('v2DonutWrap') || createEl('div','v2DonutWrap');
-  donutDiv.className = 'donut-card';
-  if(!donutDiv.parentElement) wrap.appendChild(donutDiv);
-
-  buildXpGraph();
-  buildDonutChart();
-  buildWowSection();
-}
-
-function buildHeatmap(){
-  const wrap = document.getElementById('v2HeatmapWrap'); if(!wrap) return;
-  const now = new Date();
-  const map = {};
-  S.events.forEach(e => {
-    const d = new Date(e.date);
-    const key = d.toDateString();
-    map[key] = (map[key]||0) + (e.duration||60)/60;
-  });
-
-  // Build 52 weeks grid
-  const sunday = new Date(now);
-  sunday.setDate(now.getDate() - now.getDay()); // go to last sunday
-  const cells = [];
-  for(let w=51;w>=0;w--){
-    for(let d=0;d<7;d++){
-      const dt = new Date(sunday);
-      dt.setDate(sunday.getDate() - w*7 + d);
-      const h = map[dt.toDateString()]||0;
-      let lv = 0;
-      if(h>0)  lv=1;
-      if(h>=1) lv=2;
-      if(h>=3) lv=3;
-      if(h>=5) lv=4;
-      const isFuture = dt > now;
-      cells.push(`<div class="hm-cell${isFuture?'':' lv'+lv}" title="${dt.toLocaleDateString()} · ${Math.round(h*10)/10}h"></div>`);
-    }
-  }
-
-  wrap.className = 'heatmap-card';
-  wrap.innerHTML = `
-    <div class="ins-card-header">
-      <div class="ins-card-title">Activité sur 52 semaines</div>
-      <div class="ins-card-sub">${S.events.length} événements au total</div>
-    </div>
-    <div class="heatmap-grid">${cells.join('')}</div>
-    <div class="heatmap-legend">
-      <span>Moins</span>
-      <div class="hm-leg-cells">
-        <div class="hm-leg-cell" style="background:var(--surface-3)"></div>
-        <div class="hm-leg-cell" style="background:rgba(255,107,53,.2)"></div>
-        <div class="hm-leg-cell" style="background:rgba(255,107,53,.4)"></div>
-        <div class="hm-leg-cell" style="background:rgba(255,107,53,.65)"></div>
-        <div class="hm-leg-cell" style="background:var(--orange)"></div>
-      </div>
-      <span>Plus</span>
-    </div>`;
-}
-
-function buildXpGraph(){
-  const wrap = document.getElementById('v2XpGraphWrap'); if(!wrap) return;
-  const now = new Date();
-  const days = [];
-  for(let i=29;i>=0;i--){
-    const d = new Date(now); d.setDate(now.getDate()-i);
-    const evs = S.events.filter(e=>new Date(e.date).toDateString()===d.toDateString());
-    const xp = evs.reduce((s,e)=>s+Math.round((e.duration||60)/60*10),0);
-    days.push({label:i===0?'Auj':(i===7?'-7j':(i===14?'-14j':(i===29?'-30j':''))),xp});
-  }
-  const maxXp = Math.max(...days.map(d=>d.xp), 1);
-  const W=300, H=80;
-  const pts = days.map((d,i)=>{
-    const x = (i/(days.length-1))*W;
-    const y = H - (d.xp/maxXp)*H;
-    return `${x},${y}`;
-  }).join(' ');
-  const area = `M 0,${H} L ${days.map((d,i)=>`${(i/(days.length-1))*W},${H-(d.xp/maxXp)*H}`).join(' L ')} L ${W},${H} Z`;
-  const totalXp = days.reduce((s,d)=>s+d.xp,0);
-
-  wrap.innerHTML = `
-    <div class="ins-card-header">
-      <div class="ins-card-title">XP sur 30 jours</div>
-      <div class="ins-card-sub" style="color:var(--orange);font-weight:700">+${totalXp} XP</div>
-    </div>
-    <svg class="xp-graph-svg" viewBox="0 0 ${W} ${H+10}" style="height:100px">
-      <defs>
-        <linearGradient id="xpAreaGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="rgba(255,107,53,.3)"/>
-          <stop offset="100%" stop-color="rgba(255,107,53,0)"/>
-        </linearGradient>
-      </defs>
-      <path d="${area}" fill="url(#xpAreaGrad)"/>
-      <polyline points="${pts}" fill="none" stroke="var(--orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      ${days.filter(d=>d.label).map((d,_,arr)=>{
-        const i = days.indexOf(d);
-        const x = (i/(days.length-1))*W;
-        const y = H-(d.xp/maxXp)*H;
-        return `<circle cx="${x}" cy="${y}" r="3" fill="var(--orange)"/><text x="${x}" y="${H+9}" text-anchor="middle" font-size="8" fill="rgba(242,242,245,.4)">${d.label}</text>`;
-      }).join('')}
-    </svg>`;
-}
-
-function buildDonutChart(){
-  const wrap = document.getElementById('v2DonutWrap'); if(!wrap) return;
-  const types = [
-    {key:'study',  label:'Étude',   color:'#3B82F6'},
-    {key:'work',   label:'Travail', color:'#8B5CF6'},
-    {key:'sport',  label:'Sport',   color:'#22C55E'},
-    {key:'social', label:'Social',  color:'#EC4899'},
-    {key:'leisure',label:'Loisirs', color:'#F59E0B'},
-    {key:'other',  label:'Autre',   color:'#6B7280'},
-  ];
-  const totals = {};
-  types.forEach(t=>{ totals[t.key]=S.events.filter(e=>e.type===t.key).reduce((s,e)=>s+(e.duration||60)/60,0); });
-  const total = Object.values(totals).reduce((a,b)=>a+b,0)||1;
-
-  const R=52, r=32, cx=65, cy=65;
-  let angle=-Math.PI/2;
-  const segs = types.map(t=>{
-    const pct = totals[t.key]/total;
-    const a1=angle, a2=angle+pct*Math.PI*2;
-    angle=a2;
-    if(pct<0.005) return '';
-    const x1=cx+R*Math.cos(a1), y1=cy+R*Math.sin(a1);
-    const x2=cx+R*Math.cos(a2), y2=cy+R*Math.sin(a2);
-    const large=pct>.5?1:0;
-    return `<path d="M ${cx},${cy} L ${x1},${y1} A ${R},${R} 0 ${large},1 ${x2},${y2} Z" fill="${t.color}" opacity=".85"/>`;
-  }).join('');
-
-  const legend = types.filter(t=>totals[t.key]>0).map(t=>{
-    const pct = Math.round(totals[t.key]/total*100);
-    return `<div class="donut-leg-item"><div class="donut-leg-dot" style="background:${t.color}"></div><div class="donut-leg-name">${t.label}</div><div class="donut-leg-pct">${pct}%</div></div>`;
-  }).join('');
-
-  wrap.innerHTML=`
-    <div class="ins-card-header">
-      <div class="ins-card-title">Répartition</div>
-      <div class="ins-card-sub">${S.events.length} événements</div>
-    </div>
-    <div class="donut-layout">
-      <svg class="donut-svg" viewBox="0 0 130 130" width="130" height="130">
-        ${segs||`<circle cx="${cx}" cy="${cy}" r="${R}" fill="var(--surface-3)"/>`}
-        <circle cx="${cx}" cy="${cy}" r="${r}" fill="var(--surface-1)"/>
-        <text x="${cx}" y="${cy-4}" text-anchor="middle" font-size="12" font-weight="800" fill="var(--text)">${Math.round(total)}h</text>
-        <text x="${cx}" y="${cy+10}" text-anchor="middle" font-size="8" fill="rgba(242,242,245,.5)">total</text>
-      </svg>
-      <div class="donut-legend">${legend||'<div style="color:var(--text-3);font-size:.8rem">Aucun événement</div>'}</div>
-    </div>`;
-}
-
-function buildWowSection(){
-  const wrap = document.getElementById('v2WowWrap') || createEl('div','v2WowWrap');
-  if(!wrap.parentElement){
-    const row = document.getElementById('insChartsRowWrap');
-    if(row) row.appendChild(wrap);
-    else { const v=document.getElementById('viewInsights'); if(v) v.appendChild(wrap); }
-  }
-  wrap.className = 'wow-card';
-
+  const g=document.getElementById('insightsGrid');if(!g)return;
   const now=new Date();
-  const ws=new Date(now); ws.setDate(now.getDate()-now.getDay()+1); ws.setHours(0,0,0,0);
-  const ps=new Date(ws); ps.setDate(ws.getDate()-7);
-  const we=S.events.filter(e=>{const d=new Date(e.date);return d>=ws;});
-  const pe=S.events.filter(e=>{const d=new Date(e.date);return d>=ps&&d<ws;});
-  const wh=Math.round(we.reduce((s,e)=>s+(e.duration||60)/60,0)*10)/10;
-  const ph=Math.round(pe.reduce((s,e)=>s+(e.duration||60)/60,0)*10)/10;
-  const ws2=we.filter(e=>e.type==='study').length;
-  const ps2=pe.filter(e=>e.type==='study').length;
-  const dH=delta(wh,ph), dN=delta(we.length,pe.length), dS=delta(ws2,ps2);
+  const todayEvs=S.events.filter(e=>new Date(e.date).toDateString()===now.toDateString());
+  const weekStart=new Date(now);weekStart.setDate(now.getDate()-now.getDay()+1);weekStart.setHours(0,0,0,0);
+  const weekEvs=S.events.filter(e=>{const d=new Date(e.date);return d>=weekStart&&d<=now;});
+  const totalHours=S.events.reduce((s,e)=>s+(e.duration||60)/60,0);
+  const todayHours=todayEvs.reduce((s,e)=>s+(e.duration||60)/60,0);
+  const weekHours=weekEvs.reduce((s,e)=>s+(e.duration||60)/60,0);
+  const studyEvs=S.events.filter(e=>e.type==='study');
+  const studyHours=studyEvs.reduce((s,e)=>s+(e.duration||60)/60,0);
+  const avgSession=studyEvs.length?Math.round(studyHours*60/studyEvs.length):0;
 
-  wrap.innerHTML=`
-    <div class="ins-card-header">
-      <div class="ins-card-title">Semaine vs semaine</div>
-      <div class="ins-card-sub">Comparaison</div>
-    </div>
-    <div class="wow-grid">
-      <div class="wow-metric"><div class="wow-metric-label">Heures</div><div class="wow-metric-val">${wh}h</div><div class="wow-delta ${dH.cls}">${dH.ico} ${dH.txt}</div></div>
-      <div class="wow-metric"><div class="wow-metric-label">Événements</div><div class="wow-metric-val">${we.length}</div><div class="wow-delta ${dN.cls}">${dN.ico} ${dN.txt}</div></div>
-      <div class="wow-metric"><div class="wow-metric-label">Sessions étude</div><div class="wow-metric-val">${ws2}</div><div class="wow-delta ${dS.cls}">${dS.ico} ${dS.txt}</div></div>
-      <div class="wow-metric"><div class="wow-metric-label">Streak</div><div class="wow-metric-val">${S.streak}j</div><div class="wow-delta up">🔥 actif</div></div>
-    </div>`;
+  g.innerHTML=[
+    {title:'📅 Événements total',val:S.events.length,sub:'tous types',pct:Math.min(100,S.events.length*2)},
+    {title:'⏱️ Heures planifiées',val:Math.round(totalHours)+'h',sub:'au total',pct:Math.min(100,totalHours/100*100)},
+    {title:"📚 Sessions d'étude",val:studyEvs.length,sub:'révisions',pct:Math.min(100,studyEvs.length*5)},
+    {title:'⚡ Moy. par session',val:avgSession+'min',sub:'durée moyenne',pct:Math.min(100,avgSession/120*100)},
+    {title:'🔥 Streak actuel',val:S.streak+' j',sub:'jours consécutifs',pct:Math.min(100,S.streak/30*100)},
+    {title:'🏆 Niveau',val:'Niv. '+S.level,sub:getRank(S.level).name,pct:Math.min(100,curLvXp()/nextLvXp()*100)},
+  ].map(c=>`<div class="insight-card"><h3>${c.title}</h3><div class="big-stat">${c.val}</div><small class="txt2">${c.sub}</small><div class="insight-bar"><div class="insight-bar-fill" style="width:${c.pct}%"></div></div></div>`).join('');
 }
-
-function updateInsightsStats(){} // kept for compat - noop
-function updateInsightsChart(){} // kept for compat - noop
-
+function updateInsightsStats(){
+  const row=document.getElementById('insightsStatsRow');if(!row)return;
+  const now=new Date();
+  const todayEvs=S.events.filter(e=>new Date(e.date).toDateString()===now.toDateString());
+  const weekStart=new Date(now);weekStart.setDate(now.getDate()-now.getDay()+1);weekStart.setHours(0,0,0,0);
+  const monthStart=new Date(now.getFullYear(),now.getMonth(),1);
+  const weekEvs=S.events.filter(e=>{const d=new Date(e.date);return d>=weekStart;});
+  const monthEvs=S.events.filter(e=>{const d=new Date(e.date);return d>=monthStart;});
+  const todayH=Math.round(todayEvs.reduce((s,e)=>s+(e.duration||60)/60,0)*10)/10;
+  const weekH=Math.round(weekEvs.reduce((s,e)=>s+(e.duration||60)/60,0)*10)/10;
+  const monthH=Math.round(monthEvs.reduce((s,e)=>s+(e.duration||60)/60,0)*10)/10;
+  row.innerHTML=`
+    <div class="ins-stat-card"><div class="ins-stat-label">Aujourd'hui</div><div class="ins-stat-val">${todayH}h</div><div class="ins-stat-sub">${todayEvs.length} événements</div><div class="ins-stat-goal"><div class="ins-stat-goal-fill" style="width:${Math.min(100,todayH/6*100)}%"></div></div></div>
+    <div class="ins-stat-card"><div class="ins-stat-label">Cette semaine</div><div class="ins-stat-val">${weekH}h</div><div class="ins-stat-sub">${weekEvs.length} événements</div><div class="ins-stat-goal"><div class="ins-stat-goal-fill" style="width:${Math.min(100,weekH/42*100)}%"></div></div></div>
+    <div class="ins-stat-card"><div class="ins-stat-label">Ce mois</div><div class="ins-stat-val">${monthH}h</div><div class="ins-stat-sub">${monthEvs.length} événements</div><div class="ins-stat-goal"><div class="ins-stat-goal-fill" style="width:${Math.min(100,monthH/180*100)}%"></div></div></div>
+  `;
+}
+function updateInsightsChart(){
+  const chart=document.getElementById('insBarChart');if(!chart)return;
+  const days=[];const now=new Date();
+  for(let i=6;i>=0;i--){const d=new Date(now);d.setDate(now.getDate()-i);days.push(d);}
   const maxH=6;
   chart.innerHTML=days.map(day=>{
     const evs=S.events.filter(e=>new Date(e.date).toDateString()===day.toDateString());
@@ -1296,7 +1023,7 @@ function updateInsightsChart(){} // kept for compat - noop
     const names=['D','L','M','M','J','V','S'];
     const label=names[day.getDay()];
     const isToday=day.toDateString()===now.toDateString();
-    return `<div class="ins-bar" style="height:${Math.max(4,pct)}%;background:${isToday?'var(--orange)':'rgba(255,107,53,.4)'};border-radius:6px 6px 0 0;min-height:4px" title="${Math.round(h*10)/10}h"><span class="ins-bar-label">${label}</span></div>`;
+    return `<div class="ins-bar" style="height:${Math.max(4,pct)}%;background:${isToday?'var(--primary)':'rgba(255,107,53,.4)'};border-radius:6px 6px 0 0;min-height:4px" title="${Math.round(h*10)/10}h"><span class="ins-bar-label">${label}</span></div>`;
   }).join('');
 }
 
@@ -1305,7 +1032,7 @@ function updateInsightsChart(){} // kept for compat - noop
 function updateTemplates(){
   const c=document.getElementById('templatesContent');if(!c)return;
   const tabs=['student','worker','custom'];const labels=['🎓 Étudiant','💼 Travailleur','✨ Personnalisé'];const idx=tabs.indexOf(S.template);
-  let html='<div style="display:flex;position:relative;background:var(--bg);padding:4px;border-radius:12px;border:1px solid var(--border);margin:0 auto 1.5rem;max-width:500px"><div id="tplSlider" style="position:absolute;top:4px;left:4px;width:calc(33.33% - 2.67px);height:calc(100% - 8px);background:var(--orange);border-radius:8px;transition:transform .35s cubic-bezier(.16,1,.3,1);z-index:0;transform:translateX('+idx*100+'%)"></div>'+tabs.map((t,i)=>'<button style="flex:1;padding:.6rem 1rem;border:none;background:transparent;border-radius:8px;font-weight:600;font-size:.85rem;cursor:pointer;color:'+(S.template===t?'white':'var(--text2)')+';font-family:inherit;position:relative;z-index:1;transition:color .25s" onclick="switchTemplate(\''+t+'\')">'+labels[i]+'</button>').join('')+'</div>';
+  let html='<div style="display:flex;position:relative;background:var(--bg);padding:4px;border-radius:12px;border:1px solid var(--border);margin:0 auto 1.5rem;max-width:500px"><div id="tplSlider" style="position:absolute;top:4px;left:4px;width:calc(33.33% - 2.67px);height:calc(100% - 8px);background:var(--primary);border-radius:8px;transition:transform .35s cubic-bezier(.16,1,.3,1);z-index:0;transform:translateX('+idx*100+'%)"></div>'+tabs.map((t,i)=>'<button style="flex:1;padding:.6rem 1rem;border:none;background:transparent;border-radius:8px;font-weight:600;font-size:.85rem;cursor:pointer;color:'+(S.template===t?'white':'var(--text2)')+';font-family:inherit;position:relative;z-index:1;transition:color .25s" onclick="switchTemplate(\''+t+'\')">'+labels[i]+'</button>').join('')+'</div>';
   if(S.template==='student'){
     html+='<div class="template-form-card"><h3 style="margin-bottom:1rem">🎓 Configuration Étudiant</h3><div class="tpl-limits"><div class="form-group"><label>Max révision/jour (h)</label><input type="number" id="tplMaxStudy" value="'+(S.templateData.maxStudy||4)+'" min="1" max="16"></div><div class="form-group"><label>Max loisirs/jour (h)</label><input type="number" id="tplMaxLeisure" value="'+(S.templateData.maxLeisure||3)+'" min="0" max="16"></div><div class="form-group"><label>Pause entre événements (min)</label><input type="number" id="tplBreak" value="'+(S.templateData.breakMin||10)+'" min="5" max="60" step="5"></div></div><div id="tplCC" style="margin-bottom:.75rem">'+((S.templateData.courses||[]).length===0?'<div class="course-row"><select class="sel">'+['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'].map((d,i)=>'<option value="'+(i+1)+'">'+d+'</option>').join('')+'</select><input type="time" class="tinp" value="08:00" step="300"><input type="time" class="tinp" value="10:00" step="300"><input type="text" class="sinp" placeholder="Matière"><button class="btn-remove" onclick="this.parentElement.remove()">✕</button></div>':(S.templateData.courses||[]).map(course=>'<div class="course-row"><select class="sel">'+['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'].map((d,i)=>'<option value="'+(i+1)+'" '+(course.day===i+1?'selected':'')+'>'+d+'</option>').join('')+'</select><input type="time" class="tinp" value="'+(course.start||'08:00')+'" step="300"><input type="time" class="tinp" value="'+(course.end||'10:00')+'" step="300"><input type="text" class="sinp" value="'+(course.subject||'')+'" placeholder="Matière"><button class="btn-remove" onclick="this.parentElement.remove()">✕</button></div>').join(''))+'</div><button class="btn-secondary" onclick="addTplCourse()" style="margin-bottom:.75rem">+ Ajouter un cours</button><button class="btn-primary" onclick="saveTplStudent()">Enregistrer</button></div>';
   }else if(S.template==='worker'){
@@ -1325,7 +1052,7 @@ function saveTplCustom(){S.templateData.maxStudy=+(document.getElementById('tplM
 function updateBadges(){
   checkBadgesV2();updateXpBar();
   const g=document.getElementById('badgeGrid');if(!g)return;
-  g.innerHTML=ALL_BADGES.map(b=>{const u=b.cond();return'<div class="badge-item '+(u?'unlocked':'locked')+'"><span class="badge-icon">'+b.emoji+'</span><div class="badge-name">'+b.name+'</div><div class="badge-desc">'+b.desc+'</div><span class="badge-xp">+'+b.xp+' XP</span>'+(u?'<span class="badge-msg">"'+b.msg+'"</span>':'')+'</div>';}).join('');
+  g.innerHTML=ALL_BADGES.map(b=>{const u=b.cond();return'<div class="badge-card '+(u?'unlocked':'locked')+'"><span class="badge-emoji">'+b.emoji+'</span><div class="badge-name">'+b.name+'</div><div class="badge-desc">'+b.desc+'</div><span class="badge-xp">+'+b.xp+' XP</span>'+(u?'<span class="badge-msg">"'+b.msg+'"</span>':'')+'</div>';}).join('');
 }
 
 /* ═══ RANK MODAL ═══ */
@@ -1626,7 +1353,7 @@ function updateTodoList(){
   const container=document.getElementById('todoListContainer');
   if(!container)return;
   const countEl=document.getElementById('todoCount');
-  if(countEl){const pending=S.todos.filter(t=>!t.done).length;countEl.textContent=pending;countEl.style.background=pending>0?'var(--orange)':'var(--low)';}
+  if(countEl){const pending=S.todos.filter(t=>!t.done).length;countEl.textContent=pending;countEl.style.background=pending>0?'var(--primary)':'var(--low)';}
   const pending=S.todos.filter(t=>!t.done);
   const done=S.todos.filter(t=>t.done);
   const all=[...pending,...done];
