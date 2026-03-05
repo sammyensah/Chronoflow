@@ -1617,3 +1617,41 @@ body.tut-locked{overflow:hidden}
 /* Clicked bounce */
 .mascot.clicked .chronos-figure { animation: clickBounce .4s cubic-bezier(.16,1,.3,1); }
 @keyframes clickBounce { 0%{transform:scale(1)} 40%{transform:scale(1.3) translateY(-10px) rotate(-5deg)} 70%{transform:scale(1.2) rotate(4deg)} 100%{transform:scale(1.18) translateY(-8px)} }
+
+/* ══════════════ MODIFICATIONS ISLAND ══════════════ */
+:root {
+  --primary-island: #70d6ff;
+  --glass: rgba(255, 255, 255, 0.07);
+  --glass-border: rgba(255, 255, 255, 0.12);
+}
+
+/* Fond atmosphérique */
+body[data-theme="dark"] {
+  background: radial-gradient(circle at bottom, #1e293b 0%, #080c14 100%) !important;
+  background-attachment: fixed;
+}
+
+/* Effet de verre sur la sidebar et les cartes */
+.sidebar, .card, .event-card, .glass-panel {
+  background: var(--glass) !important;
+  backdrop-filter: blur(15px) !important;
+  border: 1px solid var(--glass-border) !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2) !important;
+}
+
+/* Boutons d'ambiance (Control Pills) */
+.control-pill {
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  color: white;
+  padding: 8px 15px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: 0.3s;
+  font-family: 'Nunito', sans-serif;
+}
+.control-pill.active {
+  background: var(--primary-island);
+  color: #000;
+  box-shadow: 0 0 15px var(--primary-island);
+}
