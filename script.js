@@ -617,9 +617,9 @@ function launchApp(){
   }
   if(!S.tutorialDone)setTimeout(()=>document.getElementById('welcomeModal').classList.add('show'),700);
   // Sidebar hover zone
-  
-  
-  
+  const hz=document.getElementById('sidebarHoverZone');
+  if(hz){hz.addEventListener('mouseenter',()=>toggleSidebar(true));
+  document.getElementById('sidebar')?.addEventListener('mouseleave',(e)=>{if(!e.relatedTarget||!e.currentTarget.contains(e.relatedTarget))toggleSidebar(false);});}
   requestNotifPermission();
   checkWeeklyReview();
   updateTodoList();
@@ -639,11 +639,9 @@ function toggleSidebar(forceOpen){
   const open=forceOpen!==undefined?forceOpen:!sb.classList.contains('open');
   sb.classList.toggle('open',open);
   bd.classList.toggle('show',open);
-  if(hb)hb.classList.toggle('open',open);
+  hb.classList.toggle('open',open);
 }
 function closeSidebar(){
-  // Only close on mobile
-  if(window.innerWidth>768) return;
   document.getElementById('sidebar')?.classList.remove('open');
   document.getElementById('sidebarBackdrop')?.classList.remove('show');
   document.getElementById('hamburgerBtn')?.classList.remove('open');
@@ -681,25 +679,81 @@ function sendNotif(title,body){if(!S.notifications)return;if('Notification' in w
 
 /* ═══ HEADER ═══ */
 function updateHeader(){
+  /* ── Header streak + avatar ── */
   const el=document.getElementById('headerStreak');if(el)el.textContent=S.streak;
   const img=document.getElementById('headerAvatarImg');const em=document.getElementById('headerAvatarEmoji');
   if(S.user?.avatar){img.src=S.user.avatar;img.style.display='block';em.style.display='none';}
   else{img.style.display='none';em.style.display='block';}
+
+  /* ── Sidebar enrichie ── */
+  const name = S.user?.name || '—';
+  const sbName = document.getElementById('sbName');
+  if(sbName) sbName.textContent = name;
+
+  // Rang
+  const rank = getRank(S.level);
+  const sbRank = document.getElementById('sbRank');
+  if(sbRank) sbRank.textContent = rank?.name || 'Bronze';
+
+  // Avatar lettre/image
+  const sbLetter = document.getElementById('sbAvLetter');
+  const sbImg    = document.getElementById('sbAvImg');
+  if(S.user?.avatar && sbImg){
+    sbImg.src=S.user.avatar; sbImg.style.display='block';
+    if(sbLetter) sbLetter.style.display='none';
+  } else if(sbImg){
+    sbImg.style.display='none';
+    if(sbLetter){ sbLetter.style.display='block'; sbLetter.textContent=name[0]?.toUpperCase()||'👤'; }
+  }
+
+  // XP bar sidebar
+  const lvXp=curLvXp(); const nxXp=nextLvXp();
+  const pct = nxXp>0 ? Math.min(100, Math.round((lvXp/nxXp)*100)) : 0;
+  const sbXpFill = document.getElementById('sbXpFill');
+  if(sbXpFill) sbXpFill.style.width = pct+'%';
+  const sbXpLv = document.getElementById('sbXpLv');
+  if(sbXpLv) sbXpLv.textContent = 'Niveau '+S.level;
+  const sbXpVal = document.getElementById('sbXpVal');
+  if(sbXpVal) sbXpVal.textContent = S.xp+' XP';
+
+  // Streak sidebar
+  const sbStr = document.getElementById('sbStreakCount');
+  if(sbStr) sbStr.textContent = S.streak;
 }
 
-/* ═══ VIEWS ═══ */
+/* ═══ VIEWS avec transition ═══ */
 function switchView(v){
-  S.activeView=v;closeSidebar();
+  S.activeView=v;
+  // Sur mobile on ferme la sidebar après nav
+  if(window.innerWidth<=768) closeSidebar();
+
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.view===v));
-  document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
-  const vEl=document.getElementById('view'+v[0].toUpperCase()+v.slice(1));if(vEl)vEl.classList.add('active');
+
+  // Transition : fade-out vue courante, fade-in nouvelle
+  const current = document.querySelector('.view.active');
+  const next = document.getElementById('view'+v[0].toUpperCase()+v.slice(1));
+  if(current && current !== next){
+    current.classList.remove('active');
+  }
+  if(next){
+    next.classList.add('active');
+  }
+
   document.getElementById('aiPanel').style.display=v==='planning'?'block':'none';
   updateCurrentView();
 }
 function updateCurrentView(){
-  ({planning:updatePlanning,calendar:updateCalendar,insights:()=>{updateInsights();updateInsightsV2();},templates:updateTemplates,badges:updateBadges,profile:updateProfile,settings:()=>{updateLangDD();initToggles();}})[S.activeView]?.();
+  ({
+    planning:  updatePlanning,
+    calendar:  updateCalendar,
+    insights:  ()=>{ updateInsightsIslands(); },
+    templates: updateTemplates,
+    badges:    updateBadges,
+    profile:   updateProfile,
+    settings:  ()=>{ updateLangDD(); initToggles(); }
+  })[S.activeView]?.();
 }
-function updateAllViews(){updatePlanning();updateCalendar();updateInsights();updateBadges();updateProfile();updateTodoList();}
+function updateAllViews(){updatePlanning();updateCalendar();updateBadges();updateProfile();updateTodoList();}
 
 /* ═══ TUTORIAL ═══ */
 function skipTutorial(){document.getElementById('welcomeModal').classList.remove('show');S.tutorialDone=true;saveState();}
@@ -1154,7 +1208,7 @@ function launchSession(){
   S.sessionTotalSec=Math.round(hours*3600); S.sessionElapsed=0;
   S.sessionPhase='work'; S.sessionPhaseIdx=0; S.sessionActive=true; S.sessionSkipCount=0;
   S.sessionCurrentPhaseSec=workMin*60; S.sessionPhaseElapsed=0;
-  document.getElementById('sessionScreen').classList.add('active');
+  document.getElementById('sessionScreen').style.display='flex';
   document.getElementById('appScreen').style.display='none';
   document.getElementById('arcFill').classList.remove('pause-mode');
   document.getElementById('arcFill').style.strokeDashoffset='503';
@@ -1228,7 +1282,7 @@ function endSession(){
   S.sessionActive=false;
   if(S.sessionTimer){clearInterval(S.sessionTimer);S.sessionTimer=null;}
   if(sessionBeepInterval){clearInterval(sessionBeepInterval);sessionBeepInterval=null;}
-  document.getElementById('sessionScreen').classList.remove('active');
+  document.getElementById('sessionScreen').style.display='none';
   document.getElementById('appScreen').style.display='flex';
   toast('✅ Session terminée ! Bien joué !');
   addXpV2(20);checkBadgesV2();
@@ -1479,287 +1533,286 @@ function chronosSad(){
 }
 
 /* ═══════════════════════════════════════════════════════════
-   CHRONOFLOW V2 — Insights Islands + Chronos Immersif
+   INSIGHTS ISLANDS — version propre, IDs unifiés
    ═══════════════════════════════════════════════════════════ */
 
-/* ── HEATMAP (GitHub-style, 52 semaines) ── */
-function buildHeatmap(){
-  const wrap = document.getElementById('v2HeatmapWrap'); if(!wrap) return;
-  const now = new Date();
-  const cells = [];
-  // On remonte 52 semaines en arrière depuis dimanche de la semaine courante
-  const end = new Date(now); end.setDate(end.getDate() + (6 - end.getDay()));
-  const start = new Date(end); start.setDate(end.getDate() - 364);
+/* ── helpers ── */
+function _iEl(id){ return document.getElementById(id) }
+function _delta(a,b){
+  if(b===0) return {cls:'flat',ico:'—',txt:'—'};
+  const p=Math.round(((a-b)/b)*100);
+  if(p>0)  return {cls:'up',   ico:'↑', txt:'+'+p+'%'};
+  if(p<0)  return {cls:'down', ico:'↓', txt:p+'%'};
+  return {cls:'flat',ico:'—',txt:'±0%'};
+}
+function _weekEvents(offsetWeeks=0){
+  const now=new Date(); const dow=now.getDay();
+  const mon=new Date(now); mon.setDate(now.getDate()-dow+1-(offsetWeeks*7)); mon.setHours(0,0,0,0);
+  const sun=new Date(mon); sun.setDate(mon.getDate()+6); sun.setHours(23,59,59,999);
+  return S.events.filter(e=>{
+    const d=e.date instanceof Date?e.date:new Date(e.date);
+    return d>=mon && d<=sun;
+  });
+}
 
-  // Compter les heures par jour
-  const dayMap = {};
-  S.events.forEach(ev => {
+/* ═══ POINT D'ENTRÉE PRINCIPAL ═══ */
+function updateInsightsIslands(){
+  _buildInsStatCards();
+  _buildInsChronosCard();
+  _buildInsHeatmap();
+  _buildInsCharts();
+  _buildInsWow();
+}
+
+/* ── 4 Stat cards ── */
+function _buildInsStatCards(){
+  const wrap = _iEl('insStatRow'); if(!wrap) return;
+  const cur  = _weekEvents(0);
+  const prev = _weekEvents(1);
+
+  const curH  = cur.reduce((s,e)=>s+(e.duration||60)/60,0);
+  const prevH = prev.reduce((s,e)=>s+(e.duration||60)/60,0);
+  const curStudy  = cur.filter(e=>e.type==='study').length;
+  const prevStudy = prev.filter(e=>e.type==='study').length;
+
+  const cards=[
+    {icon:'⏱️', val: Math.round(curH*10)/10+'h', label:'Cette semaine',   d:_delta(curH,prevH),        accent:'var(--orange)'},
+    {icon:'📚', val: curStudy,                    label:'Sessions étude',  d:_delta(curStudy,prevStudy), accent:'var(--blue)'},
+    {icon:'🔥', val: S.streak+'j',               label:'Streak actuel',   d:{cls:'up',ico:'🔥',txt:'continu'}, accent:'var(--amber)'},
+    {icon:'⚡', val: S.xp+' XP',                 label:'XP total',        d:{cls:'up',ico:'↑',txt:'Niveau '+S.level}, accent:'var(--purple)'},
+  ];
+
+  wrap.innerHTML = cards.map(c=>`
+    <div class="ins-stat-card" style="--accent:${c.accent}">
+      <span class="isc-icon">${c.icon}</span>
+      <div class="isc-val">${c.val}</div>
+      <div class="isc-label">${c.label}</div>
+      <div class="isc-delta ${c.d.cls}">${c.d.ico} ${c.d.txt}</div>
+    </div>`).join('');
+}
+
+/* ── Chronos insight card ── */
+async function _buildInsChronosCard(){
+  const wrap = _iEl('insChronosCard'); if(!wrap) return;
+  wrap.innerHTML = `
+    <div class="ins-chronos-card">
+      <div class="icc-av">⚡</div>
+      <div class="icc-body">
+        <div class="icc-name">Chronos</div>
+        <div class="icc-msg typing" id="iccMsg">Analyse en cours...</div>
+      </div>
+    </div>`;
+
+  const key = localStorage.getItem('cf_apikey');
+  if(!key){ const m=_iEl('iccMsg'); if(m){m.classList.remove('typing');m.textContent='Configure ta clé API dans Paramètres pour voir mes insights ✨';} return; }
+
+  const cur = _weekEvents(0);
+  const h   = Math.round(cur.reduce((s,e)=>s+(e.duration||60)/60,0)*10)/10;
+  const lang = S.lang||'fr';
+  const context = `Semaine: ${cur.length} événements, ${h}h planifiées, streak ${S.streak}j, niveau ${S.level}, XP ${S.xp}.`;
+
+  try {
+    const r = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({
+        model:'claude-haiku-4-5-20251001',
+        max_tokens:80,
+        system:`Tu es Chronos, assistant planning bienveillant. Réponds en ${lang}. 1 phrase courte, percutante, max 20 mots, ton encourageant.`,
+        messages:[{role:'user',content:context}]
+      })
+    });
+    const d = await r.json();
+    const txt = d.content?.[0]?.text||'';
+    const m = _iEl('iccMsg');
+    if(m && txt){ m.classList.remove('typing'); _typeText(m, txt); }
+  } catch(e){
+    const m=_iEl('iccMsg');
+    if(m){m.classList.remove('typing');m.textContent='Bonne semaine ! Continue comme ça 💪';}
+  }
+}
+function _typeText(el, txt, i=0){
+  if(i===0) el.textContent='';
+  if(i<txt.length){ el.textContent+=txt[i]; setTimeout(()=>_typeText(el,txt,i+1),22); }
+}
+
+/* ── Heatmap 52 semaines ── */
+function _buildInsHeatmap(){
+  const wrap = _iEl('insHeatmap'); if(!wrap) return;
+  const now = new Date();
+  const end = new Date(now); end.setDate(end.getDate()+(6-end.getDay()));
+  const start = new Date(end); start.setDate(end.getDate()-364);
+
+  const dayMap={};
+  S.events.forEach(ev=>{
     if(!ev.date) return;
-    const k = new Date(ev.date).toDateString();
-    dayMap[k] = (dayMap[k]||0) + (ev.duration||60)/60;
+    const k=new Date(ev.date instanceof Date?ev.date:new Date(ev.date)).toDateString();
+    dayMap[k]=(dayMap[k]||0)+(ev.duration||60)/60;
   });
 
-  // Labels des mois
-  const monthNames = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
-  let monthHtml = '';
-  let prevMonth = -1;
-  let weekCount = 0;
+  let cur=new Date(start);
+  while(cur.getDay()!==0) cur.setDate(cur.getDate()+1);
 
-  // Générer les 53 colonnes (semaines)
-  let cellsHtml = '';
-  let cur = new Date(start);
-  // Avancer au premier dimanche
-  while(cur.getDay() !== 0) cur.setDate(cur.getDate()+1);
-
-  const weekCols = [];
-  while(cur <= end) {
-    const weekCells = [];
-    for(let d=0; d<7; d++) {
-      const k = cur.toDateString();
-      const h = dayMap[k]||0;
-      const lv = h===0?0:h<1?1:h<3?2:h<5?3:4;
-      const dateStr = cur.toLocaleDateString('fr',{day:'numeric',month:'short',year:'numeric'});
-      weekCells.push(`<div class="hm-cell lv${lv}" title="${dateStr} — ${Math.round(h*10)/10}h"></div>`);
-      // Track month labels
-      if(cur.getDate()<=7 && cur.getMonth()!==prevMonth){
-        prevMonth = cur.getMonth();
-      }
+  const cols=[];
+  while(cur<=end){
+    const week=[];
+    for(let d=0;d<7;d++){
+      const k=cur.toDateString();
+      const h=dayMap[k]||0;
+      const lv=h===0?0:h<1?1:h<3?2:h<5?3:4;
+      const ds=cur.toLocaleDateString('fr',{day:'numeric',month:'short',year:'numeric'});
+      week.push(`<div class="hm-cell lv${lv}" title="${ds} — ${Math.round(h*10)/10}h"></div>`);
       cur.setDate(cur.getDate()+1);
     }
-    weekCols.push(weekCells.join(''));
+    cols.push(week.join(''));
   }
 
-  wrap.innerHTML = `
-    <div class="heatmap-section">
-      <div class="heatmap-title">📅 Activité sur 52 semaines</div>
-      <div class="heatmap-grid">${weekCols.join('')}</div>
+  wrap.innerHTML=`
+    <div class="ins-heatmap-card">
+      <div class="ins-card-header">
+        <span class="ins-card-title">📅 Activité sur 52 semaines</span>
+        <span class="ins-card-sub">${Object.keys(dayMap).length} jours actifs</span>
+      </div>
+      <div class="heatmap-grid">${cols.join('')}</div>
       <div class="hm-legend">
         <span>Moins</span>
-        <div class="hm-legend-cell lv0" style="background:var(--border);opacity:.5"></div>
-        <div class="hm-legend-cell lv1" style="background:rgba(255,107,53,.3)"></div>
-        <div class="hm-legend-cell lv2" style="background:rgba(255,107,53,.55)"></div>
-        <div class="hm-legend-cell lv3" style="background:rgba(255,107,53,.78)"></div>
-        <div class="hm-legend-cell lv4" style="background:#FF6B35"></div>
+        <div class="hm-legend-cell lv0" style="background:var(--s3)"></div>
+        <div class="hm-legend-cell lv1" style="background:rgba(255,107,53,.22)"></div>
+        <div class="hm-legend-cell lv2" style="background:rgba(255,107,53,.45)"></div>
+        <div class="hm-legend-cell lv3" style="background:rgba(255,107,53,.7)"></div>
+        <div class="hm-legend-cell lv4" style="background:var(--orange)"></div>
         <span>Plus</span>
       </div>
     </div>`;
 }
 
-/* ── XP 30-day progression graph (SVG polyline) ── */
-function buildXpGraph(){
-  const wrap = document.getElementById('v2XpGraphWrap'); if(!wrap) return;
-  const now = new Date();
-  const days = [];
-  for(let i=29;i>=0;i--){ const d=new Date(now); d.setDate(now.getDate()-i); days.push(d); }
-
-  // XP accumulé fictif depuis le total actuel (retracing 30 jours)
-  // On calcule les heures planifiées par jour comme proxy
-  const vals = days.map(d => {
-    const evs = S.events.filter(e => e.date && new Date(e.date).toDateString()===d.toDateString());
-    return evs.reduce((s,e)=>s+(e.duration||60)/60,0)*10; // ~10 XP par heure
-  });
-  const maxV = Math.max(...vals, 1);
-  const W=400, H=120;
-  const pts = vals.map((v,i) => {
-    const x = (i/(vals.length-1))*W;
-    const y = H - (v/maxV)*H*0.85 - 8;
-    return `${x},${y}`;
-  }).join(' ');
-  const areaClose = ` ${W},${H} 0,${H}`;
-
-  const totalXp30 = Math.round(vals.reduce((a,b)=>a+b,0));
-  const labels = [days[0],days[14],days[29]].map(d=>d.toLocaleDateString('fr',{day:'numeric',month:'short'}));
-
+/* ── Charts row : XP graph + Donut ── */
+function _buildInsCharts(){
+  const wrap = _iEl('insChartsRow'); if(!wrap) return;
   wrap.innerHTML = `
-    <div class="xp-graph-section">
-      <div class="xp-graph-header">
-        <div class="xp-graph-title">⚡ Progression XP — 30 jours</div>
-        <div class="xp-graph-total">+${totalXp30} XP</div>
-      </div>
-      <div class="xp-graph-canvas-wrap">
-        <svg class="xp-graph-svg" viewBox="0 0 400 120" preserveAspectRatio="none">
-          <defs>
-            <linearGradient id="xpGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#FF6B35" stop-opacity="0.5"/>
-              <stop offset="100%" stop-color="#FF6B35" stop-opacity="0"/>
-            </linearGradient>
-          </defs>
-          <polyline class="xp-area" points="${pts} ${areaClose}"/>
-          <polyline class="xp-line" points="${pts}"/>
-          ${vals.map((v,i)=>{const x=(i/(vals.length-1))*W;const y=H-(v/maxV)*H*.85-8;return`<circle class="xp-dot" cx="${x}" cy="${y}"><title>${Math.round(v)} XP</title></circle>`;}).join('')}
-        </svg>
-      </div>
-      <div class="xp-axis-labels">
-        <span>${labels[0]}</span><span>${labels[1]}</span><span>${labels[2]}</span>
-      </div>
-    </div>`;
+    <div class="ins-chart-card" id="_xpGraphCard"></div>
+    <div class="ins-chart-card" id="_donutCard"></div>`;
+  _buildXpGraph();
+  _buildDonutChart();
 }
 
-/* ── Donut chart (répartition par type) ── */
-function buildDonutChart(){
-  const wrap = document.getElementById('v2DonutWrap'); if(!wrap) return;
-  const types = {study:'📚 Études',work:'💼 Travail',sport:'🏃 Sport',social:'👥 Social',leisure:'🎮 Loisirs',other:'✨ Autre'};
-  const colors = ['#FF6B35','#6366f1','#10B981','#F59E0B','#EC4899','#8B5CF6'];
-  const counts = {};
-  S.events.forEach(e=>{ const t=e.type||'other'; counts[t]=(counts[t]||0)+(e.duration||60)/60; });
-  const total = Math.max(Object.values(counts).reduce((a,b)=>a+b,0),1);
-
-  const entries = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,6);
-  if(!entries.length){ wrap.innerHTML=''; return; }
-
-  // SVG donut
-  const R=52, r=32, cx=65, cy=65;
-  let offset=0;
-  const circumference = 2*Math.PI*R;
-  let segHtml = '';
-  entries.forEach(([type,val],i)=>{
-    const pct = val/total;
-    const dash = pct*circumference;
-    const gap  = circumference - dash;
-    segHtml += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="none"
-      stroke="${colors[i%colors.length]}" stroke-width="22"
-      stroke-dasharray="${dash} ${gap}"
-      stroke-dashoffset="${-offset*circumference}"
-      style="transition:stroke-dashoffset .6s ease ${i*.08}s"
-    />`; 
-    offset += pct;
+function _buildXpGraph(){
+  const wrap=_iEl('_xpGraphCard'); if(!wrap) return;
+  const now=new Date();
+  const days=[];
+  for(let i=29;i>=0;i--){const d=new Date(now);d.setDate(now.getDate()-i);days.push(d);}
+  const vals=days.map(d=>{
+    const evs=S.events.filter(e=>{
+      const dd=e.date instanceof Date?e.date:new Date(e.date);
+      return dd.toDateString()===d.toDateString();
+    });
+    return evs.reduce((s,e)=>s+(e.duration||60)/60,0)*10;
   });
+  const maxV=Math.max(...vals,1);
+  const W=380,H=110,px=i=>Math.round(i*(W-20)/29)+10,py=v=>Math.round(H-8-(v/maxV)*(H-18));
+  const pts=vals.map((v,i)=>`${px(i)},${py(v)}`).join(' ');
+  const area=`M${px(0)},${H} ${vals.map((v,i)=>`L${px(i)},${py(v)}`).join(' ')} L${px(29)},${H} Z`;
+  const totalXp=vals.reduce((s,v)=>s+v,0);
 
-  const legendHtml = entries.map(([type,val],i)=>`
-    <div class="donut-item">
-      <div class="donut-dot" style="background:${colors[i%colors.length]}"></div>
-      <span class="donut-item-name">${types[type]||type}</span>
-      <span class="donut-item-pct">${Math.round(val/total*100)}%</span>
+  wrap.innerHTML=`
+    <div class="ins-card-header">
+      <span class="ins-card-title">⚡ XP sur 30 jours</span>
+      <span class="ins-card-sub" style="color:var(--orange);font-weight:800">+${Math.round(totalXp)} XP</span>
+    </div>
+    <svg class="xp-graph-svg" viewBox="0 0 ${W} ${H}" style="height:${H}px">
+      <defs>
+        <linearGradient id="xpGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="rgba(255,107,53,.35)"/>
+          <stop offset="100%" stop-color="rgba(255,107,53,0)"/>
+        </linearGradient>
+      </defs>
+      <path d="${area}" fill="url(#xpGrad)"/>
+      <polyline points="${pts}" fill="none" stroke="var(--orange)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+    </svg>`;
+}
+
+function _buildDonutChart(){
+  const wrap=_iEl('_donutCard'); if(!wrap) return;
+  const types=[
+    {key:'study',   label:'Révision',  color:'var(--blue)'},
+    {key:'work',    label:'Travail',   color:'var(--purple)'},
+    {key:'sport',   label:'Sport',     color:'var(--green)'},
+    {key:'social',  label:'Social',    color:'#ec4899'},
+    {key:'leisure', label:'Loisirs',   color:'var(--amber)'},
+    {key:'other',   label:'Autre',     color:'#6b7280'},
+  ];
+  const counts={}; let total=0;
+  S.events.forEach(e=>{const k=e.type||'other';counts[k]=(counts[k]||0)+1;total++;});
+  if(total===0){wrap.innerHTML=`<div class="ins-card-header"><span class="ins-card-title">📊 Répartition</span></div><div style="color:var(--t3);font-size:.8rem;text-align:center;padding:1.5rem">Aucun événement</div>`;return;}
+
+  const R=48,r=30,cx=60,cy=60,τ=2*Math.PI;
+  let angle=-Math.PI/2;
+  const slices=types.map(t=>{
+    const pct=(counts[t.key]||0)/total;
+    const sweep=pct*τ;
+    const x1=cx+R*Math.cos(angle),y1=cy+R*Math.sin(angle);
+    angle+=sweep;
+    const x2=cx+R*Math.cos(angle),y2=cy+R*Math.sin(angle);
+    const lg=sweep>Math.PI?1:0;
+    const xi=cx+r*Math.cos(angle-sweep),yi=cy+r*Math.sin(angle-sweep);
+    const xj=cx+r*Math.cos(angle),yj=cy+r*Math.sin(angle);
+    const path=`M${x1},${y1} A${R},${R},0,${lg},1,${x2},${y2} L${xj},${yj} A${r},${r},0,${lg},0,${xi},${yi} Z`;
+    return {path, color:t.color, pct:Math.round(pct*100)};
+  }).filter(s=>s.pct>0);
+
+  const legend=types.filter(t=>(counts[t.key]||0)>0).map(t=>`
+    <div class="donut-leg-row">
+      <div class="donut-leg-dot" style="background:${t.color}"></div>
+      <span class="donut-leg-name">${t.label}</span>
+      <span class="donut-leg-pct">${Math.round(((counts[t.key]||0)/total)*100)}%</span>
     </div>`).join('');
 
-  wrap.innerHTML = `
-    <div class="donut-section">
-      <div class="donut-header">🎯 Répartition du temps</div>
-      <div class="donut-layout">
-        <div class="donut-svg-wrap">
-          <svg class="donut-svg" viewBox="0 0 130 130">${segHtml}</svg>
-          <div class="donut-center">
-            <span class="donut-center-val">${Math.round(total)}h</span>
-            <span class="donut-center-lbl">total</span>
-          </div>
-        </div>
-        <div class="donut-legend">${legendHtml}</div>
-      </div>
+  wrap.innerHTML=`
+    <div class="ins-card-header">
+      <span class="ins-card-title">📊 Répartition</span>
+      <span class="ins-card-sub">${total} événements</span>
+    </div>
+    <div class="donut-wrap">
+      <svg viewBox="0 0 120 120" style="width:110px;height:110px;flex-shrink:0">
+        ${slices.map(s=>`<path d="${s.path}" fill="${s.color}" stroke="var(--s1)" stroke-width="1.5"/>`).join('')}
+        <circle cx="${cx}" cy="${cy}" r="${r-2}" fill="var(--s1)"/>
+        <text x="${cx}" y="${cy+5}" text-anchor="middle" fill="var(--t1)" font-size="11" font-weight="900">${total}</text>
+      </svg>
+      <div class="donut-legend">${legend}</div>
     </div>`;
 }
 
-/* ── Week-over-week comparison ── */
-function buildWowSection(){
-  const wrap = document.getElementById('v2WowWrap'); if(!wrap) return;
-  const now = new Date();
-  const thisWeekStart = new Date(now); thisWeekStart.setDate(now.getDate()-now.getDay()+1); thisWeekStart.setHours(0,0,0,0);
-  const prevWeekStart = new Date(thisWeekStart); prevWeekStart.setDate(thisWeekStart.getDate()-7);
-  const prevWeekEnd   = new Date(thisWeekStart); prevWeekEnd.setSeconds(-1);
+/* ── Week-over-Week ── */
+function _buildInsWow(){
+  const wrap=_iEl('insWow'); if(!wrap) return;
+  const cur=_weekEvents(0), prev=_weekEvents(1);
+  const cH=Math.round(cur.reduce((s,e)=>s+(e.duration||60)/60,0)*10)/10;
+  const pH=Math.round(prev.reduce((s,e)=>s+(e.duration||60)/60,0)*10)/10;
+  const cS=cur.filter(e=>e.type==='study').length;
+  const pS=prev.filter(e=>e.type==='study').length;
 
-  const thisW = S.events.filter(e=>{const d=new Date(e.date);return d>=thisWeekStart&&d<=now;});
-  const prevW = S.events.filter(e=>{const d=new Date(e.date);return d>=prevWeekStart&&d<=prevWeekEnd;});
-
-  const metric=(evs)=>({
-    h: Math.round(evs.reduce((s,e)=>s+(e.duration||60)/60,0)*10)/10,
-    n: evs.length,
-    study: evs.filter(e=>e.type==='study').length,
-  });
-  const a=metric(thisW), b=metric(prevW);
-  const delta=(cur,prev)=>{
-    if(!prev) return {cls:'same',ico:'→',txt:'–'};
-    const d=cur-prev; const pct=Math.round(d/prev*100);
-    return d>0?{cls:'up',ico:'↑',txt:'+'+pct+'%'}:d<0?{cls:'down',ico:'↓',txt:pct+'%'}:{cls:'same',ico:'→',txt:'='}
-  };
-  const dH=delta(a.h,b.h), dN=delta(a.n,b.n);
+  const dH=_delta(cH,pH), dEv=_delta(cur.length,prev.length), dS=_delta(cS,pS);
+  const metrics=[
+    {label:'Heures planifiées', val:cH+'h',          delta:dH},
+    {label:'Événements',        val:cur.length,       delta:dEv},
+    {label:'Sessions étude',    val:cS,               delta:dS},
+    {label:'Streak',            val:S.streak+'j',     delta:{cls:'up',ico:'🔥',txt:'continu'}},
+  ];
 
   wrap.innerHTML=`
-    <div class="wow-section">
-      <div class="wow-title">📊 Semaine courante vs précédente</div>
+    <div class="ins-wow-card">
+      <div class="ins-card-header">
+        <span class="ins-card-title">📈 Cette semaine vs semaine passée</span>
+      </div>
       <div class="wow-grid">
-        <div class="wow-card">
-          <div class="wow-label">Heures</div>
-          <div class="wow-val">${a.h}h</div>
-          <div class="wow-delta ${dH.cls}">${dH.ico} ${dH.txt}</div>
-        </div>
-        <div class="wow-card">
-          <div class="wow-label">Événements</div>
-          <div class="wow-val">${a.n}</div>
-          <div class="wow-delta ${dN.cls}">${dN.ico} ${dN.txt}</div>
-        </div>
-        <div class="wow-card">
-          <div class="wow-label">Sessions étude</div>
-          <div class="wow-val">${a.study}</div>
-          <div class="wow-delta ${delta(a.study,b.study).cls}">${delta(a.study,b.study).ico} ${delta(a.study,b.study).txt}</div>
-        </div>
-        <div class="wow-card">
-          <div class="wow-label">Streak</div>
-          <div class="wow-val">${S.streak}j</div>
-          <div class="wow-delta up">🔥 continu</div>
-        </div>
+        ${metrics.map(m=>`
+          <div class="wow-metric">
+            <div class="wow-metric-lbl">${m.label}</div>
+            <div class="wow-metric-val">${m.val}</div>
+            <div class="wow-delta ${m.delta.cls}">${m.delta.ico} ${m.delta.txt}</div>
+          </div>`).join('')}
       </div>
     </div>`;
-}
-
-/* ── Chronos Insight Bubble (analyse IA) ── */
-async function buildChronosInsightBubble(){
-  const wrap = document.getElementById('v2ChronosInsightWrap'); if(!wrap) return;
-  const key = localStorage.getItem('cf_apikey');
-  const now = new Date();
-  const weekEvs = S.events.filter(e=>{const d=new Date(e.date);const ws=new Date(now);ws.setDate(now.getDate()-7);return d>=ws;});
-  const h = Math.round(weekEvs.reduce((s,e)=>s+(e.duration||60)/60,0));
-
-  let msg = `Cette semaine, ${h}h planifiées. Streak de ${S.streak} jours — continue ! 💪`;
-
-  wrap.innerHTML=`
-    <div class="chronos-insight-bubble">
-      <div class="cib-chronos">
-        <div style="width:48px;height:48px;border-radius:50%;background:radial-gradient(circle at 38% 30%,#fffbc0,#FFD700 55%,#c49000);border:2.5px solid #8a6200;box-shadow:0 0 18px rgba(255,208,0,.6)"></div>
-      </div>
-      <div class="cib-text">
-        <h4>Chronos analyse ta semaine</h4>
-        <p id="v2InsightMsg" class="cib-typing">${msg}</p>
-      </div>
-    </div>`;
-
-  if(key && weekEvs.length>0){
-    const langName = LANG_NAMES[S.lang]||'Français';
-    try{
-      const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
-        headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01'},
-        body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:120,
-          system:'Tu es Chronos, assistant planning IA. Réponds en '+langName+'. 1 phrase percutante, max 25 mots, ton encourageant.',
-          messages:[{role:'user',content:`Streak:${S.streak}j, Niveau:${S.level}, Heures planifiées cette semaine:${h}h. Donne un conseil ou encouragement court.`}]})});
-      const d=await r.json();
-      const el=document.getElementById('v2InsightMsg');
-      if(el&&d.content?.[0]?.text){
-        el.classList.remove('cib-typing');
-        typeInsight(el, d.content[0].text);
-      }
-    }catch(e){}
-  } else {
-    const el=document.getElementById('v2InsightMsg');
-    if(el) el.classList.remove('cib-typing');
-  }
-}
-function typeInsight(el,txt){let i=0;el.textContent='';el.classList.add('cib-typing');const iv=setInterval(()=>{if(i<txt.length){el.textContent+=txt[i++];}else{clearInterval(iv);el.classList.remove('cib-typing');}},22);}
-
-/* ── updateInsightsV2 appelée depuis switchView ── */
-function updateInsightsV2(){
-  injectInsightsV2Containers();
-  buildHeatmap();
-  buildXpGraph();
-  buildDonutChart();
-  buildWowSection();
-  buildChronosInsightBubble();
-}
-function injectInsightsV2Containers(){
-  const view = document.getElementById('insightsView'); if(!view) return;
-  if(document.getElementById('v2HeatmapWrap')) return; // already injected
-  const divs = ['v2ChronosInsightWrap','v2HeatmapWrap','v2XpGraphWrap','v2DonutWrap','v2WowWrap'];
-  divs.forEach(id=>{
-    const d=document.createElement('div'); d.id=id;
-    view.appendChild(d);
-  });
 }
 
 /* ═══════════════════════════════════════════════════════════

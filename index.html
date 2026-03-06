@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>ChronoFlow V5</title>
+<title>ChronoFlow</title>
 <link rel="stylesheet" href="style.css">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
@@ -146,19 +146,54 @@
   </header>
 
   <div class="app-body">
-    <!-- SIDEBAR -->
+    <!-- SIDEBAR — toujours visible, style Islands -->
     <aside class="sidebar" id="sidebar">
+
+      <!-- User block -->
+      <div class="sb-user" onclick="switchView('profile')" style="cursor:pointer" title="Mon profil">
+        <div class="sb-av" id="sbAv">
+          <span class="sb-av-letter" id="sbAvLetter">👤</span>
+          <img id="sbAvImg" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:50%">
+        </div>
+        <div class="sb-user-info">
+          <div class="sb-name" id="sbName">—</div>
+          <div class="sb-rank" id="sbRank">Bronze</div>
+        </div>
+      </div>
+
+      <!-- XP bar -->
+      <div class="sb-xp">
+        <div class="sb-xp-row">
+          <span class="sb-xp-lv" id="sbXpLv">Niveau 1</span>
+          <span class="sb-xp-val" id="sbXpVal">0 XP</span>
+        </div>
+        <div class="sb-xp-track">
+          <div class="sb-xp-fill" id="sbXpFill" style="width:0%"></div>
+        </div>
+      </div>
+
+      <!-- Nav -->
       <nav class="sidebar-nav">
-        <button class="nav-btn active" data-view="planning" onclick="switchView('planning')"><span class="nav-icon">📋</span><span class="nav-label" data-i18n="nav_planning">Planning</span></button>
-        <button class="nav-btn" data-view="calendar" onclick="switchView('calendar')"><span class="nav-icon">📅</span><span class="nav-label" data-i18n="nav_calendar">Calendrier</span></button>
-        <button class="nav-btn" data-view="insights" onclick="switchView('insights')"><span class="nav-icon">📊</span><span class="nav-label" data-i18n="nav_insights">Insights</span></button>
-        <button class="nav-btn" data-view="templates" onclick="switchView('templates')"><span class="nav-icon">📁</span><span class="nav-label" data-i18n="nav_templates">Templates</span></button>
-        <button class="nav-btn" data-view="badges" onclick="switchView('badges')"><span class="nav-icon">🏆</span><span class="nav-label" data-i18n="nav_badges">Badges</span></button>
-        <button class="nav-btn" data-view="settings" onclick="switchView('settings')"><span class="nav-icon">⚙️</span><span class="nav-label" data-i18n="nav_settings">Paramètres</span></button>
+        <div class="nav-section">App</div>
+        <button class="nav-btn active" data-view="planning"  onclick="switchView('planning')"> <span class="nav-icon">📋</span><span class="nav-label" data-i18n="nav_planning">Planning</span></button>
+        <button class="nav-btn"        data-view="calendar"  onclick="switchView('calendar')"> <span class="nav-icon">📅</span><span class="nav-label" data-i18n="nav_calendar">Calendrier</span></button>
+        <button class="nav-btn"        data-view="insights"  onclick="switchView('insights')"> <span class="nav-icon">📊</span><span class="nav-label" data-i18n="nav_insights">Insights</span></button>
+        <button class="nav-btn"        data-view="templates" onclick="switchView('templates')"><span class="nav-icon">📁</span><span class="nav-label" data-i18n="nav_templates">Templates</span></button>
+        <div class="nav-section">Profil</div>
+        <button class="nav-btn"        data-view="badges"    onclick="switchView('badges')">  <span class="nav-icon">🏆</span><span class="nav-label" data-i18n="nav_badges">Badges</span></button>
+        <button class="nav-btn"        data-view="profile"   onclick="switchView('profile')"> <span class="nav-icon">👤</span><span class="nav-label" data-i18n="profile">Profil</span></button>
+        <button class="nav-btn"        data-view="settings"  onclick="switchView('settings')"><span class="nav-icon">⚙️</span><span class="nav-label" data-i18n="nav_settings">Paramètres</span></button>
       </nav>
+
+      <!-- Streak bas de sidebar -->
+      <div class="sb-streak">
+        <span class="sb-streak-fire">🔥</span>
+        <span class="sb-streak-count" id="sbStreakCount">0</span>
+        <span class="sb-streak-lbl">jour streak</span>
+      </div>
+
     </aside>
     <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()"></div>
-    <div class="sidebar-hover-zone" id="sidebarHoverZone" onmouseenter="toggleSidebar()"></div>
 
     <!-- MAIN CONTENT -->
     <main class="content" id="mainContent">
@@ -304,35 +339,43 @@
         <div class="month-cal-wrap"><div id="monthCal" class="month-cal"></div></div>
       </div>
 
-      <!-- INSIGHTS -->
+      <!-- INSIGHTS — version unique, propre -->
       <div class="view" id="viewInsights">
-        <div class="view-header"><h2 data-i18n="nav_insights">Insights 📊</h2></div>
-        <!-- Weekly review CTA -->
+        <div class="view-header"><h2 data-i18n="nav_insights">Insights</h2></div>
+
+        <!-- Bilan hebdo CTA -->
         <button class="weekly-review-btn" id="weeklyReviewBtnInsights" onclick="openWeeklyReview()">
           <span class="wr-icon">📊</span>
           <div class="wr-text"><h4>Bilan hebdomadaire</h4><p>Analyse complète de ta semaine par Chronos</p></div>
-          <span style="color:var(--primary);font-size:1.2rem">→</span>
+          <span class="wr-arrow">→</span>
         </button>
-        <!-- V1 stats row (top 3 cards) -->
-        <div class="insights-stats-row" id="insightsStatsRow"></div>
-        <!-- V1 bar chart (7 jours) -->
-        <div class="ins-chart-card" id="insChartCard">
-          <h3>📅 Activité sur 7 jours</h3>
-          <div class="ins-chart"><div class="ins-bar-row" id="insBarChart"></div></div>
-        </div>
-        <!-- V2 Islands: Chronos insight bubble -->
-        <div id="v2ChronosInsightWrap"></div>
-        <!-- V2 Islands: 52-week heatmap -->
-        <div id="v2HeatmapWrap"></div>
-        <!-- V2 Islands: XP 30-day graph -->
-        <div id="v2XpGraphWrap"></div>
-        <!-- V2 Islands: Side-by-side donut + WoW -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
-          <div id="v2DonutWrap"></div>
-          <div id="v2WowWrap"></div>
-        </div>
-        <!-- V1 insight cards grid (bottom) -->
-        <div id="insightsGrid" class="insights-grid" style="margin-top:1rem"></div>
+
+        <!-- 4 stat cards -->
+        <div class="ins-stat-row" id="insStatRow"></div>
+
+        <!-- Chronos insight -->
+        <div id="insChronosCard"></div>
+
+        <!-- Heatmap 52 semaines -->
+        <div id="insHeatmap"></div>
+
+        <!-- Charts row : XP graph + Donut -->
+        <div class="ins-charts-row" id="insChartsRow"></div>
+
+        <!-- WoW comparison -->
+        <div id="insWow"></div>
+
+        <!-- Mini cards (compat V1) -->
+        <div id="insightsGrid" class="insights-grid"></div>
+
+        <!-- Éléments V1 cachés pour compat JS -->
+        <div id="insightsStatsRow" style="display:none"></div>
+        <div id="insChartCard"     style="display:none"><div id="insBarChart"></div></div>
+        <div id="v2ChronosInsightWrap" style="display:none"></div>
+        <div id="v2HeatmapWrap"        style="display:none"></div>
+        <div id="v2XpGraphWrap"        style="display:none"></div>
+        <div id="v2DonutWrap"          style="display:none"></div>
+        <div id="v2WowWrap"            style="display:none"></div>
       </div>
 
       <!-- TEMPLATES -->
@@ -482,7 +525,7 @@
 </div>
 
 <!-- ══════════════ SESSION RÉVISION (fullscreen) ══════════════ -->
-<div id="sessionScreen" class="session-screen">
+<div id="sessionScreen" class="session-screen" style="display:none">
   <button class="session-back" onclick="tryExitSession()" title="Quitter la session">✕ Quitter</button>
   <div class="session-mascot-wrap" id="sessionMascot" onclick="openChronosChat()">
   <div class="chronos-figure" id="sessionKoroWrap">
