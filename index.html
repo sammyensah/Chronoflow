@@ -121,233 +121,260 @@
 
 <!-- ══════════════ ONBOARDING ══════════════ -->
 <div id="onboardingScreen" class="fullscreen" style="display:none">
-  <div class="fs-bg"><div id="particles2" class="particles-wrap"></div></div>
+  <div class="fs-bg ob-fs-bg"><div id="particles2" class="particles-wrap"></div></div>
   <div class="fs-content ob-content">
 
-    <!-- Header Onboarding : progress + Chronos message -->
+    <!-- Header fixe : progress bar + dots + message Chronos -->
     <div class="ob-header">
       <div class="ob-progress-bar"><div class="ob-progress-fill" id="obProgressFill" style="width:16%"></div></div>
-      <div class="ob-step-dots">
-        <div class="ob-step-dot active"></div>
-        <div class="ob-step-dot"></div>
-        <div class="ob-step-dot"></div>
-        <div class="ob-step-dot"></div>
-        <div class="ob-step-dot"></div>
-        <div class="ob-step-dot"></div>
+      <div class="ob-step-dots" id="obStepDots">
+        <div class="ob-step-dot active" title="Bienvenue"></div>
+        <div class="ob-step-dot" title="Profil"></div>
+        <div class="ob-step-dot" title="Configuration"></div>
+        <div class="ob-step-dot" title="Fonctionnalités"></div>
+        <div class="ob-step-dot" title="Offre"></div>
+        <div class="ob-step-dot" title="Lancement"></div>
       </div>
-      <div class="ob-chronos-msg-row">
-        <span class="ob-chronos-icon">⚡</span>
-        <span class="ob-chronos-msg" id="obChronosMsg">Bienvenue ! Je suis Chronos, ton assistant IA.</span>
-      </div>
-    </div>
-
-    <!-- Étape 0 — La Promesse -->
-    <div class="ob-step active" id="obStepWelcome" style="text-align:center">
-      <div style="font-size:2.2rem;animation:chronosEntrance .6s cubic-bezier(.16,1,.3,1) both;margin-bottom:.5rem">⚡</div>
-      <div style="font-family:var(--font-d);font-size:1.1rem;font-weight:900;color:var(--orange);letter-spacing:-.03em;margin-bottom:1rem">ChronoFlow</div>
-      <h2 style="font-family:var(--font-d);font-size:1.5rem;font-weight:900;color:var(--t1);letter-spacing:-.04em;margin-bottom:.65rem;line-height:1.2">Reprends le contrôle<br>de ton temps. ⚡</h2>
-      <p style="font-size:.95rem;color:var(--t2);margin-bottom:0;line-height:1.6">ChronoFlow génère ton planning en quelques secondes — adapté à ta vie, optimisé par l'IA.</p>
-      <div class="ob-social-proof">
-        <div class="ob-sp-chip">🎓 +12 000 étudiants</div>
-        <div class="ob-sp-chip">⚡ Planning en 8 sec</div>
-        <div class="ob-sp-chip">🏆 4.9/5 satisfaction</div>
-      </div>
-      <button class="btn-primary ob-btn-full" onclick="goObStep('profile')" style="padding:.8rem 1.6rem;font-size:.95rem">Commencer gratuitement →</button>
-      <div style="margin-top:.75rem"><button class="ob-btn-skip" onclick="document.getElementById('onboardingScreen').style.display='none';document.getElementById('authScreen').style.display='flex'">J'ai déjà un compte</button></div>
-    </div>
-
-    <!-- Étape 1 — Choix du profil -->
-    <div class="ob-step" id="obStep1">
-      <h2 class="ob-title" id="obChooseProfile">Quel est ton profil ?</h2>
-      <p class="ob-subtitle">On va personnaliser ton expérience en 2 minutes.</p>
-      <div class="profile-cards">
-        <div class="profile-card" data-profile="student" onclick="obSelectProfile('student', this)" style="position:relative">
-          <div class="pc-popular-badge">Populaire</div>
-          <div class="pc-icon-wrap">🎓</div>
-          <div class="pc-check" style="display:none">✓</div>
-          <h3 id="pcStudent">Étudiant</h3><p id="pcStudentDesc">Cours, révisions, examens</p>
-        </div>
-        <div class="profile-card" data-profile="worker" onclick="obSelectProfile('worker', this)" style="position:relative">
-          <div class="pc-icon-wrap">💼</div>
-          <div class="pc-check" style="display:none">✓</div>
-          <h3 id="pcWorker">Travailleur</h3><p id="pcWorkerDesc">Projets, réunions, deadlines</p>
-        </div>
-        <div class="profile-card" data-profile="custom" onclick="obSelectProfile('custom', this)" style="position:relative">
-          <div class="pc-icon-wrap">✨</div>
-          <div class="pc-check" style="display:none">✓</div>
-          <h3 id="pcCustom">Personnalisé</h3><p id="pcCustomDesc">Je configure moi-même</p>
-        </div>
-      </div>
-      <div id="obContinueBtn" style="display:none;animation:fadeIn .3s ease">
-        <button class="btn-primary ob-btn-full" onclick="goObStep('config')" style="margin-top:.5rem">Continuer →</button>
-      </div>
-    </div>
-    <!-- Étape 2 — Configuration -->
-    <div class="ob-step" id="obStep2">
-      <h2 class="ob-title" id="obStudentTitle">🎓 Configuration Étudiant</h2>
-      <div class="ob-context-tip" id="obContextTip">
-        <span class="ob-context-tip-icon">⚡</span>
-        <span id="obContextTipText">Ces limites m'aident à ne pas te surcharger. Je ne planifierai jamais plus que ce que tu m'autorises.</span>
-      </div>
-      <div class="ob-limits">
-        <div class="form-group"><label id="lblMaxStudy">Max révision / jour (h)</label><div class="cf-num-wrap"><input type="number" id="obMaxStudy" value="4" min="1" max="12"><div class="cf-num-arrows"><div class="cf-num-up" onclick="cfNum('obMaxStudy',1,1,12)"><svg viewBox="0 0 10 6"><path d="M1 5l4-4 4 4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="cf-num-down" onclick="cfNum('obMaxStudy',-1,1,12)"><svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div></div></div></div>
-        <div class="form-group"><label id="lblMaxLeisure">Max loisirs / jour (h)</label><div class="cf-num-wrap"><input type="number" id="obMaxLeisure" value="3" min="0" max="12"><div class="cf-num-arrows"><div class="cf-num-up" onclick="cfNum('obMaxLeisure',1,0,12)"><svg viewBox="0 0 10 6"><path d="M1 5l4-4 4 4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="cf-num-down" onclick="cfNum('obMaxLeisure',-1,0,12)"><svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div></div></div></div>
-        <div class="form-group"><label id="lblBreakBetween">Pause entre événements (min)</label><div class="cf-num-wrap"><input type="number" id="obBreakBetween" value="10" min="5" max="60" step="5"><div class="cf-num-arrows"><div class="cf-num-up" onclick="cfNum('obBreakBetween',5,5,60)"><svg viewBox="0 0 10 6"><path d="M1 5l4-4 4 4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="cf-num-down" onclick="cfNum('obBreakBetween',-5,5,60)"><svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div></div></div></div>
-      </div>
-      <div id="coursesContainer" class="courses-list"></div>
-      <button class="btn-secondary" onclick="addCourse()">+ <span id="btnAddCourse">Ajouter un cours</span></button>
-      <div class="ob-btns">
-        <button class="btn-secondary" onclick="goObStep('profile')">← <span id="btnBack">Retour</span></button>
-        <button class="btn-primary" onclick="goObStep('features')"><span id="btnFinish">Continuer</span> →</button>
-      </div>
-    </div>
-    <div class="ob-step" id="obStep2w">
-      <h2 class="ob-title" id="obWorkerTitle">💼 Configuration Travailleur</h2>
-      <div class="ob-context-tip">
-        <span class="ob-context-tip-icon">⚡</span>
-        <span>Je vais respecter tes heures de travail et m'assurer que tu gardes du temps pour toi.</span>
-      </div>
-      <div class="ob-limits">
-        <div class="form-group"><label id="lblWorkStart">Début journée</label><input type="time" id="workStart" value="09:00" step="300"></div>
-        <div class="form-group"><label id="lblWorkEnd">Fin journée</label><input type="time" id="workEnd" value="18:00" step="300"></div>
-        <div class="form-group"><label id="lblMaxWork">Max travail / jour (h)</label><div class="cf-num-wrap"><input type="number" id="obMaxWork" value="8" min="1" max="16"><div class="cf-num-arrows"><div class="cf-num-up" onclick="cfNum('obMaxWork',1,1,16)"><svg viewBox="0 0 10 6"><path d="M1 5l4-4 4 4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="cf-num-down" onclick="cfNum('obMaxWork',-1,1,16)"><svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div></div></div></div>
-        <div class="form-group"><label id="lblBreakW">Pause entre tâches (min)</label><div class="cf-num-wrap"><input type="number" id="obBreakWork" value="10" min="5" max="60" step="5"><div class="cf-num-arrows"><div class="cf-num-up" onclick="cfNum('obBreakWork',5,5,60)"><svg viewBox="0 0 10 6"><path d="M1 5l4-4 4 4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="cf-num-down" onclick="cfNum('obBreakWork',-5,5,60)"><svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div></div></div></div>
-      </div>
-      <div class="ob-btns">
-        <button class="btn-secondary" onclick="goObStep('profile')">← <span>Retour</span></button>
-        <button class="btn-primary" onclick="goObStep('features')">Continuer →</button>
-      </div>
-    </div>
-    <div class="ob-step" id="obStep2c">
-      <h2 class="ob-title" id="obCustomTitle">✨ Configuration Personnalisée</h2>
-      <div class="ob-context-tip">
-        <span class="ob-context-tip-icon">⚡</span>
-        <span>Tu as le contrôle total. Tu pourras tout modifier dans les paramètres.</span>
-      </div>
-      <div class="ob-limits">
-        <div class="form-group"><label id="lblMaxStudyC">Max révision / jour (h)</label><div class="cf-num-wrap"><input type="number" id="obMaxStudyC" value="4" min="0" max="16"><div class="cf-num-arrows"><div class="cf-num-up" onclick="cfNum('obMaxStudyC',1,0,16)"><svg viewBox="0 0 10 6"><path d="M1 5l4-4 4 4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="cf-num-down" onclick="cfNum('obMaxStudyC',-1,0,16)"><svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div></div></div></div>
-        <div class="form-group"><label id="lblMaxLeisureC">Max loisirs / jour (h)</label><div class="cf-num-wrap"><input type="number" id="obMaxLeisureC" value="3" min="0" max="16"><div class="cf-num-arrows"><div class="cf-num-up" onclick="cfNum('obMaxLeisureC',1,0,16)"><svg viewBox="0 0 10 6"><path d="M1 5l4-4 4 4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="cf-num-down" onclick="cfNum('obMaxLeisureC',-1,0,16)"><svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div></div></div></div>
-        <div class="form-group"><label id="lblBreakC">Pause entre événements (min)</label><div class="cf-num-wrap"><input type="number" id="obBreakCustom" value="10" min="5" max="60" step="5"><div class="cf-num-arrows"><div class="cf-num-up" onclick="cfNum('obBreakCustom',5,5,60)"><svg viewBox="0 0 10 6"><path d="M1 5l4-4 4 4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="cf-num-down" onclick="cfNum('obBreakCustom',-5,5,60)"><svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="var(--primary)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div></div></div></div>
-      </div>
-      <div class="ob-btns">
-        <button class="btn-secondary" onclick="goObStep('profile')">← Retour</button>
-        <button class="btn-primary" onclick="goObStep('features')">Continuer →</button>
+      <div class="ob-chronos-row">
+        <span class="ob-koro-icon">⚡</span>
+        <span class="ob-koro-msg" id="obChronosMsg">Bienvenue ! Je suis Chronos, ton assistant IA.</span>
       </div>
     </div>
 
-    <!-- Étape 3 — Features showcase -->
-    <div class="ob-step" id="obStepFeatures">
-      <div class="ob-features-header">
-        <h2 class="ob-title">Voici ce que ChronoFlow va faire pour toi</h2>
-        <p class="ob-features-sub">Automatiquement. Chaque semaine.</p>
-      </div>
-      <div class="ob-features-list">
-        <div class="ob-feature-row">
-          <div class="ob-feat-icon-wrap ob-feat-blue">⚡</div>
-          <div class="ob-feat-text">
-            <strong>Génération IA en 8 secondes</strong>
-            <span>Décris ta semaine en langage naturel, Chronos crée tout ton planning.</span>
-          </div>
-          <div class="ob-feat-check">✓</div>
-        </div>
-        <div class="ob-feature-row">
-          <div class="ob-feat-icon-wrap ob-feat-orange">📅</div>
-          <div class="ob-feat-text">
-            <strong>Planning adapté à tes limites</strong>
-            <span>Il respecte tes heures de sommeil, tes cours fixes et tes pauses.</span>
-          </div>
-          <div class="ob-feat-check">✓</div>
-        </div>
-        <div class="ob-feature-row">
-          <div class="ob-feat-icon-wrap ob-feat-purple">📊</div>
-          <div class="ob-feat-text">
-            <strong>Insights sur ta productivité</strong>
-            <span>Heatmap, graphiques XP, comparaison semaine après semaine.</span>
-          </div>
-          <div class="ob-feat-check">✓</div>
-        </div>
-        <div class="ob-feature-row">
-          <div class="ob-feat-icon-wrap ob-feat-green">🏆</div>
-          <div class="ob-feat-text">
-            <strong>Système de progression gamifié</strong>
-            <span>XP, niveaux, badges, streaks — rester motivé n'a jamais été aussi fun.</span>
-          </div>
-          <div class="ob-feat-check">✓</div>
-        </div>
-      </div>
-      <div class="ob-btns" style="flex-direction:column;gap:.4rem">
-        <button class="btn-primary ob-btn-full" onclick="goObStep('pricing')">C'est parti ! Voir les offres →</button>
-        <button class="ob-btn-skip" onclick="goObStep('celebrate')">Continuer sans Premium</button>
-      </div>
-    </div>
+    <!-- Contenu scrollable des étapes -->
+    <div class="ob-inner" id="obInner">
 
-    <!-- Étape 4 — Pricing -->
-    <div class="ob-step" id="obStepPricing">
-      <div class="ob-pricing-header">
-        <div class="ob-pricing-badge">🔥 Offre de lancement</div>
-        <h2 class="ob-title">Choisis ton plan</h2>
-        <p class="ob-pricing-sub">7 jours d'essai gratuit · Annule à tout moment</p>
-      </div>
-      <div class="ob-plans-grid">
-        <div class="ob-plan ob-plan-free">
-          <div class="ob-plan-name">Gratuit</div>
-          <div class="ob-plan-price"><span class="ob-price-amount">0€</span><span class="ob-price-period">/mois</span></div>
-          <ul class="ob-plan-features">
-            <li class="ob-feat-ok">✓ 5 générations IA / mois</li>
-            <li class="ob-feat-ok">✓ Planning hebdomadaire</li>
-            <li class="ob-feat-ok">✓ Calendrier mensuel</li>
-            <li class="ob-feat-no">✗ Insights avancés</li>
-            <li class="ob-feat-no">✗ Sessions de révision</li>
-            <li class="ob-feat-no">✗ Badges &amp; Niveaux</li>
-          </ul>
-          <button class="btn-secondary ob-btn-full" onclick="goObStep('celebrate')">Continuer gratuitement</button>
-        </div>
-        <div class="ob-plan ob-plan-pro ob-plan-featured">
-          <div class="ob-plan-popular">⭐ Le plus populaire</div>
-          <div class="ob-plan-name">Pro</div>
-          <div class="ob-plan-price">
-            <span class="ob-price-original">9.99€</span>
-            <span class="ob-price-amount">4.99€</span>
-            <span class="ob-price-period">/mois</span>
+      <!-- ── Étape 0 : La Promesse ── -->
+      <div class="ob-step active" id="obStepWelcome">
+        <div class="ob-welcome-hero">
+          <div class="ob-welcome-logo">
+            <span class="ob-welcome-bolt">⚡</span>
+            <span class="ob-welcome-brand">ChronoFlow</span>
           </div>
-          <ul class="ob-plan-features">
-            <li class="ob-feat-ok">✓ Générations IA <strong>illimitées</strong></li>
-            <li class="ob-feat-ok">✓ Planning hebdomadaire</li>
-            <li class="ob-feat-ok">✓ Insights &amp; graphiques avancés</li>
-            <li class="ob-feat-ok">✓ Sessions Pomodoro</li>
-            <li class="ob-feat-ok">✓ Badges, niveaux &amp; classements</li>
-            <li class="ob-feat-ok">✓ Export PDF &amp; partage</li>
-          </ul>
-          <button class="btn-primary ob-btn-full ob-pay-btn" onclick="handleFakePurchase('pro')">Commencer l'essai gratuit →</button>
-          <p class="ob-plan-guarantee">🔒 Aucun paiement maintenant · 7 jours offerts</p>
+          <h1 class="ob-welcome-headline">Reprends le contrôle<br><span class="ob-headline-accent">de ton temps.</span></h1>
+          <p class="ob-welcome-sub">L'IA génère ton planning en 8 secondes — adapté à ta vie, à tes objectifs, à ton rythme.</p>
         </div>
+        <div class="ob-social-proof">
+          <div class="ob-sp-chip"><span class="ob-sp-dot ob-sp-dot-blue"></span>+12 000 utilisateurs</div>
+          <div class="ob-sp-chip"><span class="ob-sp-dot ob-sp-dot-orange"></span>Planning en 8 sec</div>
+          <div class="ob-sp-chip"><span class="ob-sp-dot ob-sp-dot-green"></span>4.9/5 ⭐</div>
+        </div>
+        <button class="btn-ob-cta" onclick="goObStep('profile')">Commencer gratuitement <span class="ob-arrow">→</span></button>
+        <button class="ob-btn-ghost" onclick="document.getElementById('onboardingScreen').style.display='none';document.getElementById('authScreen').style.display='flex'">J'ai déjà un compte</button>
       </div>
-      <div class="ob-trust-row">
-        <span>🔐 Paiement sécurisé</span>
-        <span>↩ Remboursement 30j</span>
-        <span>🚫 Sans engagement</span>
-      </div>
-    </div>
 
-    <!-- Étape 5 : Célébration -->
-    <div class="ob-step" id="obStepCelebrate" style="text-align:center;position:relative">
-      <canvas id="obConfettiCanvas" style="position:absolute;inset:0;pointer-events:none;z-index:0;width:100%;height:100%"></canvas>
-      <div style="position:relative;z-index:1">
-        <div class="ob-celebrate-emoji" style="font-size:3.5rem">🎉</div>
-        <h2 class="ob-celebrate-title">C'est parti !</h2>
-        <p class="ob-celebrate-sub">ChronoFlow est prêt. Chronos n'attend plus que toi.</p>
-        <div class="ob-celebrate-summary" id="obCelebrateSummary"></div>
-        <div class="ob-first-goal">
-          <div class="ob-fg-icon">⚡</div>
-          <div class="ob-fg-text">
-            <strong>Ton premier objectif :</strong>
-            <span id="obFirstGoal">Génère ton planning pour cette semaine</span>
+      <!-- ── Étape 1 : Choix du profil ── -->
+      <div class="ob-step" id="obStep1">
+        <div class="ob-step-header">
+          <h2 class="ob-title" id="obChooseProfile">Quel est ton profil ?</h2>
+          <p class="ob-subtitle">On va personnaliser ton expérience en 2 minutes.</p>
+        </div>
+        <div class="profile-cards">
+          <div class="profile-card" data-profile="student" onclick="obSelectProfile('student',this)">
+            <div class="pc-popular-badge">⭐ Populaire</div>
+            <div class="pc-icon-wrap pc-icon-blue">🎓</div>
+            <div class="pc-check">✓</div>
+            <div class="pc-name" id="pcStudent">Étudiant</div>
+            <div class="pc-desc" id="pcStudentDesc">Cours, révisions, examens</div>
+          </div>
+          <div class="profile-card" data-profile="worker" onclick="obSelectProfile('worker',this)">
+            <div class="pc-icon-wrap pc-icon-amber">💼</div>
+            <div class="pc-check">✓</div>
+            <div class="pc-name" id="pcWorker">Travailleur</div>
+            <div class="pc-desc" id="pcWorkerDesc">Projets, réunions, deadlines</div>
+          </div>
+          <div class="profile-card" data-profile="custom" onclick="obSelectProfile('custom',this)">
+            <div class="pc-icon-wrap pc-icon-purple">✨</div>
+            <div class="pc-check">✓</div>
+            <div class="pc-name" id="pcCustom">Personnalisé</div>
+            <div class="pc-desc" id="pcCustomDesc">Je configure moi-même</div>
           </div>
         </div>
-        <button class="btn-primary ob-btn-full ob-celebrate-cta" onclick="finishOnboarding()" style="margin-top:1.5rem">Ouvrir mon planning →</button>
+        <div id="obContinueBtn" style="display:none">
+          <button class="btn-ob-cta" onclick="goObStep('config')">Continuer <span class="ob-arrow">→</span></button>
+        </div>
       </div>
-    </div>
 
+      <!-- ── Étape 2a : Config Étudiant ── -->
+      <div class="ob-step" id="obStep2">
+        <div class="ob-step-header">
+          <h2 class="ob-title" id="obStudentTitle">🎓 Configuration Étudiant</h2>
+        </div>
+        <div class="ob-context-tip">
+          <span class="ob-context-tip-icon">💡</span>
+          <span id="obContextTipText">Ces limites m'aident à ne pas te surcharger — je ne planifierai jamais plus que ce que tu m'autorises.</span>
+        </div>
+        <div class="ob-limits">
+          <div class="form-group"><label id="lblMaxStudy">Max révision / jour (h)</label><div class="cf-num-wrap"><input type="number" id="obMaxStudy" value="4" min="1" max="12"><div class="cf-num-arrows"><div class="cf-num-up" onclick="cfNum('obMaxStudy',1,1,12)"><svg viewBox="0 0 10 6"><path d="M1 5l4-4 4 4" stroke="var(--orange)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="cf-num-down" onclick="cfNum('obMaxStudy',-1,1,12)"><svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="var(--orange)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div></div></div></div>
+          <div class="form-group"><label id="lblMaxLeisure">Max loisirs / jour (h)</label><div class="cf-num-wrap"><input type="number" id="obMaxLeisure" value="3" min="0" max="12"><div class="cf-num-arrows"><div class="cf-num-up" onclick="cfNum('obMaxLeisure',1,0,12)"><svg viewBox="0 0 10 6"><path d="M1 5l4-4 4 4" stroke="var(--orange)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="cf-num-down" onclick="cfNum('obMaxLeisure',-1,0,12)"><svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="var(--orange)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div></div></div></div>
+          <div class="form-group"><label id="lblBreakBetween">Pause entre événements (min)</label><div class="cf-num-wrap"><input type="number" id="obBreakBetween" value="10" min="5" max="60" step="5"><div class="cf-num-arrows"><div class="cf-num-up" onclick="cfNum('obBreakBetween',5,5,60)"><svg viewBox="0 0 10 6"><path d="M1 5l4-4 4 4" stroke="var(--orange)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="cf-num-down" onclick="cfNum('obBreakBetween',-5,5,60)"><svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="var(--orange)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div></div></div></div>
+        </div>
+        <div id="coursesContainer" class="courses-list"></div>
+        <button class="btn-add-course" onclick="addCourse()">＋ <span id="btnAddCourse">Ajouter un cours</span></button>
+        <div class="ob-nav-btns">
+          <button class="btn-ob-back" onclick="goObStep('profile')">← <span id="btnBack">Retour</span></button>
+          <button class="btn-ob-cta ob-cta-sm" onclick="goObStep('features')"><span id="btnFinish">Continuer</span> →</button>
+        </div>
+      </div>
+
+      <!-- ── Étape 2b : Config Travailleur ── -->
+      <div class="ob-step" id="obStep2w">
+        <div class="ob-step-header">
+          <h2 class="ob-title" id="obWorkerTitle">💼 Configuration Travailleur</h2>
+        </div>
+        <div class="ob-context-tip">
+          <span class="ob-context-tip-icon">💡</span>
+          <span>Je vais respecter tes heures de travail et m'assurer que tu gardes du temps pour toi.</span>
+        </div>
+        <div class="ob-limits">
+          <div class="form-group"><label id="lblWorkStart">Début de journée</label><input type="time" id="workStart" class="ob-time-input" value="09:00" step="300"></div>
+          <div class="form-group"><label id="lblWorkEnd">Fin de journée</label><input type="time" id="workEnd" class="ob-time-input" value="18:00" step="300"></div>
+          <div class="form-group"><label id="lblMaxWork">Max travail / jour (h)</label><div class="cf-num-wrap"><input type="number" id="obMaxWork" value="8" min="1" max="16"><div class="cf-num-arrows"><div class="cf-num-up" onclick="cfNum('obMaxWork',1,1,16)"><svg viewBox="0 0 10 6"><path d="M1 5l4-4 4 4" stroke="var(--orange)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="cf-num-down" onclick="cfNum('obMaxWork',-1,1,16)"><svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="var(--orange)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div></div></div></div>
+          <div class="form-group"><label id="lblBreakW">Pause entre tâches (min)</label><div class="cf-num-wrap"><input type="number" id="obBreakWork" value="10" min="5" max="60" step="5"><div class="cf-num-arrows"><div class="cf-num-up" onclick="cfNum('obBreakWork',5,5,60)"><svg viewBox="0 0 10 6"><path d="M1 5l4-4 4 4" stroke="var(--orange)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="cf-num-down" onclick="cfNum('obBreakWork',-5,5,60)"><svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="var(--orange)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div></div></div></div>
+        </div>
+        <div class="ob-nav-btns">
+          <button class="btn-ob-back" onclick="goObStep('profile')">← Retour</button>
+          <button class="btn-ob-cta ob-cta-sm" onclick="goObStep('features')">Continuer →</button>
+        </div>
+      </div>
+
+      <!-- ── Étape 2c : Config Personnalisée ── -->
+      <div class="ob-step" id="obStep2c">
+        <div class="ob-step-header">
+          <h2 class="ob-title" id="obCustomTitle">✨ Configuration Personnalisée</h2>
+        </div>
+        <div class="ob-context-tip">
+          <span class="ob-context-tip-icon">💡</span>
+          <span>Tu as le contrôle total. Tu pourras tout modifier dans les paramètres à tout moment.</span>
+        </div>
+        <div class="ob-limits">
+          <div class="form-group"><label id="lblMaxStudyC">Max révision / jour (h)</label><div class="cf-num-wrap"><input type="number" id="obMaxStudyC" value="4" min="0" max="16"><div class="cf-num-arrows"><div class="cf-num-up" onclick="cfNum('obMaxStudyC',1,0,16)"><svg viewBox="0 0 10 6"><path d="M1 5l4-4 4 4" stroke="var(--orange)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="cf-num-down" onclick="cfNum('obMaxStudyC',-1,0,16)"><svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="var(--orange)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div></div></div></div>
+          <div class="form-group"><label id="lblMaxLeisureC">Max loisirs / jour (h)</label><div class="cf-num-wrap"><input type="number" id="obMaxLeisureC" value="3" min="0" max="16"><div class="cf-num-arrows"><div class="cf-num-up" onclick="cfNum('obMaxLeisureC',1,0,16)"><svg viewBox="0 0 10 6"><path d="M1 5l4-4 4 4" stroke="var(--orange)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="cf-num-down" onclick="cfNum('obMaxLeisureC',-1,0,16)"><svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="var(--orange)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div></div></div></div>
+          <div class="form-group"><label id="lblBreakC">Pause entre événements (min)</label><div class="cf-num-wrap"><input type="number" id="obBreakCustom" value="10" min="5" max="60" step="5"><div class="cf-num-arrows"><div class="cf-num-up" onclick="cfNum('obBreakCustom',5,5,60)"><svg viewBox="0 0 10 6"><path d="M1 5l4-4 4 4" stroke="var(--orange)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div><div class="cf-num-down" onclick="cfNum('obBreakCustom',-5,5,60)"><svg viewBox="0 0 10 6"><path d="M1 1l4 4 4-4" stroke="var(--orange)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></div></div></div></div>
+        </div>
+        <div class="ob-nav-btns">
+          <button class="btn-ob-back" onclick="goObStep('profile')">← Retour</button>
+          <button class="btn-ob-cta ob-cta-sm" onclick="goObStep('features')">Continuer →</button>
+        </div>
+      </div>
+
+      <!-- ── Étape 3 : Fonctionnalités ── -->
+      <div class="ob-step" id="obStepFeatures">
+        <div class="ob-step-header">
+          <h2 class="ob-title">Ce que ChronoFlow fait pour toi</h2>
+          <p class="ob-subtitle">Automatiquement. Chaque semaine.</p>
+        </div>
+        <div class="ob-features-list">
+          <div class="ob-feature-row">
+            <div class="ob-feat-icon-wrap ob-feat-blue">⚡</div>
+            <div class="ob-feat-text">
+              <strong>Génération IA en 8 secondes</strong>
+              <span>Décris ta semaine en langage naturel, Chronos génère tout ton planning.</span>
+            </div>
+            <div class="ob-feat-check">✓</div>
+          </div>
+          <div class="ob-feature-row">
+            <div class="ob-feat-icon-wrap ob-feat-orange">📅</div>
+            <div class="ob-feat-text">
+              <strong>Planning respectueux de tes limites</strong>
+              <span>Tes heures de sommeil, tes cours fixes, tes pauses sont protégés.</span>
+            </div>
+            <div class="ob-feat-check">✓</div>
+          </div>
+          <div class="ob-feature-row">
+            <div class="ob-feat-icon-wrap ob-feat-purple">📊</div>
+            <div class="ob-feat-text">
+              <strong>Insights &amp; statistiques avancés</strong>
+              <span>Heatmap d'activité, graphiques XP, comparaison semaine après semaine.</span>
+            </div>
+            <div class="ob-feat-check">✓</div>
+          </div>
+          <div class="ob-feature-row">
+            <div class="ob-feat-icon-wrap ob-feat-green">🏆</div>
+            <div class="ob-feat-text">
+              <strong>Progression gamifiée</strong>
+              <span>XP, niveaux, badges, streaks — la productivité devient addictive.</span>
+            </div>
+            <div class="ob-feat-check">✓</div>
+          </div>
+        </div>
+        <div class="ob-features-cta">
+          <button class="btn-ob-cta" onclick="goObStep('pricing')">Voir les offres →</button>
+          <button class="ob-btn-ghost" onclick="goObStep('celebrate')">Continuer gratuitement</button>
+        </div>
+      </div>
+
+      <!-- ── Étape 4 : Pricing ── -->
+      <div class="ob-step" id="obStepPricing">
+        <div class="ob-pricing-header">
+          <div class="ob-launch-badge">🔥 Offre de lancement</div>
+          <h2 class="ob-title">Choisis ton plan</h2>
+          <p class="ob-subtitle">7 jours d'essai gratuit · Annule à tout moment</p>
+        </div>
+        <div class="ob-plans-grid">
+          <div class="ob-plan ob-plan-free">
+            <div class="ob-plan-name">Gratuit</div>
+            <div class="ob-plan-price">
+              <span class="ob-price-amount">0€</span>
+              <span class="ob-price-period">/mois</span>
+            </div>
+            <ul class="ob-plan-features">
+              <li class="ob-feat-ok">✓ 5 générations IA / mois</li>
+              <li class="ob-feat-ok">✓ Planning hebdomadaire</li>
+              <li class="ob-feat-ok">✓ Calendrier mensuel</li>
+              <li class="ob-feat-no">✗ Insights avancés</li>
+              <li class="ob-feat-no">✗ Sessions Pomodoro</li>
+              <li class="ob-feat-no">✗ Badges &amp; Niveaux</li>
+            </ul>
+            <button class="ob-plan-btn-free" onclick="goObStep('celebrate')">Continuer gratuitement</button>
+          </div>
+          <div class="ob-plan ob-plan-pro ob-plan-featured">
+            <div class="ob-plan-badge">⭐ Le plus populaire</div>
+            <div class="ob-plan-name ob-plan-name-pro">Pro</div>
+            <div class="ob-plan-price">
+              <span class="ob-price-original">9.99€</span>
+              <span class="ob-price-amount ob-price-pro">4.99€</span>
+              <span class="ob-price-period">/mois</span>
+            </div>
+            <ul class="ob-plan-features">
+              <li class="ob-feat-ok">✓ Générations IA <strong>illimitées</strong></li>
+              <li class="ob-feat-ok">✓ Planning hebdomadaire</li>
+              <li class="ob-feat-ok">✓ Insights &amp; graphiques avancés</li>
+              <li class="ob-feat-ok">✓ Sessions Pomodoro</li>
+              <li class="ob-feat-ok">✓ Badges, niveaux &amp; classements</li>
+              <li class="ob-feat-ok">✓ Export PDF &amp; partage</li>
+            </ul>
+            <button class="btn-ob-cta ob-pay-btn" onclick="handleFakePurchase('pro')">Commencer l'essai gratuit →</button>
+            <p class="ob-guarantee">🔒 Aucun paiement maintenant · 7 jours offerts</p>
+          </div>
+        </div>
+        <div class="ob-trust-row">
+          <span>🔐 Sécurisé</span>
+          <span>↩ Remboursement 30j</span>
+          <span>🚫 Sans engagement</span>
+        </div>
+      </div>
+
+      <!-- ── Étape 5 : Célébration ── -->
+      <div class="ob-step ob-step-celebrate" id="obStepCelebrate">
+        <canvas id="obConfettiCanvas" class="ob-confetti-canvas"></canvas>
+        <div class="ob-celebrate-inner">
+          <div class="ob-celebrate-emoji">🎉</div>
+          <h2 class="ob-celebrate-title">C'est parti !</h2>
+          <p class="ob-celebrate-sub">ChronoFlow est prêt. Chronos n'attend plus que toi.</p>
+          <div class="ob-celebrate-summary" id="obCelebrateSummary"></div>
+          <div class="ob-first-goal">
+            <div class="ob-fg-icon">⚡</div>
+            <div class="ob-fg-text">
+              <strong>Ton premier objectif :</strong>
+              <span id="obFirstGoal">Génère ton planning pour cette semaine</span>
+            </div>
+          </div>
+          <button class="btn-ob-cta ob-celebrate-cta" onclick="finishOnboarding()">Ouvrir mon planning <span class="ob-arrow">→</span></button>
+        </div>
+      </div>
+
+    </div><!-- /ob-inner -->
   </div>
 </div>
 

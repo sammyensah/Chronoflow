@@ -975,9 +975,14 @@ const OB_STEPS_ORDER=['welcome','profile','config','features','pricing','celebra
 const OB_MSGS={fr:["Bienvenue ! Je suis Chronos 👋","Dis-moi qui tu es !","Configure ton profil.","Découvre tes super-pouvoirs !","Choisis ton plan.","Bienvenue dans l'équipe ! 🎉"],en:["Welcome! I'm Chronos 👋","Tell me who you are!","Set up your profile.","Discover your superpowers!","Choose your plan.","Welcome to the team! 🎉"]};
 function getObMsg(step){const idx=typeof step==='number'?step-1:OB_STEPS_ORDER.indexOf(step);return(OB_MSGS[S.lang]||OB_MSGS.fr)[idx>=0?idx:0]||OB_MSGS.fr[0];}
 function startOnboarding(){
-  S.obStep=0;S.obProfile=null;
+  S.obStep='welcome';S.obProfile=null;
   const scr=document.getElementById('onboardingScreen');if(!scr)return;
-  scr.style.display='flex';updateObProgress();updateObChronosMsg();goObStep('welcome');
+  // Reset all steps, show welcome directly (no slide animation on init)
+  document.querySelectorAll('.ob-step').forEach(s=>{s.classList.remove('active');s.style.animation='';});
+  const welcome=document.getElementById('obStepWelcome');if(welcome){welcome.style.animation='obCardIn .5s cubic-bezier(0.16,1,0.3,1) both';welcome.classList.add('active');}
+  const btn=document.getElementById('obContinueBtn');if(btn)btn.style.display='none';
+  scr.style.display='flex';
+  updateObProgress();updateObChronosMsg();
 }
 function updateObProgress(){
   const total=OB_STEPS_ORDER.length;
@@ -998,9 +1003,14 @@ function obNextToConfig(){
 }
 function obSelectProfile(type,el){
   S.obProfile=type;S.template=type;
-  document.querySelectorAll('.profile-card').forEach(c=>c.classList.remove('selected'));
+  document.querySelectorAll('.profile-card').forEach(c=>{
+    c.classList.remove('selected');
+    const chk=c.querySelector('.pc-check');if(chk)chk.style.display='none';
+  });
   el.classList.add('selected');
-  const btn=document.getElementById('obContinueBtn');if(btn){btn.style.display='flex';btn.style.opacity='1';}
+  const chk=el.querySelector('.pc-check');if(chk)chk.style.display='flex';
+  const btn=document.getElementById('obContinueBtn');
+  if(btn){btn.style.display='block';btn.style.animation='obFadeUp .3s cubic-bezier(0.16,1,0.3,1) both';}
 }
 function obBack(){S.obStep=0;updateObProgress();updateObChronosMsg();goObStep('welcome');}
 function addCourse(){
@@ -1008,7 +1018,6 @@ function addCourse(){
   const row=document.createElement('div');row.className='course-row';
   const DAYS_LONG=[T('day_monday'),T('day_tuesday'),T('day_wednesday'),T('day_thursday'),T('day_friday'),T('day_saturday')];
   row.innerHTML='<div class="cf-select-wrap"><select class="sel">'+DAYS_LONG.map((d,i)=>'<option value="'+(i+1)+'">'+d+'</option>').join('')+'</select></div><input type="time" class="tinp" value="08:00" step="300"><input type="time" class="tinp" value="10:00" step="300"><input type="text" class="sinp" placeholder="'+T('revise_subject')+'"><button class="btn-remove" onclick="this.parentElement.remove()">✕</button>';
-  row.innerHTML='<select class="sel">'+['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'].map((d,i)=>'<option value="'+(i+1)+'">'+d+'</option>').join('')+'</select><input type="time" class="tinp" value="08:00" step="300"><input type="time" class="tinp" value="10:00" step="300"><input type="text" class="sinp" placeholder="Matière"><button class="btn-remove" onclick="this.parentElement.remove()">✕</button>';
   c.appendChild(row);
 }
 async function finishOnboarding(){
@@ -1017,15 +1026,11 @@ async function finishOnboarding(){
   else if(S.template==='worker'){td.workStart=document.getElementById('workStart')?.value||'09:00';td.workEnd=document.getElementById('workEnd')?.value||'18:00';td.maxWork=+(document.getElementById('obMaxWork')?.value)||8;td.breakMin=+(document.getElementById('obBreakWork')?.value)||10;}
   else{td.maxStudy=+(document.getElementById('obMaxStudyC')?.value)||4;td.maxLeisure=+(document.getElementById('obMaxLeisureC')?.value)||3;td.breakMin=+(document.getElementById('obBreakCustom')?.value)||10;}
   S.lastUsedDate=new Date().toISOString();
-  S.obStep=3;updateObProgress();updateObChronosMsg();
-  document.querySelectorAll('.ob-step').forEach(s=>s.classList.remove('active'));
-  const cel=document.getElementById('obStepCelebrate');if(cel)cel.classList.add('active');
-  spawnConfetti();if(S.soundEnabled)playSound('levelup');
-  setTimeout(async()=>{
-    document.getElementById('onboardingScreen').style.display='none';
-    if(S.user?.uid)await window.FB.fbSaveUser(S.user.uid,{template:S.template,templateData:S.templateData,lastUsedDate:S.lastUsedDate});
-    launchWithTransition();
-  },2200);
+  if(S.soundEnabled)playSound('levelup');
+  const btn=document.querySelector('.ob-celebrate-cta');if(btn){btn.disabled=true;btn.textContent='Chargement... ⚡';}
+  if(S.user?.uid)await window.FB.fbSaveUser(S.user.uid,{template:S.template,templateData:S.templateData,lastUsedDate:S.lastUsedDate}).catch(e=>console.error(e));
+  document.getElementById('onboardingScreen').style.display='none';
+  launchWithTransition();
 }
 
 
@@ -1691,17 +1696,32 @@ function openForgotPassword(){const m=document.getElementById('forgotPwdModal');
 async function sendForgotPwd(){const email=(document.getElementById('forgotPwdEmail')?.value||'').trim();const msgEl=document.getElementById('forgotPwdMsg');if(!email){if(msgEl)msgEl.textContent='⚠️ '+T('error_field');return;}try{await window.FB.fbResetPassword(email);if(msgEl){msgEl.style.color='var(--green)';msgEl.textContent=T('forgot_pwd_sent')||'Email envoyé !';}setTimeout(()=>closeModal('forgotPwdModal'),3000);}catch(e){if(msgEl){msgEl.style.color='var(--danger,#ef4444)';msgEl.textContent=T('forgot_pwd_error')||'Erreur. Vérifie l\'email.';}}}
 function goObStep(stepName){
   const stepMap={welcome:'obStepWelcome',profile:'obStep1',config:null,features:'obStepFeatures',pricing:'obStepPricing',celebrate:'obStepCelebrate'};
-  document.querySelectorAll('.ob-step').forEach(s=>s.classList.remove('active'));
+  // Animate out current step
+  const currentStep=document.querySelector('.ob-step.active');
+  if(currentStep){currentStep.style.animation='obSlideOut .2s cubic-bezier(0.16,1,0.3,1) both';setTimeout(()=>currentStep.classList.remove('active'),180);}
   S.obStep=stepName;updateObProgress();updateObChronosMsg();
-  if(stepName==='config'){
-    if(S.obProfile==='student')document.getElementById('obStep2')?.classList.add('active');
-    else if(S.obProfile==='worker')document.getElementById('obStep2w')?.classList.add('active');
-    else document.getElementById('obStep2c')?.classList.add('active');
-  } else {
-    const elId=stepMap[stepName];
-    if(elId){const el=document.getElementById(elId);if(el)el.classList.add('active');}
-  }
-  if(stepName==='celebrate'){populateCelebrateSummary();setTimeout(launchObConfetti,400);}
+  setTimeout(()=>{
+    document.querySelectorAll('.ob-step').forEach(s=>{s.classList.remove('active');s.style.animation='';});
+    let targetId;
+    if(stepName==='config'){
+      if(S.obProfile==='student')targetId='obStep2';
+      else if(S.obProfile==='worker')targetId='obStep2w';
+      else targetId='obStep2c';
+    } else {
+      targetId=stepMap[stepName];
+    }
+    if(targetId){const el=document.getElementById(targetId);if(el){el.style.animation='obSlideIn .32s cubic-bezier(0.16,1,0.3,1) both';el.classList.add('active');}}
+    // Scroll ob-inner to top on step change
+    const inner=document.querySelector('.ob-inner');if(inner)inner.scrollTop=0;
+    // Reset continue btn if not on profile step
+    if(stepName!=='profile'){
+      const btn=document.getElementById('obContinueBtn');if(btn)btn.style.display='none';
+    } else if(S.obProfile){
+      // Re-show if profile was already selected
+      const btn=document.getElementById('obContinueBtn');if(btn)btn.style.display='block';
+    }
+  },190);
+  if(stepName==='celebrate'){setTimeout(()=>{populateCelebrateSummary();launchObConfetti();},600);}
 }
 function closeEventDetail(){closeModal('eventDetailModal');}
 function closeInsightDetail(){closeModal('insightDetailModal');}
@@ -1737,15 +1757,20 @@ function showPaymentSuccess(){
 function populateCelebrateSummary(){
   const el=document.getElementById('obCelebrateSummary');if(!el)return;
   const profileLabels={student:'🎓 Étudiant',worker:'💼 Travailleur',custom:'✨ Personnalisé'};
-  const profile=profileLabels[S.obProfile]||'Utilisateur';
+  const profile=profileLabels[S.obProfile]||'🌟 Utilisateur';
   const plan=S.isPro?'🚀 ChronoFlow Pro':'✅ Plan Gratuit';
-  el.innerHTML=`<div class="ob-cel-row"><span>${profile}</span><span>${plan}</span></div>`;
+  el.innerHTML=`
+    <div class="sum-row"><span class="sum-label">Profil</span><span class="sum-val">${profile}</span></div>
+    <div class="sum-row"><span class="sum-label">Plan</span><span class="sum-val">${plan}</span></div>
+  `;
   const goalEl=document.getElementById('obFirstGoal');
-  if(goalEl)goalEl.textContent=S.obProfile==='student'?'révisions':'objectifs';
+  if(goalEl)goalEl.textContent=S.obProfile==='student'?'Génère ton planning de révisions cette semaine':'Génère ton planning de la semaine';
 }
 function launchObConfetti(){
   const canvas=document.getElementById('obConfettiCanvas');if(!canvas)return;
-  canvas.width=canvas.offsetWidth;canvas.height=canvas.offsetHeight;
+  const inner=document.getElementById('obInner');
+  canvas.width=canvas.parentElement.offsetWidth||320;
+  canvas.height=canvas.parentElement.offsetHeight||400;
   const ctx=canvas.getContext('2d');
   const pieces=Array.from({length:80},()=>({
     x:Math.random()*canvas.width,y:Math.random()*-canvas.height,
@@ -1792,12 +1817,12 @@ function renderCpList(query){
   const list=document.getElementById('cpList');if(!list)return;
   const q=query.toLowerCase();
   const filtered=q?CP_COMMANDS.filter(c=>c.label.toLowerCase().includes(q)):CP_COMMANDS;
-  list.innerHTML=filtered.map((c,i)=>`<button class="cp-item${i===0?' active':''}" onclick="cpExecute('${c.action}')" data-idx="${i}"><span class="cp-item-icon">${c.icon}</span><span class="cp-item-label">${c.label}</span></button>`).join('');
+  list.innerHTML=filtered.map((c,i)=>`<button class="cp-item${i===0?' cp-active':''}" onclick="cpExecute('${c.action}')" data-idx="${i}"><span class="cp-item-icon">${c.icon}</span><span class="cp-item-label">${c.label}</span></button>`).join('');
   cpActive=0;
 }
 function highlightCpItem(idx){
   const items=document.querySelectorAll('.cp-item');
-  items.forEach((it,i)=>it.classList.toggle('active',i===idx));
+  items.forEach((it,i)=>it.classList.toggle('cp-active',i===idx));
   items[idx]?.scrollIntoView({block:'nearest'});
 }
 function cpExecute(action){
