@@ -934,8 +934,9 @@ input:focus,select:focus,textarea:focus,button:focus-visible {
 /* ══════════════════════════════════════════════════════════════
    AI PANEL + PLANNING
 ══════════════════════════════════════════════════════════════ */
-.ai-panel { background:var(--s1);border:1px solid var(--b1);border-radius:var(--r-lg);margin-bottom:1.15rem;overflow:hidden;transition:border-color .2s,box-shadow .2s }
-.ai-panel:focus-within { border-color:rgba(255,107,53,.28);box-shadow:0 0 0 3px rgba(255,107,53,.06) }
+.ai-panel { background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.08);border-radius:var(--r-lg);margin-bottom:1.15rem;overflow:hidden;transition:all .22s cubic-bezier(.16,1,.3,1);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px) }
+.ai-panel:focus-within { border-color:rgba(255,107,53,.35);box-shadow:0 0 0 3px rgba(255,107,53,.08),0 8px 28px rgba(0,0,0,.2) }
+[data-theme="light"] .ai-panel { background:var(--s1);border-color:var(--b1);backdrop-filter:none }
 .ai-inner { padding:.85rem }
 .ai-textarea { width:100%;background:transparent;border:none;outline:none;color:var(--t1);font-size:.88rem;resize:none;min-height:50px;line-height:1.6 }
 .ai-textarea::placeholder { color:var(--t3) }
@@ -967,7 +968,8 @@ input:focus,select:focus,textarea:focus,button:focus-visible {
 .day-col:nth-child(3){animation-delay:.12s} .day-col:nth-child(4){animation-delay:.16s}
 .day-col:nth-child(5){animation-delay:.20s} .day-col:nth-child(6){animation-delay:.24s}
 .day-col:nth-child(7){animation-delay:.28s}
-.day-col:hover { border-color:rgba(255,107,53,.3);background:var(--s2);transform:translateY(-3px);box-shadow:0 8px 28px rgba(0,0,0,.3) }
+.day-col:hover { border-color:rgba(255,107,53,.35);background:rgba(255,255,255,.04);transform:translateY(-4px);box-shadow:0 12px 36px rgba(0,0,0,.35) }
+[data-theme="light"] .day-col:hover { background:var(--s2) }
 .day-col.today { border-color:rgba(255,107,53,.35) }
 .day-col.today::before { content:'';display:block;height:2px;background:var(--orange) }
 .day-col-header { padding:.55rem .65rem .35rem;display:flex;justify-content:space-between;align-items:baseline }
@@ -1284,9 +1286,12 @@ select option { background:var(--s2);color:var(--t1) }
 .chat-typing-indicator { display:flex;gap:3px;padding:.55rem .75rem;background:var(--s2);border:1px solid var(--b1);border-radius:var(--r-lg);border-bottom-left-radius:4px;width:fit-content;align-items:center }
 .chat-typing-indicator span { width:5px;height:5px;border-radius:50%;background:var(--t3);animation:typingDot .75s infinite }
 .chat-typing-indicator span:nth-child(2){animation-delay:.14s} .chat-typing-indicator span:nth-child(3){animation-delay:.28s}
-.chat-input-row { padding:.65rem .75rem;border-top:1px solid var(--b1);display:flex;gap:.4rem;flex-shrink:0 }
-.chat-inp { flex:1;background:var(--s2);border:1px solid var(--b1);color:var(--t1);padding:.48rem .72rem;border-radius:999px;font-size:.84rem;outline:none;transition:border-color .18s;font-family:var(--font) }
-.chat-inp:focus { border-color:rgba(255,107,53,.3) }
+.chat-input-row { padding:.7rem .8rem;border-top:1px solid rgba(255,255,255,.07);display:flex;gap:.45rem;flex-shrink:0;background:rgba(255,255,255,.02) }
+[data-theme="light"] .chat-input-row { border-top-color:var(--b1);background:transparent }
+.chat-inp { flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--t1);padding:.52rem .8rem;border-radius:999px;font-size:.84rem;outline:none;transition:all .18s;font-family:var(--font) }
+.chat-inp:focus { border-color:rgba(255,107,53,.4);background:rgba(255,255,255,.08);box-shadow:0 0 0 3px rgba(255,107,53,.08) }
+[data-theme="light"] .chat-inp { background:var(--s2);border-color:var(--b1) }
+[data-theme="light"] .chat-inp:focus { background:var(--s3) }
 .chat-send { width:32px;height:32px;background:var(--orange);border:none;color:#fff;border-radius:50%;font-size:.85rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .18s;cursor:pointer }
 .chat-send:hover { background:var(--orange-d);transform:scale(1.06) }
 .locker-view { flex:1;overflow-y:auto;padding:.65rem }
