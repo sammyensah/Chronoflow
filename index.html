@@ -3,9 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>ChronoFlow</title>
+<meta name="description" content="ChronoFlow — L'assistant planning IA qui gamifie ta productivité. Génère ton planning, suis ton streak, monte en niveau avec Chronos.">
+<meta name="theme-color" content="#FF6B35">
+<meta property="og:title" content="ChronoFlow — Ton assistant planning IA">
+<meta property="og:description" content="Génère ton planning avec l'IA, suis ta progression, débloque des badges et monte en niveau avec Chronos.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://chronoflow-8a492.firebasestorage.app/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+<title>ChronoFlow — Assistant Planning IA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
 <link rel="stylesheet" href="style.css">
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<noscript><div style="position:fixed;inset:0;background:#0f0f13;color:#fff;display:flex;align-items:center;justify-content:center;font-family:sans-serif;text-align:center;padding:2rem"><div><div style="font-size:3rem;margin-bottom:1rem">⚡</div><h1>ChronoFlow nécessite JavaScript</h1><p style="opacity:.6;margin-top:.5rem">Veuillez activer JavaScript pour utiliser ChronoFlow.</p></div></div></noscript>
 </head>
 <body>
 
@@ -46,8 +58,8 @@
     <p class="auth-tagline" id="authTagline">Ton assistant planning intelligent</p>
     <div class="auth-tabs">
       <div class="auth-tab-slider" id="authTabSlider"></div>
-      <button class="auth-tab active" id="tabLogin" onclick="switchAuthTab('login')" id="tabLoginLabel">Se connecter</button>
-      <button class="auth-tab" id="tabRegister" onclick="switchAuthTab('register')" id="tabRegisterLabel">S'inscrire</button>
+      <button class="auth-tab active" id="tabLogin" onclick="switchAuthTab('login')">Se connecter</button>
+      <button class="auth-tab" id="tabRegister" onclick="switchAuthTab('register')">S'inscrire</button>
     </div>
     <div class="auth-forms-outer">
       <div class="auth-form active" id="loginForm">
@@ -57,16 +69,28 @@
             <input type="password" id="loginPassword" class="auth-input" placeholder="••••••••" onkeydown="if(event.key==='Enter')handleLogin()">
             <button class="pw-toggle" type="button" onclick="togglePw('loginPassword',this)" aria-label="Voir mot de passe">👁</button>
           </div></div>
-        <button class="btn-auth" onclick="handleLogin()" id="btnLogin" onkeydown="if(event.key==='Enter')handleLogin()">Se connecter →</button>
+        <button class="btn-auth" onclick="handleLogin()" id="btnLogin">Se connecter →</button>
+        <div style="text-align:center;margin-top:.4rem">
+          <button type="button" class="forgot-pwd-link" onclick="openForgotPassword()" id="forgotPwdLink">Mot de passe oublié ?</button>
+        </div>
       </div>
       <div class="auth-form" id="registerForm" style="display:none">
         <div class="form-group"><label id="lblName">Prénom</label><input type="text" id="regName" class="auth-input" placeholder="Marie"></div>
         <div class="form-group"><label id="lblEmailR">Email</label><input type="email" id="regEmail" class="auth-input" placeholder="toi@exemple.com"></div>
         <div class="form-group"><label id="lblPasswordR">Mot de passe</label>
           <div class="pw-wrap">
-            <input type="password" id="regPassword" class="auth-input" placeholder="••••••••" onkeydown="if(event.key==='Enter')handleRegister()">
+            <input type="password" id="regPassword" class="auth-input" placeholder="••••••••">
             <button class="pw-toggle" type="button" onclick="togglePw('regPassword',this)" aria-label="Voir mot de passe">👁</button>
           </div></div>
+        <div class="form-group"><label id="lblPasswordConfirm">Confirmer le mot de passe</label>
+          <div class="pw-wrap">
+            <input type="password" id="regPasswordConfirm" class="auth-input" placeholder="••••••••" onkeydown="if(event.key==='Enter')handleRegister()">
+            <button class="pw-toggle" type="button" onclick="togglePw('regPasswordConfirm',this)" aria-label="Voir mot de passe">👁</button>
+          </div></div>
+        <div id="pwdStrengthWrap" style="margin-top:-.4rem;margin-bottom:.2rem;display:none">
+          <div id="pwdStrengthBar" style="height:3px;border-radius:999px;background:var(--s3);overflow:hidden"><div id="pwdStrengthFill" style="height:100%;width:0%;border-radius:999px;transition:all .3s"></div></div>
+          <span id="pwdStrengthLabel" style="font-size:.68rem;color:var(--t3);font-weight:600"></span>
+        </div>
         <button class="btn-auth" onclick="handleRegister()" id="btnRegister">Créer mon compte →</button>
       </div>
     </div>
@@ -209,26 +233,31 @@
       <!-- Nav -->
       <nav class="sidebar-nav">
         <div class="nav-section">App</div>
+        <button class="nav-btn active" data-view="planning"  onclick="switchView('planning')"> <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="4" rx="1"/><path d="M7 2H5a2 2 0 00-2 2v16a2 2 0 002 2h14a2 2 0 002-2V4a2 2 0 00-2-2h-2"/><path d="M9 12h6M9 16h4"/></svg></span><span class="nav-label" data-i18n="nav_planning">Planning</span></button>
+        <button class="nav-btn"        data-view="calendar"  onclick="switchView('calendar')"> <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span><span class="nav-label" data-i18n="nav_calendar">Calendrier</span></button>
+        <button class="nav-btn"        data-view="insights"  onclick="switchView('insights')"> <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10M12 20V4M6 20v-6"/></svg></span><span class="nav-label" data-i18n="nav_insights">Insights</span></button>
+        <button class="nav-btn"        data-view="templates" onclick="switchView('templates')"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></span><span class="nav-label" data-i18n="nav_templates">Templates</span></button>
         <button class="nav-btn"         data-view="dashboard" onclick="switchView('dashboard')"><span class="nav-icon">🏠</span><span class="nav-label" data-i18n="nav_dashboard">Dashboard</span></button>
         <button class="nav-btn active" data-view="planning"  onclick="switchView('planning')"> <span class="nav-icon">📋</span><span class="nav-label" data-i18n="nav_planning">Planning</span></button>
         <button class="nav-btn"        data-view="calendar"  onclick="switchView('calendar')"> <span class="nav-icon">📅</span><span class="nav-label" data-i18n="nav_calendar">Calendrier</span></button>
         <button class="nav-btn"        data-view="insights"  onclick="switchView('insights')"> <span class="nav-icon">📊</span><span class="nav-label" data-i18n="nav_insights">Insights</span></button>
         <button class="nav-btn"        data-view="templates" onclick="switchView('templates')"><span class="nav-icon">📁</span><span class="nav-label" data-i18n="nav_templates">Templates</span></button>
         <div class="nav-section">Profil</div>
-        <button class="nav-btn"        data-view="badges"    onclick="switchView('badges')">  <span class="nav-icon">🏆</span><span class="nav-label" data-i18n="nav_badges">Badges</span></button>
-        <button class="nav-btn"        data-view="profile"   onclick="switchView('profile')"> <span class="nav-icon">👤</span><span class="nav-label" data-i18n="profile">Profil</span></button>
-        <button class="nav-btn"        data-view="settings"  onclick="switchView('settings')"><span class="nav-icon">⚙️</span><span class="nav-label" data-i18n="nav_settings">Paramètres</span></button>
+        <button class="nav-btn"        data-view="badges"    onclick="switchView('badges')">  <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg></span><span class="nav-label" data-i18n="nav_badges">Badges</span></button>
+        <button class="nav-btn"        data-view="profile"   onclick="switchView('profile')"> <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 10-16 0"/></svg></span><span class="nav-label" data-i18n="profile">Profil</span></button>
+        <button class="nav-btn"        data-view="settings"  onclick="switchView('settings')"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span><span class="nav-label" data-i18n="nav_settings">Paramètres</span></button>
       </nav>
 
       <!-- Streak bas de sidebar -->
       <div class="sb-streak">
         <span class="sb-streak-fire">🔥</span>
         <span class="sb-streak-count" id="sbStreakCount">0</span>
-        <span class="sb-streak-lbl">jour streak</span>
+        <span class="sb-streak-lbl" data-i18n="sb_streak_label">jour streak</span>
       </div>
 
     </aside>
     <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()"></div>
+    <div class="sidebar-hover-zone" id="sidebarHoverZone"></div>
 
     <!-- MAIN CONTENT -->
     <main class="content" id="mainContent">
@@ -308,7 +337,7 @@
       <!-- AI PANEL -->
       <div class="ai-panel" id="aiPanel">
         <div class="ai-inner">
-          <textarea id="aiInput" class="ai-textarea" placeholder="Dis-moi ce que tu veux planifier...&#10;Ex : J'ai un exam de maths dans 3 jours, aide-moi à réviser" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();generate();}"></textarea>
+          <textarea id="aiInput" class="ai-textarea" data-i18n-placeholder="ai_placeholder" placeholder="Dis-moi ce que tu veux planifier..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();generate();}"></textarea>
           <div class="ai-actions">
             <div class="quick-tags">
               <button class="tag" data-txt="Je suis fatigué cette semaine" onclick="addTag(this)">😴 Fatigué</button>
@@ -820,11 +849,37 @@
 <!-- Loading -->
 <div class="loading" id="loading"><div class="ld-inner"><div class="ld-ring"></div><p id="loadingTxt">Chronos analyse...</p></div></div>
 
+<!-- Forgot Password Modal -->
+<div class="modal" id="forgotPwdModal" onclick="if(event.target===this)closeModal('forgotPwdModal')">
+  <div class="modal-box">
+    <h3 id="forgotPwdTitle">🔐 Mot de passe oublié</h3>
+    <p class="txt2" id="forgotPwdDesc">Saisis ton email pour recevoir un lien de réinitialisation.</p>
+    <div class="form-group" style="margin-top:.85rem"><label id="forgotPwdEmailLabel">Email</label><input type="email" id="forgotPwdEmail" class="auth-input" placeholder="toi@exemple.com" onkeydown="if(event.key==='Enter')sendForgotPwd()"></div>
+    <div id="forgotPwdMsg" style="font-size:.82rem;margin-top:.5rem;display:none"></div>
+    <div class="modal-btns">
+      <button class="btn-secondary" onclick="closeModal('forgotPwdModal')" data-i18n="cancel">Annuler</button>
+      <button class="btn-primary" onclick="sendForgotPwd()" id="forgotPwdBtn">Envoyer le lien</button>
+    </div>
+  </div>
+</div>
+
+<!-- Custom Confirm Modal (replaces native confirm()) -->
+<div class="modal" id="customConfirmModal">
+  <div class="modal-box">
+    <h3 id="customConfirmTitle">Confirmer</h3>
+    <p class="txt2" id="customConfirmMsg"></p>
+    <div class="modal-btns">
+      <button class="btn-secondary" id="customConfirmNo" onclick="closeModal('customConfirmModal')">Annuler</button>
+      <button class="btn-danger" id="customConfirmYes">Confirmer</button>
+    </div>
+  </div>
+</div>
+
 <!-- Firebase + App en un seul module ES -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAnalytics, logEvent } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updatePassword, EmailAuthProvider, reauthenticateWithCredential, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, addDoc, writeBatch, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -887,6 +942,10 @@ async function fbSaveUser(uid,data) {
   await setDoc(doc(db,"users",uid), safeData, {merge:true});
 }
 
+async function fbResetPassword(email) {
+  await sendPasswordResetEmail(auth, email);
+}
+
 async function fbDeleteAccount(uid) {
   const evSnap = await getDocs(collection(db,"users",uid,"events"));
   const batch = writeBatch(db);
@@ -924,7 +983,7 @@ async function fbGetTodos(uid) {
   return snap.data().todos || [];
 }
 
-window.FB = { fbRegister, fbLogin, fbLogout, fbOnAuthChange, fbChangePassword, fbGetUser, fbSaveUser, fbDeleteAccount, fbGetEvents, fbAddEvent, fbUpdateEvent, fbGetTodos, fbLog, auth, db };
+window.FB = { fbRegister, fbLogin, fbLogout, fbOnAuthChange, fbChangePassword, fbResetPassword, fbGetUser, fbSaveUser, fbDeleteAccount, fbGetEvents, fbAddEvent, fbUpdateEvent, fbGetTodos, fbLog, auth, db };
 // Disable reCAPTCHA Enterprise enforcement
 try {
   auth.tenantId = null;
