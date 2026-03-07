@@ -881,7 +881,6 @@ function initApp(){
   const regPwd=document.getElementById('regPassword');
   if(regPwd)regPwd.addEventListener('input',()=>checkPasswordStrength(regPwd.value));
 
-  window.FB.fbOnAuthChange(async (uid) => {
   const phrases=['Initialisation de Chronos...','Chargement du planning...','Synchronisation Firebase...','Presque prêt...'];
   let pi=0;const phraseEl=document.getElementById('lsPhrase');
   const phraseIv=setInterval(()=>{if(phraseEl&&pi<phrases.length)phraseEl.textContent=phrases[pi++];else clearInterval(phraseIv);},500);
