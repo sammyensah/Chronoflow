@@ -901,9 +901,9 @@ function initApp(){
           localStorage.setItem('cf_lang',S.lang);localStorage.setItem('cf_equipped',S.equippedItem);localStorage.setItem('cf_theme',S.theme);localStorage.setItem('cf_sound',S.soundEnabled);
           launchWithTransition();
         }
-      }catch(e){console.error(e);document.getElementById('loadingScreen').style.display='none';document.getElementById('authScreen').style.display='flex';}
+      }catch(e){console.error('Erreur chargement données:', e);document.getElementById('authScreen').style.display='flex';}
     }else{
-      document.getElementById('loadingScreen').style.display='none';
+      hideBrandedLoader();
       const hasLang=localStorage.getItem('cf_lang');
       if(!hasLang)document.getElementById('langScreen').style.display='flex';
       else document.getElementById('authScreen').style.display='flex';
