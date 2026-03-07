@@ -62,26 +62,59 @@
       <button class="auth-tab" id="tabRegister" onclick="switchAuthTab('register')">S'inscrire</button>
     </div>
     <div class="auth-forms-outer">
-      <div class="auth-form active" id="loginForm">
-        <div class="form-group"><label id="lblEmail">Email</label><input type="email" id="loginEmail" class="auth-input" placeholder="toi@exemple.com"></div>
-        <div class="form-group"><label id="lblPassword">Mot de passe</label>
-          <div class="pw-wrap">
-            <input type="password" id="loginPassword" class="auth-input" placeholder="••••••••" onkeydown="if(event.key==='Enter')handleLogin()">
-            <button class="pw-toggle" type="button" onclick="togglePw('loginPassword',this)" aria-label="Voir mot de passe">👁</button>
-          </div></div>
-        <button class="btn-auth" onclick="handleLogin()" id="btnLogin">Se connecter →</button>
+ <div class="auth-form active" id="loginForm">
+        <form onsubmit="event.preventDefault(); handleLogin();">
+          <div class="form-group">
+            <label id="lblEmail">Email</label>
+            <input type="email" id="loginEmail" class="auth-input" placeholder="toi@exemple.com" required autocomplete="username">
+          </div>
+          <div class="form-group">
+            <label id="lblPassword">Mot de passe</label>
+            <div class="pw-wrap">
+              <input type="password" id="loginPassword" class="auth-input" placeholder="••••••••" required autocomplete="current-password">
+              <button class="pw-toggle" type="button" onclick="togglePw('loginPassword',this)">👁</button>
+            </div>
+          </div>
+          <button class="btn-auth" type="submit" id="btnLogin">Se connecter →</button>
+        </form>
         <div style="text-align:center;margin-top:.4rem">
           <button type="button" class="forgot-pwd-link" onclick="openForgotPassword()" id="forgotPwdLink">Mot de passe oublié ?</button>
         </div>
       </div>
+
       <div class="auth-form" id="registerForm" style="display:none">
-        <div class="form-group"><label id="lblName">Prénom</label><input type="text" id="regName" class="auth-input" placeholder="Marie"></div>
-        <div class="form-group"><label id="lblEmailR">Email</label><input type="email" id="regEmail" class="auth-input" placeholder="toi@exemple.com"></div>
-        <div class="form-group"><label id="lblPasswordR">Mot de passe</label>
-          <div class="pw-wrap">
-            <input type="password" id="regPassword" class="auth-input" placeholder="••••••••">
-            <button class="pw-toggle" type="button" onclick="togglePw('regPassword',this)" aria-label="Voir mot de passe">👁</button>
-          </div></div>
+        <form onsubmit="event.preventDefault(); handleRegister();">
+          <div class="form-group">
+            <label id="lblName">Prénom</label>
+            <input type="text" id="regName" class="auth-input" placeholder="Marie" required autocomplete="given-name">
+          </div>
+          <div class="form-group">
+            <label id="lblEmailR">Email</label>
+            <input type="email" id="regEmail" class="auth-input" placeholder="toi@exemple.com" required autocomplete="email">
+          </div>
+          <div class="form-group">
+            <label id="lblPasswordR">Mot de passe</label>
+            <div class="pw-wrap">
+              <input type="password" id="regPassword" class="auth-input" placeholder="••••••••" required autocomplete="new-password">
+              <button class="pw-toggle" type="button" onclick="togglePw('regPassword',this)">👁</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label id="lblPasswordConfirm">Confirmer le mot de passe</label>
+            <div class="pw-wrap">
+              <input type="password" id="regPasswordConfirm" class="auth-input" placeholder="••••••••" required autocomplete="new-password">
+              <button class="pw-toggle" type="button" onclick="togglePw('regPasswordConfirm',this)">👁</button>
+            </div>
+          </div>
+          <div id="pwdStrengthWrap" style="margin-top:-.4rem;margin-bottom:.2rem;display:none">
+            <div id="pwdStrengthBar" style="height:3px;border-radius:999px;background:var(--s3);overflow:hidden">
+              <div id="pwdStrengthFill" style="height:100%;width:0%;border-radius:999px;transition:all .3s"></div>
+            </div>
+            <span id="pwdStrengthLabel" style="font-size:.68rem;color:var(--t3);font-weight:600"></span>
+          </div>
+          <button class="btn-auth" type="submit" id="btnRegister">Créer mon compte →</button>
+        </form>
+      </div>
         <div class="form-group"><label id="lblPasswordConfirm">Confirmer le mot de passe</label>
           <div class="pw-wrap">
             <input type="password" id="regPasswordConfirm" class="auth-input" placeholder="••••••••" onkeydown="if(event.key==='Enter')handleRegister()">
