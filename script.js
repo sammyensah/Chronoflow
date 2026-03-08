@@ -1361,7 +1361,8 @@ function openDayDetail(dateStr){
   const evs=S.events.filter(e=>new Date(e.date).toDateString()===date.toDateString()).sort((a,b)=>a.startTime.localeCompare(b.startTime));
   const tplEvs=getAllEventsForWeek(getWeekStart(date)).filter(e=>e.tpl&&new Date(e.date).toDateString()===date.toDateString());
   const allEvs=[...tplEvs,...evs];const pl={critical:'🔴',high:'🟠',medium:'🟡',low:'🟢'};
-  const dayNames=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];const months=['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+  const dayNames=[T('day_sunday'),T('day_monday'),T('day_tuesday'),T('day_wednesday'),T('day_thursday'),T('day_friday'),T('day_saturday')];
+  const months=[T('month_jan'),T('month_feb'),T('month_mar'),T('month_apr'),T('month_may'),T('month_jun'),T('month_jul'),T('month_aug'),T('month_sep'),T('month_oct'),T('month_nov'),T('month_dec')];
   const title=dayNames[date.getDay()]+' '+date.getDate()+' '+months[date.getMonth()];
   let html='<div class="mf-header"><h3>📅 '+title+'</h3><button class="btn-icon" onclick="closeDayDetail()" style="font-size:1.2rem">✕</button></div>';
   if(allEvs.length===0){html+='<div class="empty-state"><div class="es-icon" style="font-size:2rem;animation:esFloat 3s ease-in-out infinite">🌟</div><h3>Journée libre !</h3><p class="txt2">Aucun événement prévu.</p></div>';}
@@ -1729,7 +1730,16 @@ function changePriority(p){const ev=S.events.find(e=>String(e.id)===String(S.cur
 function hideBrandedLoader(){const el=document.getElementById('brandedLoader');if(el){el.classList.add('bl-fade-out');setTimeout(()=>el.remove(),450);}}
 function customConfirm(title,msg,onYes){const m=document.getElementById('customConfirmModal');if(!m)return;const t=document.getElementById('customConfirmTitle');if(t)t.textContent=title;const d=document.getElementById('customConfirmMsg');if(d)d.textContent=msg;const yes=document.getElementById('customConfirmYes');const no=document.getElementById('customConfirmNo');if(yes){yes.textContent=T('confirm_yes');const y2=yes.cloneNode(true);yes.parentNode.replaceChild(y2,yes);y2.onclick=()=>{m.classList.remove('show');onYes&&onYes();};}if(no){no.textContent=T('confirm_no');const n2=no.cloneNode(true);no.parentNode.replaceChild(n2,no);n2.onclick=()=>m.classList.remove('show');}m.classList.add('show');}
 function checkPasswordStrength(pwd){let score=0;if(pwd.length>=8)score++;if(pwd.length>=12)score++;if(/[A-Z]/.test(pwd))score++;if(/[0-9]/.test(pwd))score++;if(/[^A-Za-z0-9]/.test(pwd))score++;const wrap=document.getElementById('pwdStrengthWrap');const fill=document.getElementById('pwdStrengthFill');const label=document.getElementById('pwdStrengthLabel');if(!wrap||!fill||!label)return;if(!pwd){wrap.style.display='none';return;}wrap.style.display='block';const pct=[0,25,50,75,100][Math.min(score,4)];const colors=['#ef4444','#f97316','#eab308','#22c55e'];const keys=['pwd_weak','pwd_medium','pwd_strong','pwd_very_strong'];const idx=Math.max(0,Math.min(score-1,3));fill.style.width=pct+'%';fill.style.background=colors[idx];label.textContent=T(keys[idx]);}
-function toast(msg){const el=document.getElementById('toast');const me=document.getElementById('toastMsg');if(!el||!me)return;me.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),3500);}
+function toast(msg,type=''){
+  const el=document.getElementById('toast');const me=document.getElementById('toastMsg');if(!el||!me)return;
+  me.textContent=msg;
+  el.dataset.type=type;
+  el.classList.remove('show');
+  void el.offsetWidth; // force reflow for re-trigger
+  el.classList.add('show');
+  clearTimeout(el._toastTimer);
+  el._toastTimer=setTimeout(()=>el.classList.remove('show'),3500);
+}
 function closeModal(id){document.getElementById(id)?.classList.remove('show');}
 function togglePw(inputId,btn){const inp=document.getElementById(inputId);if(!inp)return;if(inp.type==='password'){inp.type='text';btn.textContent='🙈';}else{inp.type='password';btn.textContent='👁';}}
 function cfNum(id,step,min,max){const el=document.getElementById(id);if(!el)return;let v=parseFloat(el.value)||0;v+=step;v=Math.max(min,Math.min(max,Math.round(v*100)/100));el.value=v;}
