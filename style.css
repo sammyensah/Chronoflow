@@ -3385,3 +3385,377 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .ob-welcome-headline { font-size: 1.5rem; }
   .ob-plan-badge { font-size: .55rem; }
 }
+
+/* ══════════════════════════════════════════════════════════════
+   PREMIUM REDESIGN v3 — More air, larger elements, premium feel
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── Global spacing upgrade ── */
+:root {
+  --sidebar-w: 260px;
+  --header-h: 58px;
+}
+
+/* ── Header: slightly taller, more refined ── */
+.header {
+  height: var(--header-h);
+  padding: 0 1.25rem 0 1rem;
+  gap: 1rem;
+}
+.header-center {
+  font-size: 1.08rem;
+  letter-spacing: -.035em;
+}
+
+/* ── Sidebar: wider, more breathing room ── */
+.sidebar {
+  width: var(--sidebar-w);
+}
+.sidebar-logo {
+  padding: 1.1rem 1.1rem .85rem;
+}
+.sidebar-section-title {
+  font-size: .6rem;
+  padding: 1.1rem 1rem .35rem;
+  letter-spacing: .1em;
+}
+.sidebar-nav { padding: .55rem 0; }
+.sidebar-item {
+  padding: .62rem 1rem;
+  font-size: .88rem;
+  border-radius: 10px;
+  margin: 1px 8px;
+}
+.sidebar-item .si-icon {
+  font-size: 1.05rem;
+  width: 26px;
+}
+.sidebar-footer { padding: .9rem .9rem 1.1rem; gap: .45rem; }
+
+/* ── Views: generous padding, breathable layout ── */
+.view { padding: 2.2rem 2.6rem; }
+.view-header { margin-bottom: 1.85rem; gap: 1rem; }
+.view-header h2 {
+  font-size: 1.75rem;
+  font-weight: 900;
+  letter-spacing: -.04em;
+}
+
+/* ── Planning grid: larger columns, proper spacing ── */
+.planning-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1.1rem;
+  margin-bottom: 1.75rem;
+}
+.day-col {
+  min-height: 230px;
+  border-radius: 14px;
+  transition: all .28s cubic-bezier(.16,1,.3,1);
+}
+.day-col:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 16px 44px rgba(0,0,0,.38);
+}
+.day-col-header {
+  padding: .7rem .8rem .45rem;
+}
+.day-col-name {
+  font-size: .65rem;
+  letter-spacing: .09em;
+  font-weight: 800;
+}
+.day-col-num {
+  font-size: 1.15rem;
+  font-weight: 900;
+}
+.day-col-body { padding: .15rem .65rem .65rem; }
+.day-col.today::before { height: 3px; }
+
+/* ── Event cards: more spacious, better readability ── */
+.event-card {
+  padding: .48rem .62rem;
+  border-radius: 9px;
+  margin-bottom: .35rem;
+  border-left-width: 3px;
+}
+.event-card .ec-title { font-size: .77rem; font-weight: 700; }
+.event-card .ec-time { font-size: .68rem; }
+
+/* ── Week navigation: better spacing ── */
+.week-nav { gap: .65rem; font-size: .84rem; }
+.week-nav button { padding: .35rem .65rem; border-radius: 8px; }
+
+/* ── AI Panel: prominent, premium look ── */
+.ai-panel {
+  border-radius: 16px;
+  margin-bottom: 1.6rem;
+  border: 1px solid rgba(255,107,53,.18);
+  background: rgba(255,255,255,.03);
+  box-shadow: 0 4px 20px rgba(0,0,0,.12);
+  transition: all .25s cubic-bezier(.16,1,.3,1);
+}
+.ai-panel:focus-within {
+  border-color: rgba(255,107,53,.42);
+  box-shadow: 0 0 0 3px rgba(255,107,53,.1), 0 8px 32px rgba(0,0,0,.22);
+  transform: translateY(-1px);
+}
+[data-theme="light"] .ai-panel {
+  background: #fff;
+  border-color: rgba(255,107,53,.15);
+  box-shadow: 0 2px 12px rgba(0,0,0,.06);
+}
+.ai-panel-header { padding: .85rem 1.1rem .55rem; }
+.ai-panel-title { font-size: .88rem; font-weight: 700; }
+.ai-panel-body { padding: 0 1.1rem; }
+.ai-textarea {
+  font-size: .93rem;
+  min-height: 72px;
+  line-height: 1.7;
+}
+.ai-panel-footer { padding: .65rem 1.1rem .85rem; }
+
+/* ── Stat cards: larger, premium ── */
+.stat-card {
+  padding: 1rem .9rem;
+  border-radius: 14px;
+  gap: .35rem;
+  min-height: 90px;
+  justify-content: center;
+  transition: all .25s cubic-bezier(.16,1,.3,1);
+}
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0,0,0,.22);
+}
+.sv {
+  font-size: 1.65rem;
+  font-weight: 900;
+  letter-spacing: -.04em;
+  line-height: 1;
+}
+.sl {
+  font-size: .7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--t3);
+}
+.stat-card.sc-blue   { background: rgba(59,130,246,.1);  border-color: rgba(59,130,246,.25) }
+.stat-card.sc-orange { background: rgba(255,107,53,.1);  border-color: rgba(255,107,53,.25) }
+.stat-card.sc-purple { background: rgba(168,85,247,.1);  border-color: rgba(168,85,247,.25) }
+.stat-card.sc-gold   { background: rgba(255,215,0,.1);   border-color: rgba(255,215,0,.25) }
+
+/* ── Insights grid: larger cards ── */
+.insights-grid { gap: .8rem; }
+.insight-card { padding: 1.1rem 1rem; border-radius: 14px; }
+.insight-card h3 { font-size: .78rem; }
+
+/* ── Badge grid: more spacious ── */
+.badge-grid { gap: .75rem; }
+.badge-card { padding: 1.15rem .9rem; border-radius: 16px; }
+
+/* ── Calendar cells: taller, more readable ── */
+.cal-cell { min-height: 88px; padding: .6rem; border-radius: 10px; }
+
+/* ── Chronos chat modal: fix gray background bug → deep purple/indigo tint ── */
+.chronos-chat-modal {
+  background: rgba(8,6,20,.8) !important;
+  backdrop-filter: blur(8px) saturate(1.4) !important;
+  -webkit-backdrop-filter: blur(8px) saturate(1.4) !important;
+}
+
+/* ── Tutorial overlay: fix gray → deep indigo tint ── */
+.tut-overlay {
+  background: rgba(8,6,20,.88) !important;
+  backdrop-filter: blur(4px) saturate(1.2) !important;
+  -webkit-backdrop-filter: blur(4px) saturate(1.2) !important;
+}
+
+/* ── Section headers and labels ── */
+.section-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -.025em;
+  margin-bottom: 1rem;
+}
+
+/* ── Quick add button (planning view) ── */
+.day-col-add-btn {
+  width: 100%;
+  padding: .45rem;
+  border-radius: 8px;
+  font-size: .75rem;
+  margin-top: .25rem;
+  opacity: 0;
+  transition: opacity .2s;
+}
+.day-col:hover .day-col-add-btn { opacity: 1; }
+
+/* ── Cards and panels throughout app ── */
+.card, .panel {
+  border-radius: 16px;
+  padding: 1.25rem 1.4rem;
+}
+
+/* ── XP bar row ── */
+.xp-bar-row { gap: .85rem; }
+
+/* ── Mascot and speech bubble: keep well positioned with new sidebar width ── */
+.mascot {
+  left: calc(var(--sidebar-w) + 1.25rem);
+  bottom: 1.6rem;
+}
+.chronos-speech {
+  left: calc(var(--sidebar-w) + 1.25rem);
+  bottom: calc(1.6rem + 95px);
+}
+.chronos-chat-modal {
+  padding: 0 0 5.2rem calc(var(--sidebar-w) + 1.3rem);
+}
+[dir="rtl"] .chronos-chat-modal { padding: 0 calc(var(--sidebar-w) + 1.3rem) 5.2rem 0; }
+[dir="rtl"] .mascot { left: auto; right: calc(var(--sidebar-w) + 1.25rem); }
+[dir="rtl"] .chronos-speech { left: auto; right: calc(var(--sidebar-w) + 1.25rem); }
+
+/* ── Profile view improvements ── */
+.profile-header { padding: 1.6rem; gap: 1.25rem; }
+.profile-avatar { width: 70px; height: 70px; font-size: 1.6rem; }
+
+/* ── Insights stat row ── */
+.ins-stat-row { gap: .85rem; margin-bottom: 1.6rem; }
+
+/* ── Review modal ── */
+.weekly-review-modal { border-radius: 20px; }
+
+/* ── Session / Pomodoro screen ── */
+.session-time-display { text-shadow: 0 0 60px rgba(255,107,53,.5), 0 0 120px rgba(255,107,53,.2); }
+
+/* ── Premium hover effects on nav items ── */
+.sidebar-item { position: relative; overflow: hidden; }
+.sidebar-item::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(255,107,53,.06) 0%, transparent 100%);
+  opacity: 0;
+  transition: opacity .2s;
+}
+.sidebar-item.active::before,
+.sidebar-item:hover::before { opacity: 1; }
+
+/* ── Smooth entrance for stats dashboard ── */
+.stats-grid .stat-card:nth-child(1) { animation-delay: .04s }
+.stats-grid .stat-card:nth-child(2) { animation-delay: .08s }
+.stats-grid .stat-card:nth-child(3) { animation-delay: .12s }
+.stats-grid .stat-card:nth-child(4) { animation-delay: .16s }
+
+/* ── Generate button: premium gradient ── */
+.ai-gen-btn, [id*="genBtn"], .btn-gen {
+  background: linear-gradient(135deg, var(--orange) 0%, #ff4820 100%);
+  border-radius: 12px;
+  padding: .72rem 1.4rem;
+  font-weight: 800;
+  font-size: .9rem;
+  letter-spacing: -.01em;
+  transition: all .22s cubic-bezier(.16,1,.3,1);
+  box-shadow: 0 4px 16px rgba(255,107,53,.35);
+}
+.ai-gen-btn:hover, [id*="genBtn"]:hover, .btn-gen:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(255,107,53,.45);
+}
+
+/* ── Responsive fixes for new spacing ── */
+@media (max-width: 1280px) {
+  .view { padding: 1.8rem 2rem; }
+  .planning-grid { gap: .9rem; }
+}
+@media (max-width: 1024px) {
+  :root { --sidebar-w: 248px; }
+  .view { padding: 1.5rem 1.6rem; }
+  .planning-grid { gap: .75rem; }
+  .day-col { min-height: 190px; }
+}
+@media (max-width: 768px) {
+  .view { padding: 1.2rem 1.2rem; }
+  .view-header h2 { font-size: 1.45rem; }
+  .planning-grid { gap: .6rem; }
+  .day-col { min-height: 150px; }
+  .sv { font-size: 1.4rem; }
+}
+
+
+/* ── Generate button: premium upgrade ── */
+.btn-generate {
+  padding: .65rem 1.25rem;
+  font-size: .88rem;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--orange) 0%, #e8420e 100%);
+  box-shadow: 0 4px 18px rgba(255,107,53,.38);
+  font-weight: 800;
+  gap: .45rem;
+  letter-spacing: -.01em;
+}
+.btn-generate:hover {
+  box-shadow: 0 8px 28px rgba(255,107,53,.48);
+  transform: translateY(-2px);
+  background: linear-gradient(135deg, #ff7a45 0%, var(--orange) 100%);
+}
+
+/* ── Dash generate button ── */
+.dash-generate-btn {
+  border-radius: 12px;
+  font-weight: 800;
+  padding: .72rem 1.4rem;
+  letter-spacing: -.01em;
+}
+
+/* ── Improved input focus rings ── */
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  box-shadow: 0 0 0 2.5px rgba(255,107,53,.3);
+  border-color: rgba(255,107,53,.45) !important;
+}
+
+/* ── Card-level hover glow ── */
+.day-col.today {
+  border-color: rgba(255,107,53,.5);
+  box-shadow: 0 0 0 1px rgba(255,107,53,.2), inset 0 0 20px rgba(255,107,53,.03);
+}
+.day-col.today::before { height: 3px; border-radius: 0 0 3px 3px; }
+
+/* ── Planning view empty state ── */
+.day-col-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem .5rem;
+  color: var(--t3);
+  font-size: .72rem;
+  font-weight: 600;
+  opacity: .55;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+/* ── Level badge in sidebar ── */
+.sidebar-level-badge {
+  background: linear-gradient(135deg, var(--orange), #c23b00);
+  border-radius: 20px;
+  padding: .2rem .55rem;
+  font-size: .62rem;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: .04em;
+  box-shadow: 0 2px 8px rgba(255,107,53,.35);
+}
+
+
+/* ── Planning week-grid fix (actual grid container rendered by JS) ── */
+.week-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(135px, 1fr));
+  gap: 1.1rem;
+  min-width: 760px;
+}
+

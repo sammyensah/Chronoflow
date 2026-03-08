@@ -1305,7 +1305,7 @@ function updatePlanning(){
   updateWeekLabel();
   const grid=document.getElementById('planningGrid');
   const today=new Date();const ws=new Date(today);ws.setDate(today.getDate()-today.getDay()+1+S.weekOffset*7);
-  const dayNames=['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
+  const dayNames=[T('day_s_mon'),T('day_s_tue'),T('day_s_wed'),T('day_s_thu'),T('day_s_fri'),T('day_s_sat'),T('day_s_sun')];
   const allEvs=getAllEventsForWeek(ws);
   let html='<div class="week-grid">';
   for(let i=0;i<7;i++){
